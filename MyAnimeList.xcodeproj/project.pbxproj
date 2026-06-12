@@ -1,0 +1,791 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		9F1BC6CA2E7F024E00221B77 /* AlertToast in Frameworks */ = {isa = PBXBuildFile; productRef = 9F1BC6C92E7F024E00221B77 /* AlertToast */; };
+		9F1BC6CD2E7F028100221B77 /* AlertToast in Frameworks */ = {isa = PBXBuildFile; productRef = 9F1BC6CC2E7F028100221B77 /* AlertToast */; };
+		9F4164E12FCA044600934B66 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9F4164E02FCA044600934B66 /* StoreKit.framework */; };
+		9F6845BF2E7E4CFE007FC6CF /* AlertToast in Frameworks */ = {isa = PBXBuildFile; productRef = 9F6845BE2E7E4CFE007FC6CF /* AlertToast */; };
+		9F720B892E584AD400C23949 /* ZIPFoundation in Frameworks */ = {isa = PBXBuildFile; productRef = 9F720B882E584AD400C23949 /* ZIPFoundation */; };
+		9F8D665F2D05609200CF355D /* TMDb in Frameworks */ = {isa = PBXBuildFile; productRef = 9F8D665E2D05609200CF355D /* TMDb */; };
+		9F93FC222DE202E10071FB56 /* DataProvider in Frameworks */ = {isa = PBXBuildFile; productRef = 9F93FC212DE202E10071FB56 /* DataProvider */; };
+		9FB6FEF12D8FCE5A00B423D0 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 9FB6FEF02D8FCE5A00B423D0 /* Kingfisher */; };
+		9FE2B51D2E0FE91900E4898C /* SHContainers in Frameworks */ = {isa = PBXBuildFile; productRef = 9FE2B51C2E0FE91900E4898C /* SHContainers */; };
+		9FE2B5202E0FE94300E4898C /* SHContainers in Frameworks */ = {isa = PBXBuildFile; productRef = 9FE2B51F2E0FE94300E4898C /* SHContainers */; };
+		9FE2B5252E0FEE4A00E4898C /* SHContainers in Frameworks */ = {isa = PBXBuildFile; productRef = 9FE2B5242E0FEE4A00E4898C /* SHContainers */; };
+		9FFCB76E2EC896520088FF36 /* Collections in Frameworks */ = {isa = PBXBuildFile; productRef = 9FFCB76D2EC896520088FF36 /* Collections */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		9F8D66412D055FF000CF355D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9F8D66282D055FEF00CF355D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9F8D662F2D055FEF00CF355D;
+			remoteInfo = MyAnimeList;
+		};
+		9F8D664B2D055FF000CF355D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9F8D66282D055FEF00CF355D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9F8D662F2D055FEF00CF355D;
+			remoteInfo = MyAnimeList;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		9F4164E02FCA044600934B66 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
+		9F8D66302D055FEF00CF355D /* MyAnimeList.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MyAnimeList.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		9F8D66402D055FF000CF355D /* MyAnimeListTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MyAnimeListTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		9F8D664A2D055FF000CF355D /* MyAnimeListUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MyAnimeListUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		9F93FC0D2DE1FD520071FB56 /* DataProvider */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = DataProvider; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		9F08B7672DBC745500CC3925 /* Exceptions for "MyAnimeList" folder in "MyAnimeList" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Resources/Info.plist,
+				Tests/MyAnimeListTests/EntryDetailViewModelTests.swift,
+				Tests/MyAnimeListTests/InfoFetcherAndLibraryTests.swift,
+				Tests/MyAnimeListTests/LibraryExportManagerTests.swift,
+				Tests/MyAnimeListTests/LibraryPreferencesAndActionsTests.swift,
+				Tests/MyAnimeListTests/LibrarySortingAndDeletionTests.swift,
+				Tests/MyAnimeListTests/MyAnimeListTestSupport.swift,
+				Tests/MyAnimeListTests/TMDbSearchServiceBatchTests.swift,
+				Tests/MyAnimeListTests/UserEntryInfoAndLibraryStatsTests.swift,
+				Tests/MyAnimeListTests/WhatsNewAndRefreshTests.swift,
+				Tests/MyAnimeListUITests/MyAnimeListUITests.swift,
+				Tests/MyAnimeListUITests/MyAnimeListUITestsLaunchTests.swift,
+			);
+			target = 9F8D662F2D055FEF00CF355D /* MyAnimeList */;
+		};
+		9F93FC182DE1FD800071FB56 /* Exceptions for "MyAnimeList" folder in "MyAnimeListTests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Tests/MyAnimeListTests/EntryDetailViewModelTests.swift,
+				Tests/MyAnimeListTests/InfoFetcherAndLibraryTests.swift,
+				Tests/MyAnimeListTests/LibraryExportManagerTests.swift,
+				Tests/MyAnimeListTests/LibraryPreferencesAndActionsTests.swift,
+				Tests/MyAnimeListTests/LibrarySortingAndDeletionTests.swift,
+				Tests/MyAnimeListTests/MyAnimeListTestSupport.swift,
+				Tests/MyAnimeListTests/TMDbSearchServiceBatchTests.swift,
+				Tests/MyAnimeListTests/UserEntryInfoAndLibraryStatsTests.swift,
+				Tests/MyAnimeListTests/WhatsNewAndRefreshTests.swift,
+			);
+			target = 9F8D663F2D055FF000CF355D /* MyAnimeListTests */;
+		};
+		9F93FC192DE1FD800071FB56 /* Exceptions for "MyAnimeList" folder in "MyAnimeListUITests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Tests/MyAnimeListUITests/MyAnimeListUITests.swift,
+				Tests/MyAnimeListUITests/MyAnimeListUITestsLaunchTests.swift,
+			);
+			target = 9F8D66492D055FF000CF355D /* MyAnimeListUITests */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		9F8D66322D055FEF00CF355D /* MyAnimeList */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				9F08B7672DBC745500CC3925 /* Exceptions for "MyAnimeList" folder in "MyAnimeList" target */,
+				9F93FC182DE1FD800071FB56 /* Exceptions for "MyAnimeList" folder in "MyAnimeListTests" target */,
+				9F93FC192DE1FD800071FB56 /* Exceptions for "MyAnimeList" folder in "MyAnimeListUITests" target */,
+			);
+			path = MyAnimeList;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		9F8D662D2D055FEF00CF355D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9F93FC222DE202E10071FB56 /* DataProvider in Frameworks */,
+				9F1BC6CD2E7F028100221B77 /* AlertToast in Frameworks */,
+				9FB6FEF12D8FCE5A00B423D0 /* Kingfisher in Frameworks */,
+				9F4164E12FCA044600934B66 /* StoreKit.framework in Frameworks */,
+				9F1BC6CA2E7F024E00221B77 /* AlertToast in Frameworks */,
+				9FFCB76E2EC896520088FF36 /* Collections in Frameworks */,
+				9F6845BF2E7E4CFE007FC6CF /* AlertToast in Frameworks */,
+				9F8D665F2D05609200CF355D /* TMDb in Frameworks */,
+				9FE2B5252E0FEE4A00E4898C /* SHContainers in Frameworks */,
+				9FE2B5202E0FE94300E4898C /* SHContainers in Frameworks */,
+				9FE2B51D2E0FE91900E4898C /* SHContainers in Frameworks */,
+				9F720B892E584AD400C23949 /* ZIPFoundation in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9F8D663D2D055FF000CF355D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9F8D66472D055FF000CF355D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		9F8D66272D055FEF00CF355D = {
+			isa = PBXGroup;
+			children = (
+				9F93FC0D2DE1FD520071FB56 /* DataProvider */,
+				9F8D66322D055FEF00CF355D /* MyAnimeList */,
+				9F93FC202DE202D80071FB56 /* Frameworks */,
+				9F8D66312D055FEF00CF355D /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		9F8D66312D055FEF00CF355D /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				9F8D66302D055FEF00CF355D /* MyAnimeList.app */,
+				9F8D66402D055FF000CF355D /* MyAnimeListTests.xctest */,
+				9F8D664A2D055FF000CF355D /* MyAnimeListUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		9F93FC202DE202D80071FB56 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				9F4164E02FCA044600934B66 /* StoreKit.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		9F8D662F2D055FEF00CF355D /* MyAnimeList */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9F8D66542D055FF000CF355D /* Build configuration list for PBXNativeTarget "MyAnimeList" */;
+			buildPhases = (
+				9F8D662C2D055FEF00CF355D /* Sources */,
+				9F8D662D2D055FEF00CF355D /* Frameworks */,
+				9F8D662E2D055FEF00CF355D /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				9F8D66322D055FEF00CF355D /* MyAnimeList */,
+			);
+			name = MyAnimeList;
+			packageProductDependencies = (
+				9F8D665E2D05609200CF355D /* TMDb */,
+				9FB6FEF02D8FCE5A00B423D0 /* Kingfisher */,
+				9F93FC212DE202E10071FB56 /* DataProvider */,
+				9FE2B51C2E0FE91900E4898C /* SHContainers */,
+				9FE2B51F2E0FE94300E4898C /* SHContainers */,
+				9FE2B5242E0FEE4A00E4898C /* SHContainers */,
+				9F720B882E584AD400C23949 /* ZIPFoundation */,
+				9F6845BE2E7E4CFE007FC6CF /* AlertToast */,
+				9F1BC6C92E7F024E00221B77 /* AlertToast */,
+				9F1BC6CC2E7F028100221B77 /* AlertToast */,
+				9FFCB76D2EC896520088FF36 /* Collections */,
+			);
+			productName = MyAnimeList;
+			productReference = 9F8D66302D055FEF00CF355D /* MyAnimeList.app */;
+			productType = "com.apple.product-type.application";
+		};
+		9F8D663F2D055FF000CF355D /* MyAnimeListTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9F8D66572D055FF000CF355D /* Build configuration list for PBXNativeTarget "MyAnimeListTests" */;
+			buildPhases = (
+				9F8D663C2D055FF000CF355D /* Sources */,
+				9F8D663D2D055FF000CF355D /* Frameworks */,
+				9F8D663E2D055FF000CF355D /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				9F8D66422D055FF000CF355D /* PBXTargetDependency */,
+			);
+			name = MyAnimeListTests;
+			packageProductDependencies = (
+			);
+			productName = MyAnimeListTests;
+			productReference = 9F8D66402D055FF000CF355D /* MyAnimeListTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		9F8D66492D055FF000CF355D /* MyAnimeListUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9F8D665A2D055FF000CF355D /* Build configuration list for PBXNativeTarget "MyAnimeListUITests" */;
+			buildPhases = (
+				9F8D66462D055FF000CF355D /* Sources */,
+				9F8D66472D055FF000CF355D /* Frameworks */,
+				9F8D66482D055FF000CF355D /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				9F8D664C2D055FF000CF355D /* PBXTargetDependency */,
+			);
+			name = MyAnimeListUITests;
+			packageProductDependencies = (
+			);
+			productName = MyAnimeListUITests;
+			productReference = 9F8D664A2D055FF000CF355D /* MyAnimeListUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		9F8D66282D055FEF00CF355D /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1610;
+				LastUpgradeCheck = 2600;
+				TargetAttributes = {
+					9F8D662F2D055FEF00CF355D = {
+						CreatedOnToolsVersion = 16.1;
+					};
+					9F8D663F2D055FF000CF355D = {
+						CreatedOnToolsVersion = 16.1;
+						TestTargetID = 9F8D662F2D055FEF00CF355D;
+					};
+					9F8D66492D055FF000CF355D = {
+						CreatedOnToolsVersion = 16.1;
+						TestTargetID = 9F8D662F2D055FEF00CF355D;
+					};
+				};
+			};
+			buildConfigurationList = 9F8D662B2D055FEF00CF355D /* Build configuration list for PBXProject "MyAnimeList" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+				"zh-Hans",
+			);
+			mainGroup = 9F8D66272D055FEF00CF355D;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				9F8D665D2D05609200CF355D /* XCRemoteSwiftPackageReference "TMDb" */,
+				9FB6FEEF2D8FCE5A00B423D0 /* XCRemoteSwiftPackageReference "Kingfisher" */,
+				9FE2B5232E0FEE4A00E4898C /* XCRemoteSwiftPackageReference "SHContainers" */,
+				9F720B872E584AD400C23949 /* XCRemoteSwiftPackageReference "ZIPFoundation" */,
+				9F1BC6CB2E7F028100221B77 /* XCRemoteSwiftPackageReference "AlertToast" */,
+				9FFCB76C2EC896520088FF36 /* XCRemoteSwiftPackageReference "swift-collections" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 9F8D66312D055FEF00CF355D /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				9F8D662F2D055FEF00CF355D /* MyAnimeList */,
+				9F8D663F2D055FF000CF355D /* MyAnimeListTests */,
+				9F8D66492D055FF000CF355D /* MyAnimeListUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		9F8D662E2D055FEF00CF355D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9F8D663E2D055FF000CF355D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9F8D66482D055FF000CF355D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		9F8D662C2D055FEF00CF355D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9F8D663C2D055FF000CF355D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9F8D66462D055FF000CF355D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		9F8D66422D055FF000CF355D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9F8D662F2D055FEF00CF355D /* MyAnimeList */;
+			targetProxy = 9F8D66412D055FF000CF355D /* PBXContainerItemProxy */;
+		};
+		9F8D664C2D055FF000CF355D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9F8D662F2D055FEF00CF355D /* MyAnimeList */;
+			targetProxy = 9F8D664B2D055FF000CF355D /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		9F8D66522D055FF000CF355D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = LB52UWA223;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		9F8D66532D055FF000CF355D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = LB52UWA223;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		9F8D66552D055FF000CF355D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = MyAnimeList/MyAnimeList.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"MyAnimeList/Preview Content\"";
+				DEVELOPMENT_TEAM = 768QBKMWKW;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = MyAnimeList/Resources/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = AniShelf;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
+				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Save posters and Anime Sharing Cards into Photos. ";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportsDocumentBrowser = NO;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.91;
+				PRODUCT_BUNDLE_IDENTIFIER = com.samuelhe.MyAnimeList;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		9F8D66562D055FF000CF355D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = MyAnimeList/MyAnimeList.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"MyAnimeList/Preview Content\"";
+				DEVELOPMENT_TEAM = 768QBKMWKW;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = MyAnimeList/Resources/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = AniShelf;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
+				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Save posters and Anime Sharing Cards into Photos. ";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportsDocumentBrowser = NO;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.91;
+				PRODUCT_BUNDLE_IDENTIFIER = com.samuelhe.MyAnimeList;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		9F8D66582D055FF000CF355D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 768QBKMWKW;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.samuelhe.MyAnimeListTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MyAnimeList.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/MyAnimeList";
+			};
+			name = Debug;
+		};
+		9F8D66592D055FF000CF355D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 768QBKMWKW;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.samuelhe.MyAnimeListTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MyAnimeList.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/MyAnimeList";
+			};
+			name = Release;
+		};
+		9F8D665B2D055FF000CF355D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 768QBKMWKW;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.samuelhe.MyAnimeListUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = MyAnimeList;
+			};
+			name = Debug;
+		};
+		9F8D665C2D055FF000CF355D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 768QBKMWKW;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.samuelhe.MyAnimeListUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = MyAnimeList;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		9F8D662B2D055FEF00CF355D /* Build configuration list for PBXProject "MyAnimeList" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9F8D66522D055FF000CF355D /* Debug */,
+				9F8D66532D055FF000CF355D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		9F8D66542D055FF000CF355D /* Build configuration list for PBXNativeTarget "MyAnimeList" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9F8D66552D055FF000CF355D /* Debug */,
+				9F8D66562D055FF000CF355D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		9F8D66572D055FF000CF355D /* Build configuration list for PBXNativeTarget "MyAnimeListTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9F8D66582D055FF000CF355D /* Debug */,
+				9F8D66592D055FF000CF355D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		9F8D665A2D055FF000CF355D /* Build configuration list for PBXNativeTarget "MyAnimeListUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9F8D665B2D055FF000CF355D /* Debug */,
+				9F8D665C2D055FF000CF355D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		9F1BC6CB2E7F028100221B77 /* XCRemoteSwiftPackageReference "AlertToast" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/samuelhe52/AlertToast";
+			requirement = {
+				branch = master;
+				kind = branch;
+			};
+		};
+		9F720B872E584AD400C23949 /* XCRemoteSwiftPackageReference "ZIPFoundation" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/weichsel/ZIPFoundation";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.9.19;
+			};
+		};
+		9F8D665D2D05609200CF355D /* XCRemoteSwiftPackageReference "TMDb" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/adamayoung/TMDb";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+		9FB6FEEF2D8FCE5A00B423D0 /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/onevcat/Kingfisher";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.3.1;
+			};
+		};
+		9FE2B5232E0FEE4A00E4898C /* XCRemoteSwiftPackageReference "SHContainers" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/samuelhe52/SHContainers.git";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+		9FFCB76C2EC896520088FF36 /* XCRemoteSwiftPackageReference "swift-collections" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-collections.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.3.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		9F1BC6C92E7F024E00221B77 /* AlertToast */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = AlertToast;
+		};
+		9F1BC6CC2E7F028100221B77 /* AlertToast */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9F1BC6CB2E7F028100221B77 /* XCRemoteSwiftPackageReference "AlertToast" */;
+			productName = AlertToast;
+		};
+		9F6845BE2E7E4CFE007FC6CF /* AlertToast */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = AlertToast;
+		};
+		9F720B882E584AD400C23949 /* ZIPFoundation */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9F720B872E584AD400C23949 /* XCRemoteSwiftPackageReference "ZIPFoundation" */;
+			productName = ZIPFoundation;
+		};
+		9F8D665E2D05609200CF355D /* TMDb */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9F8D665D2D05609200CF355D /* XCRemoteSwiftPackageReference "TMDb" */;
+			productName = TMDb;
+		};
+		9F93FC212DE202E10071FB56 /* DataProvider */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = DataProvider;
+		};
+		9FB6FEF02D8FCE5A00B423D0 /* Kingfisher */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9FB6FEEF2D8FCE5A00B423D0 /* XCRemoteSwiftPackageReference "Kingfisher" */;
+			productName = Kingfisher;
+		};
+		9FE2B51C2E0FE91900E4898C /* SHContainers */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = SHContainers;
+		};
+		9FE2B51F2E0FE94300E4898C /* SHContainers */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = SHContainers;
+		};
+		9FE2B5242E0FEE4A00E4898C /* SHContainers */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9FE2B5232E0FEE4A00E4898C /* XCRemoteSwiftPackageReference "SHContainers" */;
+			productName = SHContainers;
+		};
+		9FFCB76D2EC896520088FF36 /* Collections */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9FFCB76C2EC896520088FF36 /* XCRemoteSwiftPackageReference "swift-collections" */;
+			productName = Collections;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 9F8D66282D055FEF00CF355D /* Project object */;
+}
