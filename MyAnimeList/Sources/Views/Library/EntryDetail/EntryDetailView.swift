@@ -33,7 +33,6 @@ struct EntryDetailView: View {
 
     private var accentColor: Color { entry.favorite ? .orange : .blue }
     private var currentLanguage: Language { followsSystemLanguage ? .current : preferredLanguage }
-    private let heroHeight: CGFloat = 420
     private let scrollCoordinateSpaceName = "EntryDetailScroll"
 
     init(
@@ -61,41 +60,33 @@ struct EntryDetailView: View {
     }
 
     var body: some View {
-        ScrollViewReader { proxy in
-            ScrollView(showsIndicators: false) {
-                VStack(spacing: 0) {
-                    stretchyHeroSection
-
+            ScrollViewReader { proxy in
+                ScrollView(showsIndicators: false) {
                     VStack(alignment: .leading, spacing: 20) {
                         quickActionsRow
-                            .padding(.top, -20)
-                            .padding(.bottom, 4)
                         detailsContent(proxy)
                     }
                     .padding(.horizontal, 16)
-                    .padding(.top, 4)
+                    .padding(.top, 16)
                     .padding(.bottom, 40)
                 }
-            }
-            .coordinateSpace(name: scrollCoordinateSpaceName)
-            .onAppear {
-                guard startInEditingMode, !didAutoScrollToEditingSection else { return }
-                didAutoScrollToEditingSection = true
-                isEditingDetails = true
-                Task {
-                    try? await Task.sleep(for: .milliseconds(150))
-                    await MainActor.run {
-                        withAnimation(.spring(response: 0.6, dampingFraction: 0.86)) {
-                            proxy.scrollTo(EntryDetailScrollTarget.editingSection, anchor: .center)
+                .coordinateSpace(name: scrollCoordinateSpaceName)
+                .onAppear {
+                    guard startInEditingMode, !didAutoScrollToEditingSection else { return }
+                    didAutoScrollToEditingSection = true
+                    isEditingDetails = true
+                    Task {
+                        try? await Task.sleep(for: .milliseconds(150))
+                        await MainActor.run {
+                            withAnimation(.spring(response: 0.6, dampingFraction: 0.86)) {
+                                proxy.scrollTo(EntryDetailScrollTarget.editingSection, anchor: .center)
+                            }
                         }
                     }
                 }
             }
-        }
-        .ignoresSafeArea(edges: .top)
-        .background(Color(.systemGroupedBackground))
-        .toolbarBackground(.hidden, for: .navigationBar)
-        .toolbar { toolbarContent }
+            .background(Color(.systemGroupedBackground))
+            .toolbar { toolbarContent }
         .presentationDragIndicator(.visible)
         .interactiveDismissDisabled(entry.userInfoHasChanges(comparedTo: originalUserInfo))
         .sheet(item: $presentation.activeSheet) { activeSheet in
@@ -182,122 +173,7 @@ struct EntryDetailView: View {
         }
     }
 
-    // MARK: - Hero
 
-    private var stretchyHeroSection: some View {
-        GeometryReader { proxy in
-            let overscroll = max(proxy.frame(in: .named(scrollCoordinateSpaceName)).minY, 0)
-            let stretchedHeight = heroHeight + overscroll
-
-            heroSection(height: stretchedHeight)
-                .offset(y: -overscroll)
-        }
-        .frame(height: heroHeight)
-    }
-
-    private func heroSection(height: CGFloat) -> some View {
-        ZStack(alignment: .bottom) {
-            heroArtwork
-
-            // Top scrim — keeps toolbar buttons legible
-            LinearGradient(
-                colors: [.black.opacity(0.42), .clear],
-                startPoint: .top,
-                endPoint: UnitPoint(x: 0.5, y: 0.22)
-            )
-
-            // Gradient scrim for text legibility
-            LinearGradient(
-                colors: [.clear, .black.opacity(0.78)],
-                startPoint: UnitPoint(x: 0.5, y: 0.35),
-                endPoint: .bottom
-            )
-
-            // Fade bottom edge into page background
-            VStack(spacing: 0) {
-                Spacer()
-                LinearGradient(
-                    colors: [.clear, Color(.systemGroupedBackground)],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .frame(height: 120)
-            }
-
-            VStack(spacing: 0) {
-                Spacer(minLength: 0)
-
-                VStack(alignment: .center, spacing: 6) {
-                    if let logoImageURL = model.logoImageURL {
-                        KFImageView(url: logoImageURL, targetWidth: 800, diskCacheExpiration: .longTerm)
-                            .scaledToFit()
-                            .frame(maxWidth: 280)
-                            .frame(height: 78)
-                            .shadow(color: .black.opacity(0.28), radius: 10, y: 6)
-                    } else {
-                        Text(model.displayTitle)
-                            .font(.largeTitle.weight(.bold))
-                            .foregroundStyle(.white)
-                            .lineLimit(3)
-                            .minimumScaleFactor(0.78)
-                            .multilineTextAlignment(.center)
-                    }
-
-                    if let subtitle = model.subtitleText {
-                        Text(subtitle)
-                            .font(.subheadline.weight(.regular))
-                            .foregroundStyle(.white.opacity(0.82))
-                            .lineLimit(2)
-                            .multilineTextAlignment(.center)
-                    }
-
-                    if !model.metadataLineItems.isEmpty {
-                        Text(model.metadataLineItems.joined(separator: "  ·  "))
-                            .font(.footnote)
-                            .foregroundStyle(.white.opacity(0.68))
-                            .lineLimit(2)
-                            .multilineTextAlignment(.center)
-                    }
-
-                    if !model.genreNames.isEmpty {
-                        Text(model.genreNames.joined(separator: ", "))
-                            .font(.caption)
-                            .foregroundStyle(.white.opacity(0.56))
-                            .lineLimit(1)
-                    }
-                }
-                .frame(maxWidth: 360)
-                .padding(.horizontal, 24)
-                .padding(.bottom, 36)
-                .frame(maxWidth: .infinity)
-            }
-        }
-        .containerRelativeFrame(.horizontal)
-        .frame(height: height)
-        .clipped()
-    }
-
-    @ViewBuilder
-    private var heroArtwork: some View {
-        let url = model.heroImageURL ?? entry.backdropURL ?? entry.posterURL
-        if let url {
-            KFImageView(url: url, targetWidth: 1_200, diskCacheExpiration: .longTerm)
-                .scaledToFill()
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-        } else {
-            LinearGradient(
-                colors: [accentColor.opacity(0.45), Color.blue.opacity(0.25)],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .overlay {
-                Image(systemName: "sparkles.tv")
-                    .font(.system(size: 52))
-                    .foregroundStyle(.white.opacity(0.55))
-            }
-        }
-    }
 
     // MARK: - Quick Actions
 
@@ -323,24 +199,6 @@ struct EntryDetailView: View {
 
     @ViewBuilder
     private func detailsContent(_ proxy: ScrollViewProxy) -> some View {
-        if !model.statCards.isEmpty {
-            LazyVGrid(columns: statColumns, spacing: 12) {
-                ForEach(model.statCards) { card in
-                    DetailStatCard(card: card)
-                        .onTapGesture {
-                            if card.id == "episodes" {
-                                withAnimation(.spring(response: 0.6, dampingFraction: 0.86)) {
-                                    proxy.scrollTo(
-                                        EntryDetailScrollTarget.episodesSection,
-                                        anchor: .top
-                                    )
-                                }
-                            }
-                        }
-                }
-            }
-        }
-
         editingSection
 
         sectionCard(EntryDetailL10n.overview, systemImage: "text.alignleft") {
@@ -350,99 +208,8 @@ struct EntryDetailView: View {
                 .lineSpacing(4)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
-
-        if !model.characterCards.isEmpty {
-            PopupDisclosureCard(
-                model.characterSectionTitle,
-                systemImage: "person.2.fill",
-                isExpanded: $isCharacterExpanded
-            ) {
-                horizontalCards(model.characterCards) { card in
-                    PersonCardView(card: card)
-                }
-            }
-        }
-
-        if !model.staffCards.isEmpty {
-            PopupDisclosureCard(
-                EntryDetailL10n.staff,
-                systemImage: "person.2.fill",
-                isExpanded: $isStaffExpanded
-            ) {
-                horizontalCards(model.staffCards) { card in
-                    PersonCardView(card: card)
-                }
-            }
-        }
-
-        switch entry.type {
-        case .series:
-            if !model.seasonCards.isEmpty {
-                LazyVStack(spacing: 18) {
-                    ForEach(model.seasonCards) { season in
-                        SeriesSeasonEpisodeGroupView(
-                            season: season,
-                            seriesTMDbID: entry.tmdbID,
-                            language: currentLanguage,
-                            watchStatus: entry.watchStatus,
-                            episodeProgressSummary: entry.episodeProgressSummary(
-                                forSeason: season.seasonNumber
-                            ),
-                            collapseByDefault: model.collapseSeriesSeasonsByDefault,
-                            sectionTitle: season.id == model.seasonCards.first?.id
-                                ? EntryDetailL10n.episodes
-                                : nil,
-                            sectionSystemImage: season.id == model.seasonCards.first?.id
-                                ? "play.rectangle.on.rectangle.fill"
-                                : nil
-                        )
-                        .id("\(season.id)-\(model.collapseSeriesSeasonsByDefault)")
-                    }
-                }
-                .id(EntryDetailScrollTarget.episodesSection)
-            }
-        case .season:
-            if !model.episodeCards.isEmpty {
-                sectionCard(EntryDetailL10n.episodes, systemImage: "play.rectangle.on.rectangle.fill") {
-                    LazyVStack(spacing: 10) {
-                        ForEach(model.episodeCards) { episode in
-                            EpisodeRowView(
-                                card: episode,
-                                previewContext: .init(
-                                    seriesTMDbID: entry.type.parentSeriesID ?? entry.tmdbID,
-                                    seasonNumber: entry.type.seasonNumber ?? 0,
-                                    language: currentLanguage
-                                ),
-                                isWatched: EntryDetailEpisodePresentation.isEpisodeWatched(
-                                    episode.episodeNumber,
-                                    inSeason: entry.type.seasonNumber ?? 0,
-                                    watchStatus: entry.watchStatus,
-                                    summary: entry.episodeProgressSummary(
-                                        forSeason: entry.type.seasonNumber ?? 0
-                                    )
-                                )
-                            )
-                        }
-                    }
-                }
-                .id(EntryDetailScrollTarget.episodesSection)
-            }
-        case .movie:
-            EmptyView()
-        }
-
-        if let errorMessage = model.loadError {
-            sectionCard(EntryDetailL10n.tmdb) {
-                ContentUnavailableView(
-                    String(localized: EntryDetailL10n.couldNotLoadDetails),
-                    systemImage: "wifi.exclamationmark",
-                    description: Text(errorMessage)
-                )
-                .frame(maxWidth: .infinity)
-            }
-        }
     }
-
+    
     @ViewBuilder
     private var editingSection: some View {
         EntryDetailTrackingSection(
@@ -456,12 +223,7 @@ struct EntryDetailView: View {
         .id(EntryDetailScrollTarget.editingSection)
     }
 
-    private var statColumns: [GridItem] {
-        Array(
-            repeating: GridItem(.flexible(), spacing: 12, alignment: .top),
-            count: min(max(model.statCards.count, 1), 3)
-        )
-    }
+
 
     @ViewBuilder
     private func sectionCard<Content: View>(

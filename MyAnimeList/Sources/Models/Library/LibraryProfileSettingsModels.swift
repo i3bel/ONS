@@ -140,8 +140,6 @@ enum LibraryProfileMaintenancePalette {
 
 enum LibraryProfileSettingsSheet: String, Identifiable {
     case changeAPIKey
-    case support
-    case about
 
     var id: String { rawValue }
 }
@@ -153,9 +151,7 @@ struct LibraryProfileSettingsPresentationState: Equatable {
         presentedSheet = sheet
     }
 
-    mutating func presentSupportSheet() {
-        present(.support)
-    }
+
 }
 
 extension AnimeEntry.WatchStatus {

@@ -20,14 +20,8 @@ struct LibraryProfileSettingsView: View {
     @AppStorage(.useCurrentLocaleForAnimeInfoLanguage) private var followsSystemLanguage: Bool =
         Language.followsSystemPreference()
     @AppStorage(.libraryOpenDetailWithSingleTap) private var openDetailWithSingleTap = false
-    @AppStorage(.entryDetailCharactersExpandedByDefault)
-    private var entryDetailCharactersExpandedByDefault = true
-    @AppStorage(.entryDetailStaffExpandedByDefault)
-    private var entryDetailStaffExpandedByDefault = false
     @AppStorage(.libraryScoringEnabled) private var scoringEnabled = true
-    @AppStorage(.episodeProgressTrackingEnabled) private var episodeProgressTrackingEnabled = false
-    @AppStorage(.libraryPosterProgressBarOverlayEnabled)
-    private var posterProgressBarOverlayEnabled = true
+
     @AppStorage(.useTMDbRelayServer) private var useTMDbRelayServer = false
 
     @State private var showCacheAlert = false
@@ -214,11 +208,7 @@ struct LibraryProfileSettingsView: View {
             defaultNewEntryWatchStatus: $store.defaultNewEntryWatchStatus,
             defaultFilters: $store.defaultFilters,
             openDetailWithSingleTap: $openDetailWithSingleTap,
-            entryDetailCharactersExpandedByDefault: $entryDetailCharactersExpandedByDefault,
-            entryDetailStaffExpandedByDefault: $entryDetailStaffExpandedByDefault,
             scoringEnabled: $scoringEnabled,
-            episodeProgressTrackingEnabled: $episodeProgressTrackingEnabled,
-            posterProgressBarOverlayEnabled: $posterProgressBarOverlayEnabled,
             autoPrefetchImagesOnAddAndRestore: $store.autoPrefetchImagesOnAddAndRestore,
             useTMDbRelayServer: $useTMDbRelayServer,
             preferredLanguage: $preferredLanguage,
@@ -230,14 +220,9 @@ struct LibraryProfileSettingsView: View {
             onCheckMetadataCacheSize: checkMetadataCacheSize,
             onRefreshInfos: requestRefreshInfos,
             onPrefetchImages: { actions.prefetchAllImages() },
-            onShowSupport: presentSupportSheet,
-            whatsNewVersion: whatsNew.currentEntry?.version,
-            onShowWhatsNew: presentWhatsNewSheet,
-            onShowAbout: presentAboutSheet,
             onDeleteAllAnimes: requestClearLibrary
         )
         .animation(languagePickerAnimation, value: followsSystemLanguage)
-        .animation(languagePickerAnimation, value: episodeProgressTrackingEnabled)
         .onChange(of: scoringEnabled, handleScoringEnabledChange)
         .onChange(of: useTMDbRelayServer, handleTMDbRelayServerChange)
     }
@@ -382,13 +367,9 @@ struct LibraryProfileSettingsView: View {
         actions.clearLibrary()
     }
 
-    private func presentAboutSheet() {
-        presentationState.present(.about)
-    }
 
-    private func presentSupportSheet() {
-        presentationState.presentSupportSheet()
-    }
+
+
 
     private func presentWhatsNewSheet() {
         whatsNew.presentCurrentEntry()
@@ -442,16 +423,8 @@ struct LibraryProfileSettingsView: View {
         case .changeAPIKey:
             TMDbAPIConfigurator()
                 .presentationDetents([.fraction(0.65), .large])
-        case .support:
-            NavigationStack {
-                SupportAniShelfSheet()
-            }
-            .presentationDetents([.fraction(0.72), .large])
-        case .about:
-            NavigationStack {
-                AboutAniShelfSheet()
-            }
-            .presentationDetents([.fraction(0.85), .large])
+
+
         }
     }
 }
@@ -464,6 +437,5 @@ struct LibraryProfileSettingsView: View {
             DataProvider.forPreview.generateEntriesForPreview()
         }
         .environment(store)
-        .environment(SupportStore())
         .environment(WhatsNewController(currentVersion: "1.54"))
 }

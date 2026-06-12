@@ -201,6 +201,7 @@
       }
     },
     "A big show of support" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -217,6 +218,7 @@
       }
     },
     "A generous coffee" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -233,6 +235,7 @@
       }
     },
     "A native anime tracker built around your own library." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -249,6 +252,7 @@
       }
     },
     "A small thank-you" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -265,6 +269,7 @@
       }
     },
     "About AniShelf" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -635,6 +640,7 @@
       }
     },
     "AniShelf" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -667,6 +673,7 @@
       }
     },
     "AniShelf keeps watch status, dates, and quick notes together so your collection stays useful over time." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -843,6 +850,7 @@
       }
     },
     "Backups" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -955,6 +963,7 @@
       }
     },
     "Buy me a coffee" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -2180,6 +2189,7 @@
       }
     },
     "Expand Characters by Default" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -2196,6 +2206,7 @@
       }
     },
     "Expand Staff by Default" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -2967,6 +2978,7 @@
       }
     },
     "Links" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -3015,6 +3027,7 @@
       }
     },
     "Loading support options from the App Store..." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -3063,6 +3076,7 @@
       }
     },
     "Made by Samuel He. Metadata and artwork are provided by TMDb." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -3533,22 +3547,6 @@
         }
       }
     },
-    "Only show dropped entries after you explicitly enable the Dropped filter." : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "「中断」フィルターを明示的に有効にした場合のみ、中断項目を表示します。"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "只有在你明确启用“中断”筛选后，才会显示中断条目。"
-          }
-        }
-      }
-    },
     "On the details page, long-press an episode to view that episode's staff." : {
       "localizations" : {
         "ja" : {
@@ -3577,6 +3575,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "详情页中，分集模块现在支持展示观看进度"
+          }
+        }
+      }
+    },
+    "Only show dropped entries after you explicitly enable the Dropped filter." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「中断」フィルターを明示的に有効にした場合のみ、中断項目を表示します。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "只有在你明确启用“中断”筛选后，才会显示中断条目。"
           }
         }
       }
@@ -3646,6 +3660,7 @@
       }
     },
     "Open the Characters section automatically in entry detail view." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -3662,6 +3677,7 @@
       }
     },
     "Open the Staff section automatically in entry detail view." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -3710,6 +3726,7 @@
       }
     },
     "Optional support for AniShelf if the app has been useful to you." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -3726,6 +3743,7 @@
       }
     },
     "Optional tip jar. No features are unlocked." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -4048,6 +4066,7 @@
       }
     },
     "Purchase pending approval." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -4064,6 +4083,7 @@
       }
     },
     "Purchase problem" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -4543,6 +4563,7 @@
       }
     },
     "Samuel He on GitHub" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -4912,6 +4933,7 @@
       }
     },
     "Show episode progress as a poster overlay in the library." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -4928,6 +4950,7 @@
       }
     },
     "Show Poster Progress Bar" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -4992,6 +5015,7 @@
       }
     },
     "Some support options are not ready yet. Please try again after App Store Connect finishes syncing." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -5122,6 +5146,7 @@
       }
     },
     "Support AniShelf" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -5138,6 +5163,7 @@
       }
     },
     "Support Options" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -5154,6 +5180,7 @@
       }
     },
     "Support products are temporarily unavailable. Please try again in a moment." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -5218,6 +5245,7 @@
       }
     },
     "Thank you!" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -5234,6 +5262,7 @@
       }
     },
     "Thanks for supporting AniShelf." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -5250,6 +5279,7 @@
       }
     },
     "The App Store could not verify the purchase." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -5266,6 +5296,7 @@
       }
     },
     "The App Store returned an unknown purchase state." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -5314,6 +5345,7 @@
       }
     },
     "These are optional tips that unlock no features, content, or services. All purchases are processed by the App Store." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -5667,6 +5699,7 @@
       }
     },
     "Track Episode Progress" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -5715,6 +5748,7 @@
       }
     },
     "Try Again" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -5779,6 +5813,7 @@
       }
     },
     "Turning this off hides episode progress without deleting saved progress." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -5827,6 +5862,7 @@
       }
     },
     "Unable to complete the purchase right now." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -5843,6 +5879,7 @@
       }
     },
     "Unable to find this support option right now." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -6089,6 +6126,7 @@
       }
     },
     "Version, links, and credits." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {

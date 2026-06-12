@@ -146,11 +146,7 @@ struct LibraryProfileSettingsCard: View {
     @Binding var defaultNewEntryWatchStatus: AnimeEntry.WatchStatus
     @Binding var defaultFilters: Set<LibraryStore.AnimeFilter>
     @Binding var openDetailWithSingleTap: Bool
-    @Binding var entryDetailCharactersExpandedByDefault: Bool
-    @Binding var entryDetailStaffExpandedByDefault: Bool
     @Binding var scoringEnabled: Bool
-    @Binding var episodeProgressTrackingEnabled: Bool
-    @Binding var posterProgressBarOverlayEnabled: Bool
     @Binding var autoPrefetchImagesOnAddAndRestore: Bool
     @Binding var useTMDbRelayServer: Bool
     @Binding var preferredLanguage: Language
@@ -163,10 +159,6 @@ struct LibraryProfileSettingsCard: View {
     let onCheckMetadataCacheSize: () -> Void
     let onRefreshInfos: () -> Void
     let onPrefetchImages: () -> Void
-    let onShowSupport: () -> Void
-    let whatsNewVersion: String?
-    let onShowWhatsNew: () -> Void
-    let onShowAbout: () -> Void
     let onDeleteAllAnimes: () -> Void
 
     var body: some View {
@@ -301,17 +293,6 @@ struct LibraryProfileSettingsCard: View {
                 isOn: $openDetailWithSingleTap
             )
 
-            settingToggleRow(
-                title: "Expand Characters by Default",
-                subtitle: "Open the Characters section automatically in entry detail view.",
-                isOn: $entryDetailCharactersExpandedByDefault
-            )
-
-            settingToggleRow(
-                title: "Expand Staff by Default",
-                subtitle: "Open the Staff section automatically in entry detail view.",
-                isOn: $entryDetailStaffExpandedByDefault
-            )
 
             settingToggleRow(
                 title: "Enable Scoring",
@@ -319,19 +300,8 @@ struct LibraryProfileSettingsCard: View {
                 isOn: $scoringEnabled
             )
 
-            settingToggleRow(
-                title: "Track Episode Progress",
-                subtitle: "Turning this off hides episode progress without deleting saved progress.",
-                isOn: $episodeProgressTrackingEnabled
-            )
 
-            if episodeProgressTrackingEnabled {
-                settingToggleRow(
-                    title: "Show Poster Progress Bar",
-                    subtitle: "Show episode progress as a poster overlay in the library.",
-                    isOn: $posterProgressBarOverlayEnabled
-                )
-            }
+
 
             settingToggleRow(
                 title: "Hide Dropped Entries",
@@ -478,32 +448,9 @@ struct LibraryProfileSettingsCard: View {
                 action: onPrefetchImages
             )
             LibraryProfileActionDivider()
-            if let whatsNewVersion {
-                LibraryProfileActionRow(
-                    title: "What's New",
-                    subtitle: whatsNewSubtitleResource(for: whatsNewVersion),
-                    systemImage: "sparkles.rectangle.stack",
-                    tint: LibraryProfileMaintenancePalette.whatsNew,
-                    action: onShowWhatsNew
-                )
-                LibraryProfileActionDivider()
-            }
-            LibraryProfileActionRow(
-                title: "Support AniShelf",
-                subtitle: "Optional tip jar. No features are unlocked.",
-                systemImage: "heart.circle",
-                tint: LibraryProfileMaintenancePalette.support,
-                action: onShowSupport
-            )
-            LibraryProfileActionDivider()
-            LibraryProfileActionRow(
-                title: "About AniShelf",
-                subtitle: "Version, links, and credits.",
-                systemImage: "info.circle",
-                tint: LibraryProfileMaintenancePalette.about,
-                action: onShowAbout
-            )
-            LibraryProfileActionDivider()
+
+
+ 
             LibraryProfileActionRow(
                 title: "Delete All Animes",
                 subtitle: "Remove every saved library entry.",
