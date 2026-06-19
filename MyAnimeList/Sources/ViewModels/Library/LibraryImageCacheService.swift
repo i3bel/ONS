@@ -159,7 +159,14 @@ enum LibraryImageCacheService {
                         )
                         removedCount += 1
                     } catch {
-                        libraryStoreLogger.warning("Failed to remove cached image for key \(cacheKey): \(error)")
+                        // Suppress benign "file not found" errors which occur when multiple
+                        // removals race. Only log unexpected errors to reduce noisy logs.
+                        let nsError = error as NSError
+                        if nsError.domain == NSCocoaErrorDomain && nsError.code == NSFileNoSuchFileError {
+                            // benign — ignore
+                        } else {
+                            libraryStoreLogger.warning("Failed to remove cached image for key \(cacheKey): \(error)")
+                        }
                     }
                 }
             }

@@ -144,7 +144,10 @@ struct SearchPage: View {
             performSearch()
         }
         .toolbar {
-            DefaultToolbarItem(kind: .search, placement: .bottomBar)
+            // Use SwiftUI's built-in searchable placement. Avoid injecting a separate
+            // default toolbar search item which can cause the system to attempt to
+            // vending a navigation item's search controller that doesn't match the
+            // current hosting controller, leading to console warnings.
             if mode == .tmdb {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {

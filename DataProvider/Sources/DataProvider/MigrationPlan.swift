@@ -71,67 +71,122 @@ extension MigrationStage {
         let discardedParentOldIDs: Set<PersistentIdentifier>
     }
 
+    // Small thread-safe mutable box used to share captured snapshot storage
+    // between @Sendable migration closures. We provide explicit synchronized
+    // accessors so mutation from concurrently executing code is safe.
+    private final class SnapshotsBox: @unchecked Sendable {
+        private var _value: [AnimeEntryMigrationDTO] = []
+        private let lock = NSLock()
+
+        func set(_ newValue: [AnimeEntryMigrationDTO]) {
+            lock.lock()
+            _value = newValue
+            lock.unlock()
+        }
+
+        func get() -> [AnimeEntryMigrationDTO] {
+            lock.lock()
+            let v = _value
+            lock.unlock()
+            return v
+        }
+    }
+
     static func migrateV201ToV210() -> MigrationStage {
-        var newEntries: [SchemaV2_1_0.AnimeEntry] = []
+        let snapshotsBox = SnapshotsBox()
 
         return MigrationStage.custom(
             fromVersion: SchemaV2_0_1.self,
             toVersion: SchemaV2_1_0.self,
             willMigrate: { context in
-                let descriptor = FetchDescriptor<SchemaV2_0_1.AnimeEntry>()
-                let oldEntries = try context.fetch(descriptor)
-                newEntries = oldEntries.map { old in
+                snapshotsBox.set(try Self.captureAndDeleteEntries(in: context) { (index: Int, entry: SchemaV2_0_1.AnimeEntry) in
+                    // Map old entry to a migration DTO that can be recreated later.
                     let type: AnimeType
-                    switch old.entryType {
+                    switch entry.entryType {
                     case .movie: type = .movie
                     case .tvSeries: type = .series
                     case .tvSeason(let seasonNumber, let parentSeriesID):
                         type = .season(seasonNumber: seasonNumber, parentSeriesID: parentSeriesID)
                     }
 
-                    let newEntry = SchemaV2_1_0.AnimeEntry(
-                        name: old.name,
-                        overview: old.overview,
-                        onAirDate: old.onAirDate,
+                    return AnimeEntryMigrationDTO(
+                        originalIndex: index,
+                        oldID: entry.persistentModelID,
+                        parentSeriesOldID: nil,
+                        name: entry.name,
+                        nameTranslations: [:],
+                        overview: entry.overview,
+                        overviewTranslations: [:],
+                        onAirDate: entry.onAirDate,
                         type: type,
-                        linkToDetails: old.linkToDetails,
-                        posterURL: old.posterURL,
-                        backdropURL: old.backdropURL,
-                        tmdbID: old.tmdbID,
-                        useSeriesPoster: old.useSeriesPoster,
-                        dateSaved: old.dateSaved,
-                        dateStarted: old.dateStarted,
-                        dateFinished: old.dateFinished
+                        linkToDetails: entry.linkToDetails,
+                        posterURL: entry.posterURL,
+                        backdropURL: entry.backdropURL,
+                        tmdbID: entry.tmdbID,
+                        detail: nil,
+                        onDisplay: true,
+                        watchStatus: .planToWatch,
+                        dateSaved: entry.dateSaved,
+                        dateStarted: entry.dateStarted,
+                        dateFinished: entry.dateFinished,
+                        score: nil,
+                        favorite: false,
+                        notes: "",
+                        usingCustomPoster: entry.useSeriesPoster
                     )
-                    context.delete(old)
-                    return newEntry
-                }
-                try context.save()
+                })
             },
             didMigrate: { context in
-                for entry in newEntries {
-                    context.insert(entry)
-                }
-                try context.save()
+                try Self.rebuildEntries(
+                    from: snapshotsBox.get(),
+                    in: context,
+                    makeEntry: { snapshot in
+                        // Create the new SchemaV2_1_0.AnimeEntry from snapshot
+                        let type: AnimeType
+                        switch snapshot.type {
+                        case .movie: type = .movie
+                        case .series: type = .series
+                        case .season(let seasonNumber, let parentSeriesID):
+                            type = .season(seasonNumber: seasonNumber, parentSeriesID: parentSeriesID)
+                        }
+
+                        return SchemaV2_1_0.AnimeEntry(
+                            name: snapshot.name,
+                            overview: snapshot.overview,
+                            onAirDate: snapshot.onAirDate,
+                            type: type,
+                            linkToDetails: snapshot.linkToDetails,
+                            posterURL: snapshot.posterURL,
+                            backdropURL: snapshot.backdropURL,
+                            tmdbID: snapshot.tmdbID,
+                            useSeriesPoster: snapshot.usingCustomPoster,
+                            dateSaved: snapshot.dateSaved,
+                            dateStarted: snapshot.dateStarted,
+                            dateFinished: snapshot.dateFinished
+                        )
+                    },
+                    // No parent relationships exist in this migration; provide a no-op setParent closure
+                    setParent: { (_: SchemaV2_1_0.AnimeEntry, _: SchemaV2_1_0.AnimeEntry) in }
+                )
             }
         )
     }
 
     static func migrateV260ToV270() -> MigrationStage {
-        var snapshots: [AnimeEntryMigrationDTO] = []
+        let snapshotsBox = SnapshotsBox()
 
         return MigrationStage.custom(
             fromVersion: SchemaV2_6_0.self,
             toVersion: SchemaV2_7_0.self,
             willMigrate: { context in
-                snapshots = try Self.captureAndDeleteEntries(in: context) {
+                snapshotsBox.set(try Self.captureAndDeleteEntries(in: context) {
                     (index: Int, entry: SchemaV2_6_0.AnimeEntry) in
                     entry.migrationDTO(index: index)
-                }
+                })
             },
             didMigrate: { context in
                 try Self.rebuildEntries(
-                    from: snapshots,
+                    from: snapshotsBox.get(),
                     in: context,
                     makeEntry: { snapshot in
                         SchemaV2_7_0.AnimeEntry(
@@ -149,20 +204,20 @@ extension MigrationStage {
     }
 
     static func migrateV270ToV271() -> MigrationStage {
-        var snapshots: [AnimeEntryMigrationDTO] = []
+        let snapshotsBox = SnapshotsBox()
 
         return MigrationStage.custom(
             fromVersion: SchemaV2_7_0.self,
             toVersion: SchemaV2_7_1.self,
             willMigrate: { context in
-                snapshots = try Self.captureAndDeleteEntries(in: context) {
+                snapshotsBox.set(try Self.captureAndDeleteEntries(in: context) {
                     (index: Int, entry: SchemaV2_7_0.AnimeEntry) in
                     entry.migrationDTO(index: index)
-                }
+                })
             },
             didMigrate: { context in
                 try Self.rebuildEntries(
-                    from: snapshots,
+                    from: snapshotsBox.get(),
                     in: context,
                     makeEntry: { snapshot in
                         SchemaV2_7_1.AnimeEntry(
@@ -180,18 +235,19 @@ extension MigrationStage {
     }
 
     static func migrateV273ToV274() -> MigrationStage {
-        var snapshots: [AnimeEntryMigrationDTO] = []
+        let snapshotsBox = SnapshotsBox()
 
         return MigrationStage.custom(
             fromVersion: SchemaV2_7_3.self,
             toVersion: SchemaV2_7_4.self,
             willMigrate: { context in
-                snapshots = try Self.captureAndDeleteEntries(in: context) {
+                snapshotsBox.set(try Self.captureAndDeleteEntries(in: context) {
                     (index: Int, entry: SchemaV2_7_3.AnimeEntry) in
                     entry.migrationDTO(index: index)
-                }
+                })
             },
             didMigrate: { context in
+                let snapshots = snapshotsBox.get()
                 let cleanupPlan = Self.parentSeriesCleanupPlan(from: snapshots)
                 try Self.rebuildEntries(
                     from: snapshots,

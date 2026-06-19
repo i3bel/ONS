@@ -133,7 +133,12 @@ class BackupManager {
 
         // If a file already exists, remove it.
         if fileManager.fileExists(atPath: archiveURL.path()) {
-            try fileManager.removeItem(at: archiveURL)
+            // Defensive: the file may be concurrently removed by other logic — ignore "file not found".
+            do {
+                try fileManager.removeItem(at: archiveURL)
+            } catch let err as NSError where err.domain == NSCocoaErrorDomain && err.code == NSFileNoSuchFileError {
+                // benign: another process already removed the file
+            }
         }
 
         do {
@@ -306,7 +311,7 @@ class BackupManager {
             try copyFiles(currentFiles, to: rollbackDirectoryURL)
 
             do {
-                try removeFiles(currentFiles)
+                                try removeFiles(currentFiles)
                 try copyFiles(backupFiles, to: storeDirectory)
             } catch {
                 try? removeFiles(in: storeDirectory)
@@ -359,7 +364,13 @@ class BackupManager {
 
     private func removeFiles(_ files: [URL]) throws {
         for fileURL in files {
-            try fileManager.removeItem(at: fileURL)
+            // Attempt to remove each file but tolerate missing files to avoid noisy logs when files
+            // are concurrently deleted by other processes.
+            do {
+                try fileManager.removeItem(at: fileURL)
+            } catch let err as NSError where err.domain == NSCocoaErrorDomain && err.code == NSFileNoSuchFileError {
+                // ignore
+            }
         }
     }
 

@@ -52,3 +52,6 @@ struct AnimeEntryMigrationDTO {
         detail != nil
     }
 }
+
+// Migration DTO is value semantic and safe to transfer across concurrency domains.
+extension AnimeEntryMigrationDTO: Sendable {}
