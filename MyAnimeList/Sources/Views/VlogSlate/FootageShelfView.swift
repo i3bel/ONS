@@ -6,7 +6,6 @@ struct FootageShelfView: View {
     @EnvironmentObject var store: VlogSlateStore
     @State private var showExportSheet = false
     @State private var showImportPicker = false
-    @State private var showClearConfirmation = false
     @State private var selected: FootageItem?
     @State private var filter: FootageFilter = .all
     @State private var searchText = ""
@@ -49,33 +48,20 @@ struct FootageShelfView: View {
                         .listRowSeparator(.visible)
                         .listRowSeparatorTint(.white.opacity(0.06))
                         .listRowBackground(Color.clear)
-                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                            Button("Delete", systemImage: "trash", role: .destructive) {
-                                delete(item)
-                            }
-                        }
+                        // swipe to delete removed — delete action moved into project actions menu
                     }
                 }
             }
             .listStyle(.plain)
             .background(Color(.systemGroupedBackground))
-            .navigationTitle("VlogSlate")
+            .navigationTitle("")
             .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .automatic), prompt: "搜索场次、备注或时间")
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    VlogSlateCircleActionButton(systemImage: "trash", tint: .red) {
-                        showClearConfirmation = true
-                    }
-                    .simultaneousGesture(
-                        LongPressGesture(minimumDuration: 3).onEnded { _ in
-                            store.clearAll()
-                        }
-                    )
-                }
-
-                ToolbarItem(placement: .principal) {
                     VlogSlateNavigationTitleCapsule(count: filteredItems.count)
                 }
+
+                // moved count to the leading toolbar item; remove center title capsule
 
                 ToolbarItem(placement: .topBarTrailing) {
                     projectActionsMenu
@@ -88,12 +74,7 @@ struct FootageShelfView: View {
             .sheet(item: $selected) { item in
                 FootageDetailView(item: binding(for: item))
             }
-            .confirmationDialog("清空所有镜头？", isPresented: $showClearConfirmation, titleVisibility: .visible) {
-                Button("清空", role: .destructive) { store.clearAll() }
-                Button("取消", role: .cancel) {}
-            } message: {
-                Text("此操作会删除当前项目的全部镜头，并将计数重置为 S1 T1。你也可以长按垃圾桶 3 秒直接清空。")
-            }
+            // Deletion now executes immediately from the menu; no confirmation dialog
             .fileImporter(isPresented: $showImportPicker, allowedContentTypes: [.vlogSlate, .json]) { result in
                 importFootage(from: result)
             }
@@ -107,7 +88,14 @@ struct FootageShelfView: View {
     }
 
     private var projectActionsMenu: some View {
-        Menu {
+            Menu {
+            Button("删除所有镜头", systemImage: "trash", role: .destructive) {
+                // Directly clear without additional confirmation per request
+                store.clearAll()
+            }
+
+            Divider()
+
             Button("导入项目", systemImage: "square.and.arrow.down") {
                 showImportPicker = true
             }

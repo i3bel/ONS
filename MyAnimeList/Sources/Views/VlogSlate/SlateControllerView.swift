@@ -24,7 +24,7 @@ struct SlateControllerView: View {
                 .padding(.vertical, 20)
             }
             .background(Color(.systemGroupedBackground))
-            .navigationTitle("Slate")
+            .navigationTitle("")
             .navigationBarTitleDisplayMode(.large)
             .fullScreenCover(isPresented: $showsFullScreenSlate, onDismiss: cancelCountdown) {
                 FullScreenSlateView(payload: currentPayload, countdown: fullScreenCountdown) {

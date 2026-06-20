@@ -39,7 +39,7 @@ struct ScannerView: View {
                 }
                 .padding()
             }
-            .navigationTitle("Scanner")
+            .navigationTitle("")
             .sheet(item: $selectedItem) { item in
                 FootageDetailView(item: FootageItemBinding(id: item.id))
             }
