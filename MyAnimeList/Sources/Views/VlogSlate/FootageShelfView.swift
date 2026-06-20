@@ -55,13 +55,12 @@ struct FootageShelfView: View {
             .listStyle(.plain)
             .background(Color(.systemGroupedBackground))
             .navigationTitle("")
-            .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .automatic), prompt: "搜索场次、备注或时间")
+            .navigationBarTitleDisplayMode(.inline)
+            .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "搜索场次、备注或时间")
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
+                ToolbarItem(placement: .principal) {
                     VlogSlateNavigationTitleCapsule(count: filteredItems.count)
                 }
-
-                // moved count to the leading toolbar item; remove center title capsule
 
                 ToolbarItem(placement: .topBarTrailing) {
                     projectActionsMenu

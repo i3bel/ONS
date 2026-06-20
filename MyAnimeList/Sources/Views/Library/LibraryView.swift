@@ -65,6 +65,7 @@ struct LibraryView: View {
             ZStack {
                 libraryView
             }
+            .libraryFloatingTitle(count: interaction.isMultiSelecting ? interaction.selectedEntryCount : store.libraryOnDisplay.count)
             .toolbar { topBarContent }
             .toolbar { bottomBarContent }
             .environment(\.toggleFavorite, toggleFavorite)
@@ -170,9 +171,6 @@ struct LibraryView: View {
             ToolbarItem(placement: .status) {
                 libraryBrowseSummaryMenu
             }
-            ToolbarItem(placement: .bottomBar) {
-                searchButton
-            }
         }
     }
 
@@ -181,7 +179,8 @@ struct LibraryView: View {
         ToolbarItem(placement: .principal) {
             LibraryNavigationTitleCapsule(
                 count:
-                    interaction.isMultiSelecting ? selectedEntries.count : store.libraryOnDisplay.count
+                    interaction.isMultiSelecting
+                    ? interaction.selectedEntryCount : store.libraryOnDisplay.count
             )
         }
         if supportsMultiSelection && !interaction.isMultiSelecting {
@@ -201,6 +200,9 @@ struct LibraryView: View {
                 .accessibilityLabel(Text("Dismiss Selection"))
             }
         } else {
+            ToolbarItem(placement: .topBarLeading) {
+                searchButton
+            }
             ToolbarItem(placement: .topBarTrailing) {
                 if supportsMultiSelection {
                     Button(action: enterMultiSelection) {

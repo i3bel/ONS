@@ -14,15 +14,13 @@ struct SlateControllerView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 24) {
-                    controlCards
-                    qrPanel
-                    actionRow
-                }
-                .padding(.horizontal)
-                .padding(.vertical, 20)
+            VStack(spacing: 24) {
+                controlCards
+                qrPanel
+                actionRow
             }
+            .padding(.horizontal)
+            .padding(.vertical, 20)
             .background(Color(.systemGroupedBackground))
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.large)
