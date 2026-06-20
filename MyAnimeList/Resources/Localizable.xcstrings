@@ -2573,6 +2573,9 @@
         }
       }
     },
+    "Footage Notes" : {
+
+    },
     "Frieren\nA Silent Voice\nKiki's Delivery Service" : {
       "localizations" : {
         "ja" : {
@@ -2764,6 +2767,12 @@
           }
         }
       }
+    },
+    "Insert take" : {
+
+    },
+    "Item not found" : {
+
     },
     "Japanese" : {
       "extractionState" : "manual",
@@ -4065,6 +4074,9 @@
         }
       }
     },
+    "Project actions" : {
+
+    },
     "Purchase pending approval." : {
       "extractionState" : "stale",
       "localizations" : {
@@ -4562,6 +4574,16 @@
         }
       }
     },
+    "S%lld T%lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "S%1$lld T%2$lld"
+          }
+        }
+      }
+    },
     "Samuel He on GitHub" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -4623,6 +4645,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "保存海报"
+          }
+        }
+      }
+    },
+    "Scanner" : {
+
+    },
+    "SCENE" : {
+
+    },
+    "Scene %lld - Take %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Scene %1$lld - Take %2$lld"
           }
         }
       }
@@ -4916,6 +4954,9 @@
         }
       }
     },
+    "Shelf" : {
+
+    },
     "Show Detail" : {
       "localizations" : {
         "ja" : {
@@ -5013,6 +5054,9 @@
           }
         }
       }
+    },
+    "Slate" : {
+
     },
     "Some support options are not ready yet. Please try again after App Store Connect finishes syncing." : {
       "extractionState" : "stale",
@@ -5227,6 +5271,12 @@
           }
         }
       }
+    },
+    "Take Detail" : {
+
+    },
+    "Takes" : {
+
     },
     "Tap to cycle runtime statistics." : {
       "localizations" : {
@@ -6158,6 +6208,9 @@
         }
       }
     },
+    "VlogSlate" : {
+
+    },
     "Watch Status" : {
       "localizations" : {
         "ja" : {
@@ -6435,6 +6488,42 @@
           }
         }
       }
+    },
+    "取消" : {
+
+    },
+    "在 Slate 页拍板后，镜头会出现在这里。" : {
+
+    },
+    "导入项目" : {
+
+    },
+    "导出项目" : {
+
+    },
+    "扫描素材画面中的二维码" : {
+
+    },
+    "拍板 + 插入" : {
+
+    },
+    "搜索场次、备注或时间" : {
+
+    },
+    "核心镜头" : {
+
+    },
+    "此操作会删除当前项目的全部镜头，并将计数重置为 S1 T1。你也可以长按垃圾桶 3 秒直接清空。" : {
+
+    },
+    "没有镜头" : {
+
+    },
+    "清空" : {
+
+    },
+    "清空所有镜头？" : {
+
     }
   },
   "version" : "1.2"

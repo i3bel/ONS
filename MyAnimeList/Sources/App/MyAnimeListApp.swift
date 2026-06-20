@@ -5,100 +5,178 @@
 //  Created by Samuel He on 2024/12/8.
 //
 
-import DataProvider
-import SwiftData
 import SwiftUI
 
+// Minimal VlogSlate replacement app entry
+
 @main
-struct MyAnimeListApp: App {
-    @State var libraryStore: LibraryStore = .init(dataProvider: .default)
-    @State var keyStorage: TMDbAPIKeyStorage = .init()
-    @State var whatsNew: WhatsNewController = .init()
- 
-    @AppStorage(.preferredAnimeInfoLanguage) var preferredLanguage: Language = .english
-    @AppStorage(.useCurrentLocaleForAnimeInfoLanguage) var followsSystemLanguage: Bool =
-        Language.followsSystemPreference()
+struct VlogSlateApp: App {
+    @StateObject private var store = VlogSlateStore()
 
     var body: some Scene {
         WindowGroup {
-            ZStack {
-                if let key = keyStorage.key, !key.isEmpty {
-                    LibraryView()
-                        .onAppear {
-                            libraryStore.language = followsSystemLanguage ? .current : preferredLanguage
-                        }
-                        .transition(.opacity.animation(.easeInOut(duration: 1)))
-                } else {
-                    TMDbAPIOnboardingView()
-                        .transition(.opacity.animation(.easeInOut(duration: 1)))
-                }
-            }
-            .environment(libraryStore)
-            .environment(keyStorage)
-            .environment(whatsNew)
-            .environment(\.dataHandler, DataProvider.default.dataHandler)
-            .sheet(item: presentedWhatsNewEntry) { entry in
-                NavigationStack {
-                    WhatsNewRootSheet(
-                        entry: entry,
-                        settingsActions: .init(store: libraryStore),
-                        onDismiss: { whatsNew.dismissPresentedEntry() }
-                    )
-                }
-                .presentationDetents([.large])
-            }
-            .onAppear(perform: updateWhatsNewPresentation)
-            .onChange(of: keyStorage.key) { _, _ in
-                updateWhatsNewPresentation()
-            }
-            .globalToasts()
+            VlogSlateRootView()
+                .environmentObject(store)
         }
-    }
-
-    private var presentedWhatsNewEntry: Binding<WhatsNewEntry?> {
-        Binding(
-            get: { whatsNew.presentedEntry },
-            set: { newValue in
-                if let newValue {
-                    whatsNew.presentedEntry = newValue
-                } else {
-                    whatsNew.dismissPresentedEntry()
-                }
-            }
-        )
-    }
-
-    private func updateWhatsNewPresentation() {
-        whatsNew.presentIfNeeded(allowsAutoPresentation: hasTMDbAPIKey)
-    }
-
-    private var hasTMDbAPIKey: Bool {
-        guard let key = keyStorage.key else { return false }
-        return !key.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 }
 
-fileprivate struct WhatsNewRootSheet: View {
-    let entry: WhatsNewEntry
-    let onDismiss: () -> Void
+// Simple in-memory store and models
+final class VlogSlateStore: ObservableObject {
+    @Published var items: [FootageItem] = [] {
+        didSet { save() }
+    }
+    @Published var currentScene: Int = 1 {
+        didSet { save() }
+    }
+    @Published var currentTake: Int = 1 {
+        didSet { save() }
+    }
+    @Published private(set) var currentSlateID: String = UUID().uuidString
 
-    @State private var actionRunner: WhatsNewActionRunner
+    private let fileURL: URL
+    private var isLoading = false
 
-    init(
-        entry: WhatsNewEntry,
-        settingsActions: LibraryProfileSettingsActions,
-        onDismiss: @escaping () -> Void
-    ) {
-        self.entry = entry
-        self.onDismiss = onDismiss
-        _actionRunner = State(initialValue: settingsActions.makeWhatsNewActionRunner())
+    init() {
+        let supportDirectory = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+        let directory = supportDirectory.appendingPathComponent("VlogSlate", isDirectory: true)
+        fileURL = directory.appendingPathComponent("footage.json")
+        load()
     }
 
+    func addCurrentTake() {
+        let item = FootageItem(id: currentSlateID, scene: currentScene, take: currentTake, timestamp: Date(), notes: "", status: .backup, isFavorite: false)
+        items.insert(item, at: 0)
+        currentTake += 1
+        currentSlateID = UUID().uuidString
+        save()
+    }
+
+    func clearAll() {
+        items.removeAll()
+        currentScene = 1
+        currentTake = 1
+        currentSlateID = UUID().uuidString
+        save()
+    }
+
+    func replaceItems(_ importedItems: [FootageItem], currentScene importedScene: Int? = nil, currentTake importedTake: Int? = nil) {
+        items = importedItems.sorted { $0.timestamp > $1.timestamp }
+        if let importedScene, let importedTake {
+            currentScene = importedScene
+            currentTake = importedTake
+        } else if let latest = items.max(by: { lhs, rhs in
+            lhs.scene == rhs.scene ? lhs.take < rhs.take : lhs.scene < rhs.scene
+        }) {
+            currentScene = latest.scene
+            currentTake = latest.take + 1
+        } else {
+            currentScene = 1
+            currentTake = 1
+        }
+        currentSlateID = UUID().uuidString
+        save()
+    }
+
+    func payloadForCurrentSlate() -> VlogSlatePayload {
+        VlogSlatePayload(id: currentSlateID, scene: currentScene, take: currentTake)
+    }
+
+    private func load() {
+        isLoading = true
+        defer { isLoading = false }
+
+        guard let data = try? Data(contentsOf: fileURL),
+              let snapshot = try? JSONDecoder.vlogSlate.decode(VlogSlateSnapshot.self, from: data)
+        else { return }
+
+        items = snapshot.items
+        currentScene = snapshot.currentScene
+        currentTake = snapshot.currentTake
+        currentSlateID = snapshot.currentSlateID
+    }
+
+    private func save() {
+        guard !isLoading else { return }
+
+        do {
+            try FileManager.default.createDirectory(at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+            let snapshot = VlogSlateSnapshot(items: items, currentScene: currentScene, currentTake: currentTake, currentSlateID: currentSlateID)
+            let data = try JSONEncoder.vlogSlate.encode(snapshot)
+            try data.write(to: fileURL, options: [.atomic])
+        } catch {
+            assertionFailure("Failed to save VlogSlate data: \(error)")
+        }
+    }
+}
+
+struct FootageItem: Identifiable, Codable {
+    enum Status: String, Codable {
+        case good, bad, backup
+    }
+    var id: String
+    var scene: Int
+    var take: Int
+    var timestamp: Date
+    var notes: String
+    var status: Status
+    var isFavorite: Bool
+}
+
+struct VlogSlatePayload: Codable {
+    var id: String
+    var scene: Int
+    var take: Int
+
+    var visibleLabel: String {
+        "S\(scene) T\(take)"
+    }
+
+    var qrString: String {
+        guard let data = try? JSONEncoder.vlogSlate.encode(self),
+              let string = String(data: data, encoding: .utf8)
+        else { return visibleLabel }
+
+        return string
+    }
+}
+
+private struct VlogSlateSnapshot: Codable {
+    var items: [FootageItem]
+    var currentScene: Int
+    var currentTake: Int
+    var currentSlateID: String
+}
+
+extension JSONEncoder {
+    static var vlogSlate: JSONEncoder {
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        return encoder
+    }
+}
+
+extension JSONDecoder {
+    static var vlogSlate: JSONDecoder {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return decoder
+    }
+}
+
+// Root view with tabbed interface: Shelf and Slate
+struct VlogSlateRootView: View {
+    @EnvironmentObject var store: VlogSlateStore
+
     var body: some View {
-        WhatsNewView(
-            entry: entry,
-            actionRunner: actionRunner,
-            onDismiss: onDismiss
-        )
+        TabView {
+            FootageShelfView()
+                .tabItem { Label("Shelf", systemImage: "list.bullet") }
+            SlateControllerView()
+                .tabItem { Label("Slate", systemImage: "viewfinder") }
+            ScannerView()
+                .tabItem { Label("Scanner", systemImage: "qrcode.viewfinder") }
+        }
     }
 }
