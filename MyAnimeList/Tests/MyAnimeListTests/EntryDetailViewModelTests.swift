@@ -1,7 +1,7 @@
 //
 //  EntryDetailViewModelTests.swift
 //  MyAnimeListTests
-//
+//  我要开向slate了
 //  Created by OpenAI Codex on behalf of Samuel He on 2026/5/10.
 //
 
