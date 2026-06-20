@@ -24,10 +24,37 @@ struct FootageShelfView: View {
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !query.isEmpty else { return filtered }
 
+        // Tokenize query by whitespace and treat recognized keywords as status filters.
+        let tokens = query.split{ $0.isWhitespace }.map { String($0) }
+        var requireGood = false
+        var requireBackup = false
+        var requireBad = false
+        var requireFavorite = false
+        var textTokens: [String] = []
+
+        for t in tokens {
+            let lower = t.lowercased()
+            if t.contains("完美") || lower.contains("good") { requireGood = true; continue }
+            if t.contains("备用") || lower.contains("backup") { requireBackup = true; continue }
+            if t.contains("废镜") || lower.contains("bad") { requireBad = true; continue }
+            if t.contains("核心镜头") || t.contains("核心") || t.contains("已收藏") || lower.contains("favorite") { requireFavorite = true; continue }
+            textTokens.append(t)
+        }
+
         return filtered.filter { item in
-            item.title.localizedCaseInsensitiveContains(query)
-                || item.notes.localizedCaseInsensitiveContains(query)
-                || item.timestamp.formatted(date: .numeric, time: .shortened).localizedCaseInsensitiveContains(query)
+            if requireGood && item.status != .good { return false }
+            if requireBackup && item.status != .backup { return false }
+            if requireBad && item.status != .bad { return false }
+            if requireFavorite && !item.isFavorite { return false }
+
+            // If there are text tokens, require at least one to match title/notes/timestamp.
+            guard !textTokens.isEmpty else { return true }
+
+            return textTokens.contains(where: { tok in
+                item.title.localizedCaseInsensitiveContains(tok)
+                    || item.notes.localizedCaseInsensitiveContains(tok)
+                    || item.timestamp.formatted(date: .numeric, time: .shortened).localizedCaseInsensitiveContains(tok)
+            })
         }
     }
 
@@ -66,9 +93,7 @@ struct FootageShelfView: View {
                     projectActionsMenu
                 }
 
-                ToolbarItem(placement: .status) {
-                    footageFilterMenu
-                }
+                // removed bottom status filter menu as requested
             }
             .sheet(item: $selected) { item in
                 FootageDetailView(item: binding(for: item))
@@ -163,6 +188,7 @@ struct FootageShelfView: View {
 }
 
 struct FootageRow: View {
+    @EnvironmentObject var store: VlogSlateStore
     var item: FootageItem
 
     private let rowHeight: CGFloat = 126
@@ -190,21 +216,36 @@ struct FootageRow: View {
 
                 HStack(spacing: 8) {
                     VlogSlateStatusBadge(status: item.status)
-                    if item.isFavorite {
-                        Image(systemName: "heart.fill")
+
+                    Spacer()
+
+                    Button {
+                        if let idx = store.items.firstIndex(where: { $0.id == item.id }) {
+                            store.items[idx].isFavorite.toggle()
+                        }
+                    } label: {
+                        Image(systemName: item.isFavorite ? "heart.fill" : "heart")
                             .font(.caption.weight(.bold))
-                            .foregroundStyle(.pink)
+                            .foregroundStyle(item.isFavorite ? .pink : .primary)
                             .padding(.horizontal, 7)
                             .padding(.vertical, 4)
-                            .background(.pink.opacity(0.1), in: Capsule(style: .continuous))
+                            .background(item.isFavorite ? .pink.opacity(0.1) : .clear, in: Capsule(style: .continuous))
                     }
+                    .buttonStyle(.plain)
                 }
                 .padding(.top, 7)
             }
             .frame(maxWidth: .infinity, minHeight: rowHeight, maxHeight: rowHeight, alignment: .topLeading)
-        }
-        .frame(height: rowHeight, alignment: .top)
-        .padding(.vertical, 5)
+            }
+            .frame(height: rowHeight, alignment: .top)
+            .padding(.vertical, 5)
+            .swipeActions(edge: .trailing) {
+                Button(role: .destructive) {
+                    store.items.removeAll { $0.id == item.id }
+                } label: {
+                    Label("Delete", systemImage: "trash")
+                }
+            }
     }
 
     private var headerBlock: some View {
