@@ -326,11 +326,19 @@ struct FootageRow: View {
                         }
                     } label: {
                         Image(systemName: item.isFavorite ? "heart.fill" : "heart")
-                            .font(.caption.weight(.bold))
-                            .foregroundStyle(item.isFavorite ? .pink : .primary)
-                            .padding(.horizontal, 7)
-                            .padding(.vertical, 4)
-                            .background(item.isFavorite ? .pink.opacity(0.1) : .clear, in: Capsule(style: .continuous))
+                            .font(.footnote.weight(.semibold))
+                            .foregroundStyle(item.isFavorite ? .pink.opacity(0.94) : .secondary.opacity(0.9))
+                            .contentTransition(.symbolEffect(.replace))
+                            .animation(.snappy(duration: 0.18), value: item.isFavorite)
+                            .frame(width: 34, height: 34)
+                            .background {
+                                Circle()
+                                    .fill(.white.opacity(item.isFavorite ? 0.1 : 0.04))
+                            }
+                            .overlay {
+                                Circle()
+                                    .stroke(.white.opacity(item.isFavorite ? 0.18 : 0.08), lineWidth: 1)
+                            }
                     }
                     .buttonStyle(.plain)
                 }
