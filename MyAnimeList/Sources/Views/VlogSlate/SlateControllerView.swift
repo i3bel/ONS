@@ -57,10 +57,13 @@ struct SlateControllerView: View {
                 Text(currentPayload.visibleLabel)
                     .font(.title.weight(.black))
                     .monospacedDigit()
+                    .contentTransition(.numericText(value: Double(currentPayload.take)))
+                    .animation(.bouncy, value: currentPayload.take)
                 Text(store.currentSlateID.prefix(8).uppercased())
                     .font(.caption.weight(.medium))
                     .foregroundStyle(.secondary)
                     .monospaced()
+                    .animation(.bouncy, value: store.currentSlateID)
             }
         }
         .frame(maxWidth: .infinity)
@@ -195,6 +198,8 @@ private struct SlateCounterCard: View {
             Text("\(value)")
                 .font(.system(size: 42, weight: .black, design: .rounded))
                 .monospacedDigit()
+                .contentTransition(.numericText(value: Double(value)))
+                .animation(.bouncy, value: value)
 
             Text(title)
                 .font(.caption)
@@ -231,11 +236,15 @@ private struct FullScreenSlateView: View {
                     .minimumScaleFactor(0.55)
                     .lineLimit(1)
                     .padding(.horizontal)
+                    .contentTransition(.numericText(value: Double(payload.take)))
+                    .animation(.bouncy, value: payload.take)
 
                 Text("\(countdown)")
                     .font(.system(size: 72, weight: .heavy, design: .rounded))
                     .foregroundColor(.yellow)
                     .monospacedDigit()
+                    .contentTransition(.numericText(value: Double(countdown)))
+                    .animation(.bouncy, value: countdown)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .contentShape(Rectangle())
