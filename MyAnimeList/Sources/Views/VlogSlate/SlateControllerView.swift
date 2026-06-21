@@ -54,11 +54,24 @@ struct SlateControllerView: View {
                 }
 
             VStack(spacing: 6) {
-                Text(currentPayload.visibleLabel)
-                    .font(.title.weight(.black))
-                    .monospacedDigit()
-                    .contentTransition(.numericText(value: Double(currentPayload.take)))
-                    .animation(.bouncy, value: currentPayload.take)
+                // Split Scene and Take so both numbers get numericText transitions
+                HStack(spacing: 6) {
+                    Text("S")
+                        .font(.title.weight(.black))
+                    Text("\(currentPayload.scene)")
+                        .font(.title.weight(.black))
+                        .monospacedDigit()
+                        .contentTransition(.numericText(value: Double(currentPayload.scene)))
+                        .animation(.bouncy, value: currentPayload.scene)
+
+                    Text(" T")
+                        .font(.title.weight(.black))
+                    Text("\(currentPayload.take)")
+                        .font(.title.weight(.black))
+                        .monospacedDigit()
+                        .contentTransition(.numericText(value: Double(currentPayload.take)))
+                        .animation(.bouncy, value: currentPayload.take)
+                }
                 Text(store.currentSlateID.prefix(8).uppercased())
                     .font(.caption.weight(.medium))
                     .foregroundStyle(.secondary)
@@ -149,16 +162,35 @@ struct QRWithLabelView: View {
                     RoundedRectangle(cornerRadius: 18, style: .continuous)
                         .fill(.secondary.opacity(0.18))
                 }
-                Text(payload.visibleLabel)
-                    .font(.system(size: max(20, g.size.width * 0.13), weight: .black, design: .rounded))
-                    .foregroundStyle(.black)
-                    .padding(.horizontal, 18)
-                    .padding(.vertical, 10)
-                    .background(.white, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
-                    .overlay {
-                        RoundedRectangle(cornerRadius: 6, style: .continuous)
-                            .stroke(.black, lineWidth: 2)
-                    }
+                // Show S and T separately so numeric transitions apply to both numbers
+                HStack(spacing: 6) {
+                    Text("S")
+                        .font(.system(size: max(20, g.size.width * 0.13), weight: .black, design: .rounded))
+                        .foregroundStyle(.black)
+                    Text("\(payload.scene)")
+                        .font(.system(size: max(20, g.size.width * 0.13), weight: .black, design: .rounded))
+                        .foregroundStyle(.black)
+                        .monospacedDigit()
+                        .contentTransition(.numericText(value: Double(payload.scene)))
+                        .animation(.bouncy, value: payload.scene)
+
+                    Text(" T")
+                        .font(.system(size: max(20, g.size.width * 0.13), weight: .black, design: .rounded))
+                        .foregroundStyle(.black)
+                    Text("\(payload.take)")
+                        .font(.system(size: max(20, g.size.width * 0.13), weight: .black, design: .rounded))
+                        .foregroundStyle(.black)
+                        .monospacedDigit()
+                        .contentTransition(.numericText(value: Double(payload.take)))
+                        .animation(.bouncy, value: payload.take)
+                }
+                .padding(.horizontal, 18)
+                .padding(.vertical, 10)
+                .background(.white, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                        .stroke(.black, lineWidth: 2)
+                }
             }
         }
     }
@@ -230,14 +262,31 @@ private struct FullScreenSlateView: View {
                     .aspectRatio(1, contentMode: .fit)
                     .padding(.horizontal, 24)
 
-                Text("Scene \(payload.scene) - Take \(payload.take)")
-                    .font(.system(size: 44, weight: .black, design: .rounded))
-                    .foregroundColor(.white)
-                    .minimumScaleFactor(0.55)
-                    .lineLimit(1)
-                    .padding(.horizontal)
-                    .contentTransition(.numericText(value: Double(payload.take)))
-                    .animation(.bouncy, value: payload.take)
+                // Make Scene and Take numbers both animate with numericText + bouncy
+                HStack(spacing: 8) {
+                    Text("Scene")
+                        .font(.system(size: 44, weight: .black, design: .rounded))
+                        .foregroundColor(.white)
+                    Text("\(payload.scene)")
+                        .font(.system(size: 44, weight: .black, design: .rounded))
+                        .foregroundColor(.white)
+                        .monospacedDigit()
+                        .contentTransition(.numericText(value: Double(payload.scene)))
+                        .animation(.bouncy, value: payload.scene)
+
+                    Text("- Take")
+                        .font(.system(size: 44, weight: .black, design: .rounded))
+                        .foregroundColor(.white)
+                    Text("\(payload.take)")
+                        .font(.system(size: 44, weight: .black, design: .rounded))
+                        .foregroundColor(.white)
+                        .monospacedDigit()
+                        .contentTransition(.numericText(value: Double(payload.take)))
+                        .animation(.bouncy, value: payload.take)
+                }
+                .minimumScaleFactor(0.55)
+                .lineLimit(1)
+                .padding(.horizontal)
 
                 Text("\(countdown)")
                     .font(.system(size: 72, weight: .heavy, design: .rounded))

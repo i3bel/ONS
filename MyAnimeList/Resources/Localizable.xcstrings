@@ -17,6 +17,12 @@
         }
       }
     },
+    " T" : {
+
+    },
+    "- Take" : {
+
+    },
     "* For security reasons, your TMDb API Key will not be exported." : {
       "localizations" : {
         "ja" : {
@@ -4574,6 +4580,9 @@
         }
       }
     },
+    "S" : {
+
+    },
     "S%lld T%lld" : {
       "localizations" : {
         "en" : {
@@ -4650,6 +4659,9 @@
       }
     },
     "Scanner" : {
+
+    },
+    "Scene" : {
 
     },
     "SCENE" : {
