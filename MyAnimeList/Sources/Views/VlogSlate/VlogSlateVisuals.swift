@@ -119,32 +119,10 @@ struct VlogSlateFilterSummaryCapsule: View {
     var systemImage: String
 
     var body: some View {
-        HStack(spacing: 6) {
-            Image(systemName: systemImage)
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(.secondary.opacity(0.92))
-
-            Text(title)
-                .font(.subheadline.weight(.semibold))
-                .lineLimit(1)
-
-            Circle()
-                .fill(.secondary.opacity(0.45))
-                .frame(width: 3.5, height: 3.5)
-
-            Text("\(count)")
-                .font(.caption.weight(.bold))
-                .monospacedDigit()
-                .foregroundStyle(.secondary)
-                .contentTransition(.numericText(value: Double(count)))
-
-            Image(systemName: "chevron.down")
-                .font(.caption2.weight(.semibold))
-                .foregroundStyle(.tertiary)
-        }
-        .padding(.horizontal, 2)
-        .minimumScaleFactor(0.82)
-        .animation(.bouncy, value: count)
+        Text(title)
+            .font(.subheadline.weight(.semibold))
+            .padding(.trailing, 8)
+            .animation(.bouncy, value: count)
     }
 }
 

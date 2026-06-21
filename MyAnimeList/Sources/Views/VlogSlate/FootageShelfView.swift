@@ -574,8 +574,13 @@ struct FootageSearchView: View {
                 }
             }
             .listStyle(.plain)
-            .navigationTitle("搜索")
+            .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    VlogSlateNavigationTitleCapsule(count: filteredItems.count)
+                }
+            }
             .searchable(text: $searchText, prompt: "搜索场次、备注或时间")
         }
     }
