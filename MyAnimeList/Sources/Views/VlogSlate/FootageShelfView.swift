@@ -41,7 +41,7 @@ struct FootageShelfView: View {
             if t.contains("完美") || lower.contains("good") { requireGood = true; continue }
             if t.contains("备用") || lower.contains("backup") { requireBackup = true; continue }
             if t.contains("废镜") || lower.contains("bad") { requireBad = true; continue }
-            if t.contains("核心镜头") || t.contains("核心") || t.contains("已收藏") || lower.contains("favorite") { requireFavorite = true; continue }
+            if t.contains("核心镜头") || t.contains("核心") || t.contains("已收藏") || t.contains("收藏") || lower.contains("favorite") { requireFavorite = true; continue }
 
             // Support shorthand and ranges/comparisons for scene/take:
             // Examples: s1, t2, s1-3, t>=2, s>1
