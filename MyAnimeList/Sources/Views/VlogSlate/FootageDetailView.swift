@@ -1,4 +1,5 @@
 import SwiftUI
+import PhotosUI
 
 struct FootageDetailView: View {
     @EnvironmentObject var store: VlogSlateStore
@@ -38,34 +39,34 @@ struct FootageDetailView: View {
     }
 
     private func header(for binding: Binding<FootageItem>) -> some View {
-        VStack(spacing: 18) {
-            VlogSlatePosterBlock(scene: binding.wrappedValue.scene, take: binding.wrappedValue.take, style: .hero)
-                .frame(maxWidth: .infinity)
-                .aspectRatio(2.0 / 3.0, contentMode: .fit)
-                .overlay(alignment: .topTrailing) {
-                    Button(action: { binding.isFavorite.wrappedValue.toggle() }) {
-                        Image(systemName: binding.isFavorite.wrappedValue ? "heart.fill" : "heart")
-                            .font(.system(size: 15, weight: .bold))
-                            .foregroundStyle(binding.isFavorite.wrappedValue ? .pink : .white.opacity(0.9))
-                            .frame(width: 34, height: 34)
+        VStack(spacing: 8) {
+            // Removed cover image — show compact header
+            HStack(alignment: .firstTextBaseline, spacing: 12) {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Scene \(binding.wrappedValue.scene) - Take \(binding.wrappedValue.take)")
+                        .font(.title.bold())
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.75)
+
+                    HStack(spacing: 8) {
+                        VlogSlateStatusBadge(status: binding.wrappedValue.status)
+                        Text(binding.wrappedValue.timestamp.formatted(date: .numeric, time: .standard))
+                            .font(.caption.weight(.medium))
+                            .foregroundStyle(.secondary)
                     }
-                    .padding(12)
                 }
 
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Scene \(binding.wrappedValue.scene) - Take \(binding.wrappedValue.take)")
-                    .font(.largeTitle.bold())
-                    .lineLimit(2)
-                    .minimumScaleFactor(0.75)
+                Spacer()
 
-                HStack(spacing: 8) {
-                    VlogSlateStatusBadge(status: binding.wrappedValue.status)
-                    Text(binding.wrappedValue.timestamp.formatted(date: .numeric, time: .standard))
-                        .font(.caption.weight(.medium))
-                        .foregroundStyle(.secondary)
+                // Favorite toggle remains available in header
+                Button(action: { binding.isFavorite.wrappedValue.toggle() }) {
+                    Image(systemName: binding.isFavorite.wrappedValue ? "heart.fill" : "heart")
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundStyle(binding.isFavorite.wrappedValue ? .pink : .primary)
+                        .frame(width: 36, height: 36)
                 }
+                .buttonStyle(.plain)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
 
             HStack(spacing: 12) {
                 VlogSlateStatCard(
@@ -81,6 +82,85 @@ struct FootageDetailView: View {
                 )
             }
         }
+    }
+
+    // Photo picker state for selecting a scene thumbnail
+    @State private var showPhotoPicker = false
+    @State private var photoSelection: PhotosPickerItem? = nil
+    @State private var showCamera = false
+    @State private var showActionSheet = false
+
+    // Helper to present picker and store selection
+    private func photoPickerButton(for binding: Binding<FootageItem>) -> some View {
+        HStack(spacing: 12) {
+            Button("更换场景缩略图") {
+                showActionSheet = true
+            }
+            .buttonStyle(.bordered)
+            .confirmationDialog("更换场景缩略图", isPresented: $showActionSheet) {
+                Button("从相册选择") {
+                    photoSelection = nil
+                    showPhotoPicker = true
+                }
+                Button("拍照") {
+                    showCamera = true
+                }
+                if store.thumbnailURL(forScene: binding.wrappedValue.scene) != nil {
+                    Button("删除缩略图", role: .destructive) {
+                        removeSceneThumbnail(scene: binding.wrappedValue.scene)
+                    }
+                }
+                Button("取消", role: .cancel) {}
+            }
+
+            .photosPicker(isPresented: $showPhotoPicker, selection: $photoSelection, matching: .images)
+            .onChange(of: photoSelection) { newItem in
+                guard let item = newItem else { return }
+                Task {
+                    if let data = try? await item.loadTransferable(type: Data.self) {
+                        saveSceneThumbnail(data: data, scene: binding.wrappedValue.scene)
+                    }
+                }
+            }
+
+            // Camera sheet
+            .sheet(isPresented: $showCamera) {
+                UIImagePicker(source: .camera) { image in
+                    // Compress to JPEG
+                    if let data = image.jpegData(compressionQuality: 0.8) {
+                        saveSceneThumbnail(data: data, scene: binding.wrappedValue.scene)
+                    }
+                    showCamera = false
+                }
+            }
+        }
+    }
+
+    private func saveSceneThumbnail(data: Data, scene: Int) {
+        // Save file into same directory as footage.json
+        let supportDirectory = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+        let dir = supportDirectory.appendingPathComponent("VlogSlate", isDirectory: true)
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        let filename = "scene_\(scene)_thumb.jpg"
+        let url = dir.appendingPathComponent(filename)
+        do {
+            try data.write(to: url, options: [.atomic])
+            store.sceneThumbnails[scene] = filename
+            // force save
+            store.replaceItems(store.items, currentScene: store.currentScene, currentTake: store.currentTake)
+        } catch {
+            print("Failed to save thumbnail: \(error)")
+        }
+    }
+
+    private func removeSceneThumbnail(scene: Int) {
+        if let filename = store.sceneThumbnails[scene] {
+            let supportDirectory = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+            let url = supportDirectory.appendingPathComponent("VlogSlate", isDirectory: true).appendingPathComponent(filename)
+            try? FileManager.default.removeItem(at: url)
+        }
+        store.sceneThumbnails.removeValue(forKey: scene)
+        store.replaceItems(store.items, currentScene: store.currentScene, currentTake: store.currentTake)
     }
 
     private func notesPanel(for binding: Binding<FootageItem>) -> some View {
@@ -106,14 +186,8 @@ struct FootageDetailView: View {
 
     private func ratingPanel(for binding: Binding<FootageItem>) -> some View {
         VStack(spacing: 12) {
-            Button(action: { binding.isFavorite.wrappedValue.toggle() }) {
-                Label("核心镜头", systemImage: binding.isFavorite.wrappedValue ? "heart.fill" : "heart")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 10)
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(binding.isFavorite.wrappedValue ? .pink : .secondary)
+            // 替换为“更换场景缩略图”按钮（原为核心镜头）
+            photoPickerButton(for: binding)
 
             HStack(spacing: 12) {
                 StatusButton(title: "完美", color: .green, isSelected: binding.status.wrappedValue == .good) {

@@ -197,9 +197,21 @@ struct FootageRow: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: 11) {
-            VlogSlatePosterBlock(scene: item.scene, take: item.take, style: .row)
-                .frame(width: posterWidth, height: posterHeight)
-                .padding(.vertical, -3)
+            // Show scene thumbnail if available; otherwise show default poster block
+            if let url = store.thumbnailURL(forScene: item.scene),
+               let uiImage = UIImage(contentsOfFile: url.path) {
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: posterWidth, height: posterHeight)
+                    .clipped()
+                    .clipShape(RoundedRectangle(cornerRadius: VlogSlatePosterBlock.Style.row.cornerRadius, style: .continuous))
+                    .padding(.vertical, -3)
+            } else {
+                VlogSlatePosterBlock(scene: item.scene, take: item.take, style: .row)
+                    .frame(width: posterWidth, height: posterHeight)
+                    .padding(.vertical, -3)
+            }
 
             VStack(alignment: .leading, spacing: 0) {
                 headerBlock
@@ -240,6 +252,17 @@ struct FootageRow: View {
             .frame(height: rowHeight, alignment: .top)
             .padding(.vertical, 5)
             .swipeActions(edge: .trailing) {
+                // Mark as perfect / good
+                Button {
+                    if let idx = store.items.firstIndex(where: { $0.id == item.id }) {
+                        store.items[idx].status = .good
+                    }
+                } label: {
+                    Label("完美", systemImage: "checkmark.circle")
+                }
+                .tint(.green)
+
+                // Delete
                 Button(role: .destructive) {
                     store.items.removeAll { $0.id == item.id }
                 } label: {

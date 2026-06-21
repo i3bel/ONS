@@ -32,7 +32,10 @@ final class VlogSlateStore: ObservableObject {
     @Published var currentTake: Int = 1 {
         didSet { save() }
     }
-    @Published private(set) var currentSlateID: String = UUID().uuidString
+     @Published private(set) var currentSlateID: String = UUID().uuidString
+    
+    // Mapping from scene -> stored thumbnail filename
+    @Published var sceneThumbnails: [Int: String] = [:]
 
     private let fileURL: URL
     private var isLoading = false
@@ -78,6 +81,11 @@ final class VlogSlateStore: ObservableObject {
         save()
     }
 
+    func thumbnailURL(forScene scene: Int) -> URL? {
+        guard let filename = sceneThumbnails[scene] else { return nil }
+        return fileURL.deletingLastPathComponent().appendingPathComponent(filename)
+    }
+
     func payloadForCurrentSlate() -> VlogSlatePayload {
         VlogSlatePayload(id: currentSlateID, scene: currentScene, take: currentTake)
     }
@@ -94,6 +102,7 @@ final class VlogSlateStore: ObservableObject {
         currentScene = snapshot.currentScene
         currentTake = snapshot.currentTake
         currentSlateID = snapshot.currentSlateID
+        sceneThumbnails = snapshot.sceneThumbnails ?? [:]
     }
 
     private func save() {
@@ -101,7 +110,7 @@ final class VlogSlateStore: ObservableObject {
 
         do {
             try FileManager.default.createDirectory(at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true)
-            let snapshot = VlogSlateSnapshot(items: items, currentScene: currentScene, currentTake: currentTake, currentSlateID: currentSlateID)
+            let snapshot = VlogSlateSnapshot(items: items, currentScene: currentScene, currentTake: currentTake, currentSlateID: currentSlateID, sceneThumbnails: sceneThumbnails)
             let data = try JSONEncoder.vlogSlate.encode(snapshot)
             try data.write(to: fileURL, options: [.atomic])
         } catch {
@@ -146,6 +155,7 @@ private struct VlogSlateSnapshot: Codable {
     var currentScene: Int
     var currentTake: Int
     var currentSlateID: String
+    var sceneThumbnails: [Int: String]?
 }
 
 extension JSONEncoder {

@@ -6,6 +6,9 @@
 //
 
 import SwiftUI
+import UIKit
+import PhotosUI
+import Foundation
 
 struct VlogSlatePosterBlock: View {
     var scene: Int
@@ -33,6 +36,7 @@ struct VlogSlatePosterBlock: View {
 
     var body: some View {
         ZStack(alignment: .topLeading) {
+            // Default gradient background
             LinearGradient(
                 colors: [
                     .black.opacity(0.96),
@@ -43,6 +47,7 @@ struct VlogSlatePosterBlock: View {
                 endPoint: .bottomTrailing
             )
 
+            // If a thumbnail image is provided via environment, it'll be drawn by overlaying Image
             VStack(alignment: .leading, spacing: style == .row ? 4 : 8) {
                 Text("S\(scene) T\(take)")
                     .font(style.labelFont)

@@ -137,7 +137,7 @@ struct SearchPage: View {
         }
         .searchable(
             text: $query,
-            placement: .navigationBarDrawer(displayMode: .automatic),
+            placement: .navigationBarDrawer(displayMode: .always),
             prompt: searchPrompt
         )
         .onSubmit(of: .search) {
