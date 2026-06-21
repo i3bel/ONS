@@ -30,8 +30,8 @@ struct FootageShelfView: View {
         var requireBackup = false
         var requireBad = false
         var requireFavorite = false
-        var requireScene: Int? = nil
-        var requireTake: Int? = nil
+        let requireScene: Int? = nil
+        let requireTake: Int? = nil
         var allowedScenes: Set<Int>? = nil
         var allowedTakes: Set<Int>? = nil
         var textTokens: [String] = []
