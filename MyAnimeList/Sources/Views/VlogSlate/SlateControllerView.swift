@@ -54,7 +54,6 @@ struct SlateControllerView: View {
                 }
 
             VStack(spacing: 6) {
-                // Split Scene and Take so both numbers get numericText transitions
                 HStack(spacing: 6) {
                     Text("S")
                         .font(.title.weight(.black))
@@ -81,11 +80,7 @@ struct SlateControllerView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(18)
-        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 30, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: 30, style: .continuous)
-                .stroke(.white.opacity(0.12), lineWidth: 1)
-        }
+        .glassEffect(in: RoundedRectangle(cornerRadius: 30, style: .continuous))
     }
 
     private var actionRow: some View {
@@ -93,6 +88,7 @@ struct SlateControllerView: View {
             VlogSlateCircleActionButton(systemImage: "minus") {
                 store.currentTake = max(1, store.currentTake - 1)
             }
+            .sensoryFeedback(.impact, trigger: store.currentTake)
 
             Button(action: store.addCurrentTake) {
                 Label("拍板 + 插入", systemImage: "plus.rectangle.fill.on.rectangle.fill")
@@ -101,11 +97,13 @@ struct SlateControllerView: View {
                     .padding(.vertical, 12)
             }
             .buttonStyle(.borderedProminent)
-            .clipShape(Capsule(style: .continuous))
+            .buttonBorderShape(.capsule)
+            .sensoryFeedback(.success, trigger: store.items.count)
 
             VlogSlateCircleActionButton(systemImage: "plus") {
                 store.currentTake += 1
             }
+            .sensoryFeedback(.impact, trigger: store.currentTake)
         }
     }
 
@@ -162,7 +160,6 @@ struct QRWithLabelView: View {
                     RoundedRectangle(cornerRadius: 18, style: .continuous)
                         .fill(.secondary.opacity(0.18))
                 }
-                // Show S and T separately so numeric transitions apply to both numbers
                 HStack(spacing: 6) {
                     Text("S")
                         .font(.system(size: max(20, g.size.width * 0.13), weight: .black, design: .rounded))
@@ -225,6 +222,7 @@ private struct SlateCounterCard: View {
                 Spacer()
                 Stepper(title, value: $value, in: 1...999)
                     .labelsHidden()
+                    .sensoryFeedback(.impact, trigger: value)
             }
 
             Text("\(value)")
@@ -239,11 +237,7 @@ private struct SlateCounterCard: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(16)
-        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .stroke(.white.opacity(0.12), lineWidth: 1)
-        }
+        .glassEffect(in: RoundedRectangle(cornerRadius: 24, style: .continuous))
     }
 }
 
@@ -262,7 +256,6 @@ private struct FullScreenSlateView: View {
                     .aspectRatio(1, contentMode: .fit)
                     .padding(.horizontal, 24)
 
-                // Make Scene and Take numbers both animate with numericText + bouncy
                 HStack(spacing: 8) {
                     Text("Scene")
                         .font(.system(size: 44, weight: .black, design: .rounded))
