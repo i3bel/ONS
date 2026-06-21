@@ -4,6 +4,7 @@ import UniformTypeIdentifiers
 
 struct FootageShelfView: View {
     @EnvironmentObject var store: VlogSlateStore
+    @State private var isSearching = false
     @State private var showExportSheet = false
     @State private var showImportPicker = false
     @State private var selected: FootageItem?
@@ -147,6 +148,7 @@ struct FootageShelfView: View {
     var body: some View {
         NavigationStack {
             List {
+                
                 if filteredItems.isEmpty {
                     ContentUnavailableView("没有镜头", systemImage: "rectangle.stack.badge.plus", description: Text("在 Slate 页拍板后，镜头会出现在这里。"))
                         .listRowBackground(Color.clear)
@@ -169,17 +171,17 @@ struct FootageShelfView: View {
             .background(Color(.systemGroupedBackground))
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
-            .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "搜索场次、备注或时间")
             .toolbar {
                 ToolbarItem(placement: .principal) {
                     VlogSlateNavigationTitleCapsule(count: filteredItems.count)
                 }
-
                 ToolbarItem(placement: .topBarTrailing) {
                     projectActionsMenu
                 }
+                ToolbarItem(placement: .topBarTrailing) {
+                    footageFilterMenu
+                }
 
-                // removed bottom status filter menu as requested
             }
             .sheet(item: $selected) { item in
                 FootageDetailView(item: binding(for: item))
@@ -194,6 +196,7 @@ struct FootageShelfView: View {
                 contentType: .vlogSlate,
                 defaultFilename: "Project.vlogslate"
             ) { _ in }
+
         }
     }
 
@@ -442,5 +445,44 @@ private extension UTType {
 private extension FootageItem {
     var title: String {
         "Scene \(scene) - Take \(take)"
+    }
+}
+
+struct FootageSearchView: View {
+    @EnvironmentObject var store: VlogSlateStore
+    @State private var searchText = ""
+
+    private var filteredItems: [FootageItem] {
+        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !query.isEmpty else { return store.items }
+        return store.items.filter { item in
+            item.title.localizedCaseInsensitiveContains(query)
+                || item.notes.localizedCaseInsensitiveContains(query)
+                || item.timestamp.formatted(date: .numeric, time: .shortened).localizedCaseInsensitiveContains(query)
+        }
+    }
+
+    var body: some View {
+        NavigationStack {
+            List {
+                if filteredItems.isEmpty {
+                    ContentUnavailableView("没有结果", systemImage: "magnifyingglass", description: Text("没有找到匹配的镜头。"))
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                } else {
+                    ForEach(filteredItems) { item in
+                        FootageRow(item: item)
+                            .listRowInsets(.init(top: 8, leading: 10, bottom: 8, trailing: 10))
+                            .listRowSeparator(.visible)
+                            .listRowSeparatorTint(.white.opacity(0.06))
+                            .listRowBackground(Color.clear)
+                    }
+                }
+            }
+            .listStyle(.plain)
+            .navigationTitle("搜索")
+            .navigationBarTitleDisplayMode(.inline)
+            .searchable(text: $searchText, prompt: "搜索场次、备注或时间")
+        }
     }
 }

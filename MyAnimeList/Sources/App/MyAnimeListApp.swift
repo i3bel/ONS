@@ -178,15 +178,22 @@ extension JSONDecoder {
 // Root view with tabbed interface: Shelf and Slate
 struct VlogSlateRootView: View {
     @EnvironmentObject var store: VlogSlateStore
+    @State private var selectedTab: Int = 0
 
     var body: some View {
-        TabView {
-            FootageShelfView()
-                .tabItem { Label("Shelf", systemImage: "list.bullet") }
-            SlateControllerView()
-                .tabItem { Label("Slate", systemImage: "viewfinder") }
-            ScannerView()
-                .tabItem { Label("Scanner", systemImage: "qrcode.viewfinder") }
+        TabView(selection: $selectedTab) {
+            Tab("Shelf", systemImage: "list.bullet", value: 0) {
+                FootageShelfView()
+            }
+            Tab("Slate", systemImage: "viewfinder", value: 1) {
+                SlateControllerView()
+            }
+            Tab("Scanner", systemImage: "qrcode.viewfinder", value: 2) {
+                ScannerView()
+            }
+            Tab(value: 3, role: .search) {
+                FootageSearchView()
+            }
         }
     }
 }
