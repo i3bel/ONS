@@ -455,10 +455,104 @@ struct FootageSearchView: View {
     private var filteredItems: [FootageItem] {
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !query.isEmpty else { return store.items }
+
+        let tokens = query.split{ $0.isWhitespace }.map { String($0) }
+        var requireGood = false
+        var requireBackup = false
+        var requireBad = false
+        var requireFavorite = false
+        let requireScene: Int? = nil
+        let requireTake: Int? = nil
+        var allowedScenes: Set<Int>? = nil
+        var allowedTakes: Set<Int>? = nil
+        var textTokens: [String] = []
+
+        for t in tokens {
+            let lower = t.lowercased()
+            if t.contains("完美") || lower.contains("good") { requireGood = true; continue }
+            if t.contains("备用") || lower.contains("backup") { requireBackup = true; continue }
+            if t.contains("废镜") || lower.contains("bad") { requireBad = true; continue }
+            if t.contains("核心镜头") || t.contains("核心") || t.contains("已收藏") || t.contains("收藏") || lower.contains("favorite") { requireFavorite = true; continue }
+
+            if let m = lower.first, (m == "s" || m == "t"), lower.count > 1 {
+                let expr = String(lower.dropFirst())
+                func addRangeToSet(_ lo: Int, _ hi: Int, into set: inout Set<Int>?) {
+                    var s = set ?? []
+                    for v in lo...hi { s.insert(v) }
+                    set = s
+                }
+
+                if expr.contains("-") {
+                    let parts = expr.split(separator: "-", omittingEmptySubsequences: false).map(String.init)
+                    if parts.count == 2, let a = Int(parts[0]), let b = Int(parts[1]) {
+                        let lo = min(a,b), hi = max(a,b)
+                        if m == "s" { addRangeToSet(lo, hi, into: &allowedScenes); continue }
+                        else { addRangeToSet(lo, hi, into: &allowedTakes); continue }
+                    }
+                }
+
+                if expr.hasPrefix(">=") || expr.hasPrefix("<=") || expr.hasPrefix(">") || expr.hasPrefix("<") {
+                    var op = ""
+                    var numberPart = expr
+                    if expr.hasPrefix(">=") { op = ">="; numberPart = String(expr.dropFirst(2)) }
+                    else if expr.hasPrefix("<=") { op = "<="; numberPart = String(expr.dropFirst(2)) }
+                    else if expr.hasPrefix(">") { op = ">"; numberPart = String(expr.dropFirst(1)) }
+                    else if expr.hasPrefix("<") { op = "<"; numberPart = String(expr.dropFirst(1)) }
+
+                    if let n = Int(numberPart) {
+                        let RANGE_MAX = 999
+                        switch op {
+                        case ">":
+                            let lo = n+1
+                            if lo <= RANGE_MAX {
+                                if m == "s" { addRangeToSet(lo, RANGE_MAX, into: &allowedScenes) } else { addRangeToSet(lo, RANGE_MAX, into: &allowedTakes) }
+                                continue
+                            }
+                        case ">=":
+                            if n <= RANGE_MAX {
+                                if m == "s" { addRangeToSet(n, RANGE_MAX, into: &allowedScenes) } else { addRangeToSet(n, RANGE_MAX, into: &allowedTakes) }
+                                continue
+                            }
+                        case "<":
+                            let hi = max(1, n-1)
+                            if hi >= 1 {
+                                if m == "s" { addRangeToSet(1, hi, into: &allowedScenes) } else { addRangeToSet(1, hi, into: &allowedTakes) }
+                                continue
+                            }
+                        case "<=":
+                            let hi = max(1, n)
+                            if hi >= 1 {
+                                if m == "s" { addRangeToSet(1, hi, into: &allowedScenes) } else { addRangeToSet(1, hi, into: &allowedTakes) }
+                                continue
+                            }
+                        default: break
+                        }
+                    }
+                }
+
+                if let n = Int(expr) {
+                    if m == "s" { var s = allowedScenes ?? []; s.insert(n); allowedScenes = s; continue }
+                    if m == "t" { var s = allowedTakes ?? []; s.insert(n); allowedTakes = s; continue }
+                }
+            }
+            textTokens.append(t)
+        }
+
         return store.items.filter { item in
-            item.title.localizedCaseInsensitiveContains(query)
-                || item.notes.localizedCaseInsensitiveContains(query)
-                || item.timestamp.formatted(date: .numeric, time: .shortened).localizedCaseInsensitiveContains(query)
+            if requireGood && item.status != .good { return false }
+            if requireBackup && item.status != .backup { return false }
+            if requireBad && item.status != .bad { return false }
+            if requireFavorite && !item.isFavorite { return false }
+            if let s = requireScene, item.scene != s { return false }
+            if let t = requireTake, item.take != t { return false }
+            if let scenes = allowedScenes, !scenes.contains(item.scene) { return false }
+            if let takes = allowedTakes, !takes.contains(item.take) { return false }
+            guard !textTokens.isEmpty else { return true }
+            return textTokens.contains(where: { tok in
+                item.title.localizedCaseInsensitiveContains(tok)
+                    || item.notes.localizedCaseInsensitiveContains(tok)
+                    || item.timestamp.formatted(date: .numeric, time: .shortened).localizedCaseInsensitiveContains(tok)
+            })
         }
     }
 
