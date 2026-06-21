@@ -114,7 +114,7 @@ struct FootageDetailView: View {
             }
 
             .photosPicker(isPresented: $showPhotoPicker, selection: $photoSelection, matching: .images)
-            .onChange(of: photoSelection) { newItem in
+            .onChange(of: photoSelection) { _old, newItem in
                 guard let item = newItem else { return }
                 Task {
                     if let data = try? await item.loadTransferable(type: Data.self) {
