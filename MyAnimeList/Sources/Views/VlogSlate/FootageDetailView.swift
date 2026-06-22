@@ -102,7 +102,10 @@ struct FootageDetailView: View {
             Button("更换场景缩略图") {
                 showActionSheet = true
             }
-            .buttonStyle(.bordered)
+            .buttonStyle(.borderedProminent)
+            .buttonBorderShape(.capsule)
+            .tint(.blue)
+            .frame(maxWidth: .infinity)
             .confirmationDialog("更换场景缩略图", isPresented: $showActionSheet) {
                 Button("从相册选择") {
                     photoSelection = nil
@@ -192,44 +195,43 @@ struct FootageDetailView: View {
 
     private func ratingPanel(for binding: Binding<FootageItem>) -> some View {
         VStack(spacing: 12) {
-            // 替换为“更换场景缩略图”按钮（原为核心镜头）
             photoPickerButton(for: binding)
 
             HStack(spacing: 12) {
-                StatusButton(title: "完美", color: .green, isSelected: binding.status.wrappedValue == .good) {
+                Button {
                     binding.status.wrappedValue = .good
+                } label: {
+                    Label("完美", systemImage: "checkmark.circle.fill")
+                        .frame(maxWidth: .infinity)
                 }
-                StatusButton(title: "备用", color: .yellow, isSelected: binding.status.wrappedValue == .backup) {
+                .buttonStyle(.borderedProminent)
+                .buttonBorderShape(.capsule)
+                .tint(binding.status.wrappedValue == .good ? .green : .secondary)
+
+                Button {
                     binding.status.wrappedValue = .backup
+                } label: {
+                    Label("备用", systemImage: "rectangle.stack.fill")
+                        .frame(maxWidth: .infinity)
                 }
-                StatusButton(title: "废镜", color: .red, isSelected: binding.status.wrappedValue == .bad) {
+                .buttonStyle(.borderedProminent)
+                .buttonBorderShape(.capsule)
+                .tint(binding.status.wrappedValue == .backup ? .yellow : .secondary)
+
+                Button {
                     binding.status.wrappedValue = .bad
+                } label: {
+                    Label("废镜", systemImage: "xmark.circle.fill")
+                        .frame(maxWidth: .infinity)
                 }
+                .buttonStyle(.borderedProminent)
+                .buttonBorderShape(.capsule)
+                .tint(binding.status.wrappedValue == .bad ? .red : .secondary)
             }
         }
         .padding(16)
-        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .stroke(.white.opacity(0.12), lineWidth: 1)
-        }
+        .glassEffect(in: RoundedRectangle(cornerRadius: 24, style: .continuous))
     }
 }
 
-private struct StatusButton: View {
-    var title: String
-    var color: Color
-    var isSelected: Bool
-    var action: () -> Void
 
-    var body: some View {
-        Button(action: action) {
-            Text(title)
-                .font(.headline)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 10)
-        }
-        .buttonStyle(.borderedProminent)
-        .tint(isSelected ? color : .secondary)
-    }
-}
