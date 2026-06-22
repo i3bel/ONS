@@ -27,7 +27,10 @@ final class VlogSlateStore: ObservableObject {
         didSet { save() }
     }
     @Published var currentScene: Int = 1 {
-        didSet { save() }
+        didSet {
+            currentClip = 1
+            save()
+        }
     }
     @Published var currentClip: Int = 1 {
         didSet { save() }

@@ -134,6 +134,7 @@ struct FootageShelfView: View {
     @State private var showImportPicker = false
     @State private var selected: FootageItem?
     @State private var filter: FootageFilter = .all
+    @State private var hideBad: Bool = true
     @State private var searchText = ""
 
     private var filteredItems: [FootageItem] {
@@ -141,12 +142,14 @@ struct FootageShelfView: View {
         switch filter {
         case .all:     filtered = store.items
         case .good:    filtered = store.items.filter { $0.status == .good }
-        case .favorite: filtered = store.items.filter(\.isFavorite)
+        case .backup:
+            filtered = store.items.filter { $0.status == .backup }
         }
 
+        let visibleItems = hideBad ? filtered.filter { $0.status != .bad } : filtered
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !query.isEmpty else { return defaultSort(filtered) }
-        return defaultSort(applySearchTokens(query: query, items: filtered))
+        guard !query.isEmpty else { return defaultSort(visibleItems) }
+        return defaultSort(applySearchTokens(query: query, items: visibleItems))
     }
 
     var body: some View {
@@ -232,6 +235,11 @@ struct FootageShelfView: View {
                 }
                 .pickerStyle(.inline)
             }
+            Section {
+                Toggle(isOn: $hideBad) {
+                    Label("隐藏废镜", systemImage: "eye.slash")
+                }
+            }
         } label: {
             VlogSlateFilterSummaryCapsule(
                 title: filter.title,
@@ -313,20 +321,21 @@ struct FootageRow: View {
                     Spacer()
                     Button {
                         if let idx = store.items.firstIndex(where: { $0.id == item.id }) {
-                            store.items[idx].isFavorite.toggle()
+                            var transaction = Transaction()
+                            transaction.disablesAnimations = true
+                            withTransaction(transaction) {
+                                store.items[idx].status = store.items[idx].status == .good ? .backup : .good
+                            }
                         }
                     } label: {
-                        Image(systemName: item.isFavorite ? "heart.fill" : "heart")
-                            .font(.footnote.weight(.semibold))
-                            .foregroundStyle(item.isFavorite ? .pink.opacity(0.94) : .secondary.opacity(0.9))
-                            .contentTransition(.symbolEffect(.replace))
-                            .animation(.snappy(duration: 0.18), value: item.isFavorite)
-                            .frame(width: 34, height: 34)
+                        Image(systemName: item.status == .good ? "heart.fill" : "heart")
+                            .foregroundStyle(item.status == .good ? .pink.opacity(0.94) : .secondary.opacity(0.9))
+                            .animation(.snappy(duration: 0.18), value: item.status)
                             .background {
-                                Circle().fill(.white.opacity(item.isFavorite ? 0.1 : 0.04))
+                                Circle().fill(.white.opacity(item.status == .good ? 0.1 : 0.04))
                             }
                             .overlay {
-                                Circle().stroke(.white.opacity(item.isFavorite ? 0.18 : 0.08), lineWidth: 1)
+                                Circle().stroke(.white.opacity(item.status == .good ? 0.18 : 0.08), lineWidth: 1)
                             }
                     }
                     .buttonStyle(.plain)
@@ -338,21 +347,6 @@ struct FootageRow: View {
         .frame(height: rowHeight, alignment: .top)
         .padding(.vertical, 5)
         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-            Button {
-                if let idx = store.items.firstIndex(where: { $0.id == item.id }) {
-                    var transaction = Transaction()
-                    transaction.disablesAnimations = true
-                    withTransaction(transaction) {
-                        store.items[idx].status = store.items[idx].status == .good ? .backup : .good
-                    }
-                }
-            } label: {
-                Label(item.status == .good ? "取消完美" : "完美",
-                      systemImage: item.status == .good ? "xmark.circle" : "checkmark.circle")
-            }
-            .tint(item.status == .good ? .orange : .green)
-            .sensoryFeedback(.impact, trigger: item.status)
-
             Button(role: .destructive) {
                 store.items.removeAll { $0.id == item.id }
             } label: {
@@ -394,7 +388,7 @@ struct FootageRow: View {
 // MARK: - FootageFilter
 
 private enum FootageFilter: String, CaseIterable, Identifiable {
-    case all, good, favorite
+    case all, good, backup
 
     var id: String { rawValue }
 
@@ -402,7 +396,7 @@ private enum FootageFilter: String, CaseIterable, Identifiable {
         switch self {
         case .all:      return "全部"
         case .good:     return "完美"
-        case .favorite: return "收藏"
+        case .backup: return "备用"
         }
     }
 
@@ -410,7 +404,7 @@ private enum FootageFilter: String, CaseIterable, Identifiable {
         switch self {
         case .all:      return "line.3.horizontal.decrease.circle"
         case .good:     return "checkmark.circle.fill"
-        case .favorite: return "heart.fill"
+        case .backup: return "rectangle.stack.fill"
         }
     }
 }
