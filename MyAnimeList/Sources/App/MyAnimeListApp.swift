@@ -64,6 +64,12 @@ final class VlogSlateStore: ObservableObject {
         currentScene = 1
         currentClip = 1
         currentSlateID = UUID().uuidString
+        // 删除所有缩略图文件
+        for filename in sceneThumbnails.values {
+            let url = fileURL.deletingLastPathComponent().appendingPathComponent(filename)
+            try? FileManager.default.removeItem(at: url)
+        }
+        sceneThumbnails.removeAll()
         save()
     }
 
