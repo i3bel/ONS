@@ -270,7 +270,7 @@ struct FootageShelfView: View {
     }
 
     private func exportDocument() -> VlogExportDocument {
-        VlogExportDocument(items: store.items, currentScene: store.currentScene, currentTake: store.currentTake)
+        VlogExportDocument(items: store.items, currentScene: store.currentScene, currentTake: 1)
     }
 }
 
@@ -345,15 +345,21 @@ struct FootageRow: View {
         }
         .frame(height: rowHeight, alignment: .top)
         .padding(.vertical, 5)
-        .swipeActions(edge: .trailing) {
+        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
             Button {
                 if let idx = store.items.firstIndex(where: { $0.id == item.id }) {
-                    store.items[idx].status = .good
+                    var transaction = Transaction()
+                    transaction.disablesAnimations = true
+                    withTransaction(transaction) {
+                        store.items[idx].status = store.items[idx].status == .good ? .backup : .good
+                    }
                 }
             } label: {
-                Label("完美", systemImage: "checkmark.circle")
+                Label(item.status == .good ? "取消完美" : "完美",
+                      systemImage: item.status == .good ? "xmark.circle" : "checkmark.circle")
             }
-            .tint(.green)
+            .tint(item.status == .good ? .orange : .green)
+            .sensoryFeedback(.impact, trigger: item.status)
 
             Button(role: .destructive) {
                 store.items.removeAll { $0.id == item.id }

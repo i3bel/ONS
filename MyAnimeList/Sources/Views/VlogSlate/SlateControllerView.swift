@@ -37,7 +37,7 @@ struct SlateControllerView: View {
     private var controlCards: some View {
         HStack(spacing: 12) {
             SlateCounterCard(title: "Scene", value: $store.currentScene, systemImage: "rectangle.stack.fill")
-            SlateCounterCard(title: "Take", value: $store.currentTake, systemImage: "viewfinder", tint: .cyan)
+            SlateCounterCard(title: "Clip", value: $store.currentClip, systemImage: "filmstrip", tint: .cyan)
         }
     }
 
@@ -63,7 +63,15 @@ struct SlateControllerView: View {
                         .contentTransition(.numericText(value: Double(currentPayload.scene)))
                         .animation(.bouncy, value: currentPayload.scene)
 
-                    Text(" T")
+                    Text("C")
+                        .font(.title.weight(.black))
+                    Text("\(currentPayload.clip)")
+                        .font(.title.weight(.black))
+                        .monospacedDigit()
+                        .contentTransition(.numericText(value: Double(currentPayload.clip)))
+                        .animation(.bouncy, value: currentPayload.clip)
+
+                    Text("T")
                         .font(.title.weight(.black))
                     Text("\(currentPayload.take)")
                         .font(.title.weight(.black))
@@ -86,9 +94,9 @@ struct SlateControllerView: View {
     private var actionRow: some View {
         HStack(spacing: 12) {
             VlogSlateCircleActionButton(systemImage: "minus") {
-                store.currentTake = max(1, store.currentTake - 1)
+                store.currentClip = max(1, store.currentClip - 1)
             }
-            .sensoryFeedback(.impact, trigger: store.currentTake)
+            .sensoryFeedback(.impact, trigger: store.currentClip)
 
             Button(action: store.addCurrentTake) {
                 Label("拍板 + 插入", systemImage: "plus.rectangle.fill.on.rectangle.fill")
@@ -101,9 +109,9 @@ struct SlateControllerView: View {
             .sensoryFeedback(.success, trigger: store.items.count)
 
             VlogSlateCircleActionButton(systemImage: "plus") {
-                store.currentTake += 1
+                store.currentClip += 1
             }
-            .sensoryFeedback(.impact, trigger: store.currentTake)
+            .sensoryFeedback(.impact, trigger: store.currentClip)
         }
     }
 
@@ -119,11 +127,9 @@ struct SlateControllerView: View {
                 await MainActor.run {
                     fullScreenCountdown = remaining
                 }
-
                 try? await Task.sleep(for: .seconds(1))
                 guard !Task.isCancelled else { return }
             }
-
             await MainActor.run {
                 finishFullScreenSlate()
             }
@@ -160,29 +166,39 @@ struct QRWithLabelView: View {
                     RoundedRectangle(cornerRadius: 18, style: .continuous)
                         .fill(.secondary.opacity(0.18))
                 }
-                HStack(spacing: 6) {
+                HStack(spacing: 4) {
                     Text("S")
-                        .font(.system(size: max(20, g.size.width * 0.13), weight: .black, design: .rounded))
+                        .font(.system(size: max(16, g.size.width * 0.10), weight: .black, design: .rounded))
                         .foregroundStyle(.black)
                     Text("\(payload.scene)")
-                        .font(.system(size: max(20, g.size.width * 0.13), weight: .black, design: .rounded))
+                        .font(.system(size: max(16, g.size.width * 0.10), weight: .black, design: .rounded))
                         .foregroundStyle(.black)
                         .monospacedDigit()
                         .contentTransition(.numericText(value: Double(payload.scene)))
                         .animation(.bouncy, value: payload.scene)
 
-                    Text(" T")
-                        .font(.system(size: max(20, g.size.width * 0.13), weight: .black, design: .rounded))
+                    Text("C")
+                        .font(.system(size: max(16, g.size.width * 0.10), weight: .black, design: .rounded))
+                        .foregroundStyle(.black)
+                    Text("\(payload.clip)")
+                        .font(.system(size: max(16, g.size.width * 0.10), weight: .black, design: .rounded))
+                        .foregroundStyle(.black)
+                        .monospacedDigit()
+                        .contentTransition(.numericText(value: Double(payload.clip)))
+                        .animation(.bouncy, value: payload.clip)
+
+                    Text("T")
+                        .font(.system(size: max(16, g.size.width * 0.10), weight: .black, design: .rounded))
                         .foregroundStyle(.black)
                     Text("\(payload.take)")
-                        .font(.system(size: max(20, g.size.width * 0.13), weight: .black, design: .rounded))
+                        .font(.system(size: max(16, g.size.width * 0.10), weight: .black, design: .rounded))
                         .foregroundStyle(.black)
                         .monospacedDigit()
                         .contentTransition(.numericText(value: Double(payload.take)))
                         .animation(.bouncy, value: payload.take)
                 }
-                .padding(.horizontal, 18)
-                .padding(.vertical, 10)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 8)
                 .background(.white, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
                 .overlay {
                     RoundedRectangle(cornerRadius: 6, style: .continuous)
@@ -267,6 +283,16 @@ private struct FullScreenSlateView: View {
                         .contentTransition(.numericText(value: Double(payload.scene)))
                         .animation(.bouncy, value: payload.scene)
 
+                    Text("- Clip")
+                        .font(.system(size: 44, weight: .black, design: .rounded))
+                        .foregroundColor(.white)
+                    Text("\(payload.clip)")
+                        .font(.system(size: 44, weight: .black, design: .rounded))
+                        .foregroundColor(.white)
+                        .monospacedDigit()
+                        .contentTransition(.numericText(value: Double(payload.clip)))
+                        .animation(.bouncy, value: payload.clip)
+
                     Text("- Take")
                         .font(.system(size: 44, weight: .black, design: .rounded))
                         .foregroundColor(.white)
@@ -277,7 +303,7 @@ private struct FullScreenSlateView: View {
                         .contentTransition(.numericText(value: Double(payload.take)))
                         .animation(.bouncy, value: payload.take)
                 }
-                .minimumScaleFactor(0.55)
+                .minimumScaleFactor(0.45)
                 .lineLimit(1)
                 .padding(.horizontal)
 

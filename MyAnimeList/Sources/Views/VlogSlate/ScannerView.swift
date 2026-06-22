@@ -12,30 +12,56 @@ struct ScannerView: View {
     @EnvironmentObject private var store: VlogSlateStore
     @State private var selectedItem: FootageItem?
     @State private var scannedCode: String?
+    @State private var isScanning = false
 
     var body: some View {
         NavigationStack {
             ZStack(alignment: .bottom) {
-                VlogQRCodeScannerView { code in
-                    handleScannedCode(code)
+                if isScanning {
+                    VlogQRCodeScannerView { code in
+                        handleScannedCode(code)
+                    }
+                    .ignoresSafeArea(edges: .bottom)
+                } else {
+                    Color(.systemGroupedBackground)
+                        .ignoresSafeArea()
                 }
-                .ignoresSafeArea(edges: .bottom)
 
-                VStack(alignment: .leading, spacing: 10) {
-                    Label("扫描素材画面中的二维码", systemImage: "qrcode.viewfinder")
-                        .font(.headline)
-                    Text(scannedCode ?? "等待二维码")
-                        .font(.caption.weight(.medium))
-                        .foregroundStyle(.secondary)
-                        .lineLimit(2)
-                        .monospaced()
-                }
-                .padding(16)
-                .frame(maxWidth: .infinity)
-                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
-                .overlay {
-                    RoundedRectangle(cornerRadius: 24, style: .continuous)
-                        .stroke(.white.opacity(0.12), lineWidth: 1)
+                VStack(spacing: 16) {
+                    if isScanning {
+                        VStack(alignment: .leading, spacing: 10) {
+                            Label("扫描素材画面中的二维码", systemImage: "qrcode.viewfinder")
+                                .font(.headline)
+                            Text(scannedCode ?? "等待二维码")
+                                .font(.caption.weight(.medium))
+                                .foregroundStyle(.secondary)
+                                .lineLimit(2)
+                                .monospaced()
+                        }
+                        .padding(16)
+                        .frame(maxWidth: .infinity)
+                        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                                .stroke(.white.opacity(0.12), lineWidth: 1)
+                        }
+                    }
+
+                    Button {
+                        withAnimation(.spring) {
+                            isScanning.toggle()
+                            if !isScanning { scannedCode = nil }
+                        }
+                    } label: {
+                        Label(isScanning ? "停止扫码" : "开始扫码",
+                              systemImage: isScanning ? "stop.circle" : "qrcode.viewfinder")
+                            .font(.headline)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .buttonBorderShape(.capsule)
+                    .tint(isScanning ? .red : .blue)
                 }
                 .padding()
             }
@@ -45,7 +71,6 @@ struct ScannerView: View {
             }
         }
     }
-
     private func handleScannedCode(_ code: String) {
         scannedCode = code
 

@@ -17,7 +17,7 @@
         }
       }
     },
-    " T" : {
+    "- Clip" : {
 
     },
     "- Take" : {
@@ -1000,6 +1000,9 @@
           }
         }
       }
+    },
+    "C" : {
+
     },
     "Cache posters and artwork without refreshing metadata." : {
       "localizations" : {
@@ -4667,12 +4670,12 @@
     "SCENE" : {
 
     },
-    "Scene %lld - Take %lld" : {
+    "Scene %lld - Clip %lld - Take %lld" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Scene %1$lld - Take %2$lld"
+            "value" : "Scene %1$lld - Clip %2$lld - Take %3$lld"
           }
         }
       }
@@ -5267,6 +5270,9 @@
           }
         }
       }
+    },
+    "T" : {
+
     },
     "Tab-Separated Values (.tsv)" : {
       "localizations" : {
@@ -6504,6 +6510,9 @@
     "从相册选择" : {
 
     },
+    "停止扫码" : {
+
+    },
     "删除所有镜头" : {
 
     },
@@ -6511,6 +6520,9 @@
 
     },
     "取消" : {
+
+    },
+    "取消完美" : {
 
     },
     "在 Slate 页拍板后，镜头会出现在这里。" : {
@@ -6523,6 +6535,9 @@
 
     },
     "导出项目" : {
+
+    },
+    "开始扫码" : {
 
     },
     "扫描素材画面中的二维码" : {

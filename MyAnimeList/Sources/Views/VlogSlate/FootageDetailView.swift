@@ -43,7 +43,7 @@ struct FootageDetailView: View {
             // Removed cover image — show compact header
             HStack(alignment: .firstTextBaseline, spacing: 12) {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Scene \(binding.wrappedValue.scene) - Take \(binding.wrappedValue.take)")
+                    Text("Scene \(binding.wrappedValue.scene) - Clip \(binding.wrappedValue.clip) - Take \(binding.wrappedValue.take)")
                         .font(.title.bold())
                         .lineLimit(2)
                         .minimumScaleFactor(0.75)
@@ -75,10 +75,16 @@ struct FootageDetailView: View {
                     systemImage: "rectangle.stack.fill"
                 )
                 VlogSlateStatCard(
+                    title: "Clip",
+                    value: "\(binding.wrappedValue.clip)",
+                    systemImage: "filmstrip",
+                    tint: .cyan
+                )
+                VlogSlateStatCard(
                     title: "Take",
                     value: "\(binding.wrappedValue.take)",
                     systemImage: "viewfinder",
-                    tint: .cyan
+                    tint: .orange
                 )
             }
         }
@@ -147,7 +153,7 @@ struct FootageDetailView: View {
             try data.write(to: url, options: [.atomic])
             store.sceneThumbnails[scene] = filename
             // force save
-            store.replaceItems(store.items, currentScene: store.currentScene, currentTake: store.currentTake)
+            store.replaceItems(store.items, currentScene: store.currentScene)
         } catch {
             print("Failed to save thumbnail: \(error)")
         }
@@ -160,7 +166,7 @@ struct FootageDetailView: View {
             try? FileManager.default.removeItem(at: url)
         }
         store.sceneThumbnails.removeValue(forKey: scene)
-        store.replaceItems(store.items, currentScene: store.currentScene, currentTake: store.currentTake)
+        store.replaceItems(store.items, currentScene: store.currentScene)
     }
 
     private func notesPanel(for binding: Binding<FootageItem>) -> some View {

@@ -29,7 +29,7 @@ final class VlogSlateStore: ObservableObject {
     @Published var currentScene: Int = 1 {
         didSet { save() }
     }
-    @Published var currentTake: Int = 1 {
+    @Published var currentClip: Int = 1 {
         didSet { save() }
     }
     @Published private(set) var currentSlateID: String = UUID().uuidString
@@ -48,9 +48,10 @@ final class VlogSlateStore: ObservableObject {
     }
 
     func addCurrentTake() {
-        let item = FootageItem(id: currentSlateID, scene: currentScene, clip: 1, take: currentTake, timestamp: Date(), notes: "", status: .backup, isFavorite: false)
+        let existingTakes = items.filter { $0.scene == currentScene && $0.clip == currentClip }.count
+        let newTake = existingTakes + 1
+        let item = FootageItem(id: currentSlateID, scene: currentScene, clip: currentClip, take: newTake, timestamp: Date(), notes: "", status: .backup, isFavorite: false)
         items.insert(item, at: 0)
-        currentTake += 1
         currentSlateID = UUID().uuidString
         save()
     }
@@ -58,7 +59,7 @@ final class VlogSlateStore: ObservableObject {
     func clearAll() {
         items.removeAll()
         currentScene = 1
-        currentTake = 1
+        currentClip = 1
         currentSlateID = UUID().uuidString
         save()
     }
@@ -67,15 +68,15 @@ final class VlogSlateStore: ObservableObject {
         items = importedItems.sorted { $0.timestamp > $1.timestamp }
         if let importedScene, let importedTake {
             currentScene = importedScene
-            currentTake = importedTake
+            currentClip = 1
         } else if let latest = items.max(by: { lhs, rhs in
-            lhs.scene == rhs.scene ? lhs.take < rhs.take : lhs.scene < rhs.scene
+            lhs.scene == rhs.scene ? lhs.clip < rhs.clip : lhs.scene < rhs.scene
         }) {
             currentScene = latest.scene
-            currentTake = latest.take + 1
+            currentClip = latest.clip
         } else {
             currentScene = 1
-            currentTake = 1
+            currentClip = 1
         }
         currentSlateID = UUID().uuidString
         save()
@@ -87,7 +88,8 @@ final class VlogSlateStore: ObservableObject {
     }
 
     func payloadForCurrentSlate() -> VlogSlatePayload {
-        VlogSlatePayload(id: currentSlateID, scene: currentScene, take: currentTake)
+        let existingTakes = items.filter { $0.scene == currentScene && $0.clip == currentClip }.count
+        return VlogSlatePayload(id: currentSlateID, scene: currentScene, clip: currentClip, take: existingTakes + 1)
     }
 
     private func load() {
@@ -100,7 +102,7 @@ final class VlogSlateStore: ObservableObject {
 
         items = snapshot.items
         currentScene = snapshot.currentScene
-        currentTake = snapshot.currentTake
+        currentClip = snapshot.currentClip ?? 1
         currentSlateID = snapshot.currentSlateID
         sceneThumbnails = snapshot.sceneThumbnails ?? [:]
     }
@@ -110,7 +112,7 @@ final class VlogSlateStore: ObservableObject {
 
         do {
             try FileManager.default.createDirectory(at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true)
-            let snapshot = VlogSlateSnapshot(items: items, currentScene: currentScene, currentTake: currentTake, currentSlateID: currentSlateID, sceneThumbnails: sceneThumbnails)
+            let snapshot = VlogSlateSnapshot(items: items, currentScene: currentScene, currentClip: currentClip, currentSlateID: currentSlateID, sceneThumbnails: sceneThumbnails)
             let data = try JSONEncoder.vlogSlate.encode(snapshot)
             try data.write(to: fileURL, options: [.atomic])
         } catch {
@@ -160,10 +162,11 @@ struct FootageItem: Identifiable, Codable {
 struct VlogSlatePayload: Codable {
     var id: String
     var scene: Int
+    var clip: Int
     var take: Int
 
     var visibleLabel: String {
-        "S\(scene) T\(take)"
+        "S\(scene) C\(clip) T\(take)"
     }
 
     var qrString: String {
@@ -178,7 +181,7 @@ struct VlogSlatePayload: Codable {
 private struct VlogSlateSnapshot: Codable {
     var items: [FootageItem]
     var currentScene: Int
-    var currentTake: Int
+    var currentClip: Int?
     var currentSlateID: String
     var sceneThumbnails: [Int: String]?
 }
