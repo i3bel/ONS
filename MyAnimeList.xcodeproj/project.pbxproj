@@ -49,42 +49,8 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Resources/Info.plist,
-				Tests/MyAnimeListTests/EntryDetailViewModelTests.swift,
-				Tests/MyAnimeListTests/InfoFetcherAndLibraryTests.swift,
-				Tests/MyAnimeListTests/LibraryExportManagerTests.swift,
-				Tests/MyAnimeListTests/LibraryPreferencesAndActionsTests.swift,
-				Tests/MyAnimeListTests/LibrarySortingAndDeletionTests.swift,
-				Tests/MyAnimeListTests/MyAnimeListTestSupport.swift,
-				Tests/MyAnimeListTests/TMDbSearchServiceBatchTests.swift,
-				Tests/MyAnimeListTests/UserEntryInfoAndLibraryStatsTests.swift,
-				Tests/MyAnimeListTests/WhatsNewAndRefreshTests.swift,
-				Tests/MyAnimeListUITests/MyAnimeListUITests.swift,
-				Tests/MyAnimeListUITests/MyAnimeListUITestsLaunchTests.swift,
 			);
 			target = 9F8D662F2D055FEF00CF355D /* MyAnimeList */;
-		};
-		9F93FC182DE1FD800071FB56 /* Exceptions for "MyAnimeList" folder in "MyAnimeListTests" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Tests/MyAnimeListTests/EntryDetailViewModelTests.swift,
-				Tests/MyAnimeListTests/InfoFetcherAndLibraryTests.swift,
-				Tests/MyAnimeListTests/LibraryExportManagerTests.swift,
-				Tests/MyAnimeListTests/LibraryPreferencesAndActionsTests.swift,
-				Tests/MyAnimeListTests/LibrarySortingAndDeletionTests.swift,
-				Tests/MyAnimeListTests/MyAnimeListTestSupport.swift,
-				Tests/MyAnimeListTests/TMDbSearchServiceBatchTests.swift,
-				Tests/MyAnimeListTests/UserEntryInfoAndLibraryStatsTests.swift,
-				Tests/MyAnimeListTests/WhatsNewAndRefreshTests.swift,
-			);
-			target = 9F8D663F2D055FF000CF355D /* MyAnimeListTests */;
-		};
-		9F93FC192DE1FD800071FB56 /* Exceptions for "MyAnimeList" folder in "MyAnimeListUITests" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Tests/MyAnimeListUITests/MyAnimeListUITests.swift,
-				Tests/MyAnimeListUITests/MyAnimeListUITestsLaunchTests.swift,
-			);
-			target = 9F8D66492D055FF000CF355D /* MyAnimeListUITests */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
@@ -93,8 +59,6 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				9F08B7672DBC745500CC3925 /* Exceptions for "MyAnimeList" folder in "MyAnimeList" target */,
-				9F93FC182DE1FD800071FB56 /* Exceptions for "MyAnimeList" folder in "MyAnimeListTests" target */,
-				9F93FC192DE1FD800071FB56 /* Exceptions for "MyAnimeList" folder in "MyAnimeListUITests" target */,
 			);
 			path = MyAnimeList;
 			sourceTree = "<group>";
