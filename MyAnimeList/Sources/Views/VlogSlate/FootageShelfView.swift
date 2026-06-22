@@ -358,9 +358,9 @@ struct FootageRow: View {
     private func displayTitle(for item: FootageItem) -> String {
         let siblings = store.items.filter { $0.scene == item.scene && $0.clip == item.clip }
         if siblings.count > 1 {
-            return "Scene \(item.scene) - Clip \(item.clip) - Take \(item.take)"
+            return "\(item.scene) 场 - \(item.clip) 镜 - \(item.take) 次"
         } else {
-            return "Scene \(item.scene) - Clip \(item.clip)"
+            return "\(item.scene) 场 - \(item.clip) 镜"
         }
     }
 
@@ -450,9 +450,10 @@ private extension UTType {
     static let vlogSlate = UTType(exportedAs: "com.openai.vlogslate")
 }
 
+// 改后
 private extension FootageItem {
     var title: String {
-        "Scene \(scene) - Clip \(clip) - Take \(take)"
+        "\(scene) 场 - \(clip) 镜 - \(take) 次"
     }
 }
 

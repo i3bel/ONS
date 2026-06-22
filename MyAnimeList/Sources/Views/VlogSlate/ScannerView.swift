@@ -33,19 +33,19 @@ struct ScannerView: View {
                                 .padding(.bottom, 4)
 
                             SearchTipGroup(title: "精准定位") {
-                                SearchTip(query: "S1C2", desc: "第1场，第2个机位的所有镜头")
-                                SearchTip(query: "S1C2T3", desc: "第1场，第2个机位，第3次拍摄")
+                                SearchTip(query: "S1C2", desc: "第1场，第2个镜头号的所有镜头")
+                                SearchTip(query: "S1C2T3", desc: "第1场，第2个镜头，第3次拍摄")
                             }
 
                             SearchTipGroup(title: "范围筛选") {
                                 SearchTip(query: "S1-3", desc: "第1到3场的所有镜头")
-                                SearchTip(query: "C>3", desc: "机位号大于3的镜头")
+                                SearchTip(query: "C>3", desc: "镜头号大于3的镜头")
                                 SearchTip(query: "T>1", desc: "所有重拍镜头（Take大于1）")
                             }
 
                             SearchTipGroup(title: "组合搜索") {
-                                SearchTip(query: "S2 C>3", desc: "第2场里机位号大于3的镜头")
-                                SearchTip(query: "S1-3 C2 T>1", desc: "第1到3场，第2机位的重拍镜头")
+                                SearchTip(query: "S2 C>3", desc: "第2场里镜头号大于3的镜头")
+                                SearchTip(query: "S1-3 C2 T>1", desc: "第1到3场，第2镜头号的重拍镜头")
                             }
 
                             SearchTipGroup(title: "状态筛选") {

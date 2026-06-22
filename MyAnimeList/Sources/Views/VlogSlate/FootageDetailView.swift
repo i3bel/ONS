@@ -43,7 +43,7 @@ struct FootageDetailView: View {
             // Removed cover image — show compact header
             HStack(alignment: .firstTextBaseline, spacing: 12) {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Scene \(binding.wrappedValue.scene) - Clip \(binding.wrappedValue.clip) - Take \(binding.wrappedValue.take)")
+                    Text("\(binding.wrappedValue.scene) 场 - \(binding.wrappedValue.clip) 镜 - \(binding.wrappedValue.take) 次")
                         .font(.title.bold())
                         .lineLimit(2)
                         .minimumScaleFactor(0.75)
@@ -70,18 +70,18 @@ struct FootageDetailView: View {
 
             HStack(spacing: 12) {
                 VlogSlateStatCard(
-                    title: "Scene",
+                    title: "场",
                     value: "\(binding.wrappedValue.scene)",
                     systemImage: "rectangle.stack.fill"
                 )
                 VlogSlateStatCard(
-                    title: "Clip",
+                    title: "镜",
                     value: "\(binding.wrappedValue.clip)",
                     systemImage: "camera.aperture",
                     tint: .cyan
                 )
                 VlogSlateStatCard(
-                    title: "Take",
+                    title: "次",
                     value: "\(binding.wrappedValue.take)",
                     systemImage: "viewfinder",
                     tint: .orange

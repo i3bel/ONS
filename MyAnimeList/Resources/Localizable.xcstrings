@@ -174,6 +174,16 @@
         }
       }
     },
+    "%lld 场 - %lld 镜 - %lld 次" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld 场 - %2$lld 镜 - %3$lld 次"
+          }
+        }
+      }
+    },
     "%lld/5" : {
       "localizations" : {
         "ja" : {
@@ -1000,9 +1010,6 @@
           }
         }
       }
-    },
-    "C" : {
-
     },
     "Cache posters and artwork without refreshing metadata." : {
       "localizations" : {
@@ -4583,9 +4590,6 @@
         }
       }
     },
-    "S" : {
-
-    },
     "S%lld T%lld" : {
       "localizations" : {
         "en" : {
@@ -4669,16 +4673,6 @@
     },
     "SCENE" : {
 
-    },
-    "Scene %lld - Clip %lld - Take %lld" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Scene %1$lld - Clip %2$lld - Take %3$lld"
-          }
-        }
-      }
     },
     "Scope" : {
       "localizations" : {
@@ -5270,9 +5264,6 @@
           }
         }
       }
-    },
-    "T" : {
-
     },
     "Tab-Separated Values (.tsv)" : {
       "localizations" : {
@@ -6525,6 +6516,9 @@
     "在 Slate 页拍板后，镜头会出现在这里。" : {
 
     },
+    "场" : {
+
+    },
     "导入项目" : {
 
     },
@@ -6552,6 +6546,9 @@
     "更换场景缩略图" : {
 
     },
+    "次" : {
+
+    },
     "没有找到匹配的镜头。" : {
 
     },
@@ -6559,6 +6556,9 @@
 
     },
     "没有镜头" : {
+
+    },
+    "镜" : {
 
     },
     "隐藏废镜" : {

@@ -36,8 +36,8 @@ struct SlateControllerView: View {
 
     private var controlCards: some View {
         HStack(spacing: 12) {
-            SlateCounterCard(title: "Scene", value: $store.currentScene, systemImage: "rectangle.stack.fill")
-            SlateCounterCard(title: "Clip", value: $store.currentClip, systemImage: "camera.aperture", tint: .cyan)
+            SlateCounterCard(title: "场", value: $store.currentScene, systemImage: "rectangle.stack.fill")
+            SlateCounterCard(title: "镜", value: $store.currentClip, systemImage: "camera.aperture", tint: .cyan)
         }
     }
 
@@ -55,29 +55,35 @@ struct SlateControllerView: View {
 
             VStack(spacing: 6) {
                 HStack(spacing: 6) {
-                    Text("S")
-                        .font(.title.weight(.black))
+                    
                     Text("\(currentPayload.scene)")
                         .font(.title.weight(.black))
                         .monospacedDigit()
                         .contentTransition(.numericText(value: Double(currentPayload.scene)))
                         .animation(.bouncy, value: currentPayload.scene)
-
-                    Text("C")
+                    
+                    Text("场")
                         .font(.title.weight(.black))
+
+                    
                     Text("\(currentPayload.clip)")
                         .font(.title.weight(.black))
                         .monospacedDigit()
                         .contentTransition(.numericText(value: Double(currentPayload.clip)))
                         .animation(.bouncy, value: currentPayload.clip)
-
-                    Text("T")
+                    
+                    Text("镜")
                         .font(.title.weight(.black))
+
                     Text("\(currentPayload.take)")
                         .font(.title.weight(.black))
                         .monospacedDigit()
                         .contentTransition(.numericText(value: Double(currentPayload.take)))
                         .animation(.bouncy, value: currentPayload.take)
+                    
+                    Text("次")
+                        .font(.title.weight(.black))
+
                 }
                 Text(store.currentSlateID.prefix(8).uppercased())
                     .font(.caption.weight(.medium))
@@ -167,35 +173,41 @@ struct QRWithLabelView: View {
                         .fill(.secondary.opacity(0.18))
                 }
                 HStack(spacing: 4) {
-                    Text("S")
-                        .font(.system(size: max(16, g.size.width * 0.10), weight: .black, design: .rounded))
-                        .foregroundStyle(.black)
+                    
                     Text("\(payload.scene)")
                         .font(.system(size: max(16, g.size.width * 0.10), weight: .black, design: .rounded))
                         .foregroundStyle(.black)
                         .monospacedDigit()
                         .contentTransition(.numericText(value: Double(payload.scene)))
                         .animation(.bouncy, value: payload.scene)
-
-                    Text("C")
+                    
+                    Text("场")
                         .font(.system(size: max(16, g.size.width * 0.10), weight: .black, design: .rounded))
                         .foregroundStyle(.black)
+
+                    
                     Text("\(payload.clip)")
                         .font(.system(size: max(16, g.size.width * 0.10), weight: .black, design: .rounded))
                         .foregroundStyle(.black)
                         .monospacedDigit()
                         .contentTransition(.numericText(value: Double(payload.clip)))
                         .animation(.bouncy, value: payload.clip)
-
-                    Text("T")
+                    
+                    Text("镜")
                         .font(.system(size: max(16, g.size.width * 0.10), weight: .black, design: .rounded))
                         .foregroundStyle(.black)
+
+                    
                     Text("\(payload.take)")
                         .font(.system(size: max(16, g.size.width * 0.10), weight: .black, design: .rounded))
                         .foregroundStyle(.black)
                         .monospacedDigit()
                         .contentTransition(.numericText(value: Double(payload.take)))
                         .animation(.bouncy, value: payload.take)
+                    
+                    Text("次")
+                        .font(.system(size: max(16, g.size.width * 0.10), weight: .black, design: .rounded))
+                        .foregroundStyle(.black)
                 }
                 .padding(.horizontal, 14)
                 .padding(.vertical, 8)
