@@ -32,8 +32,8 @@ final class VlogSlateStore: ObservableObject {
     @Published var currentTake: Int = 1 {
         didSet { save() }
     }
-     @Published private(set) var currentSlateID: String = UUID().uuidString
-    
+    @Published private(set) var currentSlateID: String = UUID().uuidString
+
     // Mapping from scene -> stored thumbnail filename
     @Published var sceneThumbnails: [Int: String] = [:]
 
@@ -48,7 +48,7 @@ final class VlogSlateStore: ObservableObject {
     }
 
     func addCurrentTake() {
-        let item = FootageItem(id: currentSlateID, scene: currentScene, take: currentTake, timestamp: Date(), notes: "", status: .backup, isFavorite: false)
+        let item = FootageItem(id: currentSlateID, scene: currentScene, clip: 1, take: currentTake, timestamp: Date(), notes: "", status: .backup, isFavorite: false)
         items.insert(item, at: 0)
         currentTake += 1
         currentSlateID = UUID().uuidString
@@ -125,11 +125,36 @@ struct FootageItem: Identifiable, Codable {
     }
     var id: String
     var scene: Int
+    var clip: Int
     var take: Int
     var timestamp: Date
     var notes: String
     var status: Status
     var isFavorite: Bool
+
+    // 兼容旧数据：旧 JSON 没有 clip 字段时默认为 1
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        scene = try container.decode(Int.self, forKey: .scene)
+        clip = try container.decodeIfPresent(Int.self, forKey: .clip) ?? 1
+        take = try container.decode(Int.self, forKey: .take)
+        timestamp = try container.decode(Date.self, forKey: .timestamp)
+        notes = try container.decode(String.self, forKey: .notes)
+        status = try container.decode(Status.self, forKey: .status)
+        isFavorite = try container.decode(Bool.self, forKey: .isFavorite)
+    }
+
+    init(id: String, scene: Int, clip: Int, take: Int, timestamp: Date, notes: String, status: Status, isFavorite: Bool) {
+        self.id = id
+        self.scene = scene
+        self.clip = clip
+        self.take = take
+        self.timestamp = timestamp
+        self.notes = notes
+        self.status = status
+        self.isFavorite = isFavorite
+    }
 }
 
 struct VlogSlatePayload: Codable {

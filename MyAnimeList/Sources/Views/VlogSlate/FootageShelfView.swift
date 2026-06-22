@@ -23,9 +23,15 @@ struct FootageShelfView: View {
         }
 
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !query.isEmpty else { return filtered }
+        guard !query.isEmpty else {
+            return filtered.sorted { a, b in
+                if (a.status == .good) != (b.status == .good) { return a.status == .good }
+                if a.scene != b.scene { return a.scene > b.scene }
+                if a.clip != b.clip { return a.clip > b.clip }
+                return a.take > b.take
+            }
+        }
 
-        // Tokenize query by whitespace and treat recognized keywords as status filters.
         let tokens = query.split{ $0.isWhitespace }.map { String($0) }
         var requireGood = false
         var requireBackup = false
@@ -44,8 +50,6 @@ struct FootageShelfView: View {
             if t.contains("废镜") || lower.contains("bad") { requireBad = true; continue }
             if t.contains("核心镜头") || t.contains("核心") || t.contains("已收藏") || t.contains("收藏") || lower.contains("favorite") { requireFavorite = true; continue }
 
-            // Support shorthand and ranges/comparisons for scene/take:
-            // Examples: s1, t2, s1-3, t>=2, s>1
             if let m = lower.first, (m == "s" || m == "t"), lower.count > 1 {
                 let expr = String(lower.dropFirst())
                 func addRangeToSet(_ lo: Int, _ hi: Int, into set: inout Set<Int>?) {
@@ -64,7 +68,6 @@ struct FootageShelfView: View {
                 }
 
                 if expr.hasPrefix(">=") || expr.hasPrefix("<=") || expr.hasPrefix(">") || expr.hasPrefix("<") {
-                    // Comparison operators
                     var op = ""
                     var numberPart = expr
                     if expr.hasPrefix(">=") { op = ">="; numberPart = String(expr.dropFirst(2)) }
@@ -73,7 +76,6 @@ struct FootageShelfView: View {
                     else if expr.hasPrefix("<") { op = "<"; numberPart = String(expr.dropFirst(1)) }
 
                     if let n = Int(numberPart) {
-                        // We will materialize a reasonable finite set (1...999) and filter accordingly
                         let RANGE_MAX = 999
                         switch op {
                         case ">":
@@ -104,10 +106,8 @@ struct FootageShelfView: View {
                     }
                 }
 
-                // Fallback: single number
                 if let n = Int(expr) {
-                    if m == "s" { 
-                        // Add as specific required scene (combine with allowedScenes)
+                    if m == "s" {
                         var s = allowedScenes ?? []
                         s.insert(n)
                         allowedScenes = s
@@ -134,7 +134,6 @@ struct FootageShelfView: View {
             if let scenes = allowedScenes, !scenes.contains(item.scene) { return false }
             if let takes = allowedTakes, !takes.contains(item.take) { return false }
 
-            // If there are text tokens, require at least one to match title/notes/timestamp.
             guard !textTokens.isEmpty else { return true }
 
             return textTokens.contains(where: { tok in
@@ -142,13 +141,17 @@ struct FootageShelfView: View {
                     || item.notes.localizedCaseInsensitiveContains(tok)
                     || item.timestamp.formatted(date: .numeric, time: .shortened).localizedCaseInsensitiveContains(tok)
             })
+        }.sorted { a, b in
+            if (a.status == .good) != (b.status == .good) { return a.status == .good }
+            if a.scene != b.scene { return a.scene > b.scene }
+            if a.clip != b.clip { return a.clip > b.clip }
+            return a.take > b.take
         }
     }
 
     var body: some View {
         NavigationStack {
             List {
-                
                 if filteredItems.isEmpty {
                     ContentUnavailableView("没有镜头", systemImage: "rectangle.stack.badge.plus", description: Text("在 Slate 页拍板后，镜头会出现在这里。"))
                         .listRowBackground(Color.clear)
@@ -163,7 +166,6 @@ struct FootageShelfView: View {
                         .listRowSeparator(.visible)
                         .listRowSeparatorTint(.white.opacity(0.06))
                         .listRowBackground(Color.clear)
-                        // swipe to delete removed — delete action moved into project actions menu
                     }
                 }
             }
@@ -181,12 +183,10 @@ struct FootageShelfView: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     footageFilterMenu
                 }
-
             }
             .sheet(item: $selected) { item in
                 FootageDetailView(item: binding(for: item))
             }
-            // Deletion now executes immediately from the menu; no confirmation dialog
             .fileImporter(isPresented: $showImportPicker, allowedContentTypes: [.vlogSlate, .json]) { result in
                 importFootage(from: result)
             }
@@ -196,14 +196,12 @@ struct FootageShelfView: View {
                 contentType: .vlogSlate,
                 defaultFilename: "Project.vlogslate"
             ) { _ in }
-
         }
     }
 
     private var projectActionsMenu: some View {
-            Menu {
+        Menu {
             Button("删除所有镜头", systemImage: "trash", role: .destructive) {
-                // Directly clear without additional confirmation per request
                 store.clearAll()
             }
 
@@ -286,7 +284,6 @@ struct FootageRow: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: 11) {
-            // Show scene thumbnail if available; otherwise show default poster block
             if let url = store.thumbnailURL(forScene: item.scene),
                let uiImage = UIImage(contentsOfFile: url.path) {
                 Image(uiImage: uiImage)
@@ -345,32 +342,39 @@ struct FootageRow: View {
                 .padding(.top, 7)
             }
             .frame(maxWidth: .infinity, minHeight: rowHeight, maxHeight: rowHeight, alignment: .topLeading)
-            }
-            .frame(height: rowHeight, alignment: .top)
-            .padding(.vertical, 5)
-            .swipeActions(edge: .trailing) {
-                // Mark as perfect / good
-                Button {
-                    if let idx = store.items.firstIndex(where: { $0.id == item.id }) {
-                        store.items[idx].status = .good
-                    }
-                } label: {
-                    Label("完美", systemImage: "checkmark.circle")
+        }
+        .frame(height: rowHeight, alignment: .top)
+        .padding(.vertical, 5)
+        .swipeActions(edge: .trailing) {
+            Button {
+                if let idx = store.items.firstIndex(where: { $0.id == item.id }) {
+                    store.items[idx].status = .good
                 }
-                .tint(.green)
+            } label: {
+                Label("完美", systemImage: "checkmark.circle")
+            }
+            .tint(.green)
 
-                // Delete
-                Button(role: .destructive) {
-                    store.items.removeAll { $0.id == item.id }
-                } label: {
-                    Label("Delete", systemImage: "trash")
-                }
+            Button(role: .destructive) {
+                store.items.removeAll { $0.id == item.id }
+            } label: {
+                Label("Delete", systemImage: "trash")
             }
+        }
+    }
+
+    private func displayTitle(for item: FootageItem) -> String {
+        let siblings = store.items.filter { $0.scene == item.scene && $0.clip == item.clip }
+        if siblings.count > 1 {
+            return "Scene \(item.scene) - Clip \(item.clip) - Take \(item.take)"
+        } else {
+            return "Scene \(item.scene) - Clip \(item.clip)"
+        }
     }
 
     private var headerBlock: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(item.title)
+            Text(displayTitle(for: item))
                 .font(.headline.weight(.semibold))
                 .lineLimit(1...2)
                 .multilineTextAlignment(.leading)
@@ -452,7 +456,7 @@ private extension UTType {
 
 private extension FootageItem {
     var title: String {
-        "Scene \(scene) - Take \(take)"
+        "Scene \(scene) - Clip \(clip) - Take \(take)"
     }
 }
 
