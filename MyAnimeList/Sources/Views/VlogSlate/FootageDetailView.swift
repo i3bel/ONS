@@ -77,7 +77,7 @@ struct FootageDetailView: View {
                 VlogSlateStatCard(
                     title: "Clip",
                     value: "\(binding.wrappedValue.clip)",
-                    systemImage: "filmstrip",
+                    systemImage: "camera.aperture",
                     tint: .cyan
                 )
                 VlogSlateStatCard(

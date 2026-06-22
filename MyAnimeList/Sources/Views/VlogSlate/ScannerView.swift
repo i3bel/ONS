@@ -25,6 +25,39 @@ struct ScannerView: View {
                 } else {
                     Color(.systemGroupedBackground)
                         .ignoresSafeArea()
+
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 20) {
+                            Text("搜索使用示例")
+                                .font(.title2.weight(.bold))
+                                .padding(.bottom, 4)
+
+                            SearchTipGroup(title: "精准定位") {
+                                SearchTip(query: "S1C2", desc: "第1场，第2个机位的所有镜头")
+                                SearchTip(query: "S1C2T3", desc: "第1场，第2个机位，第3次拍摄")
+                            }
+
+                            SearchTipGroup(title: "范围筛选") {
+                                SearchTip(query: "S1-3", desc: "第1到3场的所有镜头")
+                                SearchTip(query: "C>3", desc: "机位号大于3的镜头")
+                                SearchTip(query: "T>1", desc: "所有重拍镜头（Take大于1）")
+                            }
+
+                            SearchTipGroup(title: "组合搜索") {
+                                SearchTip(query: "S2 C>3", desc: "第2场里机位号大于3的镜头")
+                                SearchTip(query: "S1-3 C2 T>1", desc: "第1到3场，第2机位的重拍镜头")
+                            }
+
+                            SearchTipGroup(title: "状态筛选") {
+                                SearchTip(query: "完美", desc: "所有完美镜头")
+                                SearchTip(query: "备用", desc: "所有备用镜头")
+                                SearchTip(query: "废镜", desc: "所有废镜")
+                            }
+                        }
+                        .padding(.horizontal)
+                        .padding(.top, 24)
+                        .padding(.bottom, 100)
+                    }
                 }
 
                 VStack(spacing: 16) {
@@ -175,6 +208,42 @@ extension VlogQRCodeScannerViewController: AVCaptureMetadataOutputObjectsDelegat
 
         Task { @MainActor in
             onCodeScanned?(value)
+        }
+    }
+}
+
+private struct SearchTipGroup<Content: View>: View {
+    var title: String
+    @ViewBuilder var content: () -> Content
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.secondary)
+            VStack(spacing: 6) {
+                content()
+            }
+            .padding(14)
+            .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        }
+    }
+}
+
+private struct SearchTip: View {
+    var query: String
+    var desc: String
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 12) {
+            Text(query)
+                .font(.system(.callout, design: .monospaced).weight(.semibold))
+                .foregroundStyle(.cyan)
+                .frame(minWidth: 80, alignment: .leading)
+            Text(desc)
+                .font(.callout)
+                .foregroundStyle(.secondary)
+            Spacer()
         }
     }
 }
