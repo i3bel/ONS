@@ -2,9 +2,134 @@ import Foundation
 import SwiftUI
 import UniformTypeIdentifiers
 
+// MARK: - Shared search logic
+
+private func applySearchTokens(
+    query: String,
+    items: [FootageItem]
+) -> [FootageItem] {
+    let expandedQuery = query
+        .replacingOccurrences(of: "(?i)([sct][><=]?\\d+(?:-\\d+)?)", with: " $1", options: .regularExpression)
+        .trimmingCharacters(in: .whitespacesAndNewlines)
+    let tokens = expandedQuery.split { $0.isWhitespace }.map { String($0) }
+
+    var requireGood = false
+    var requireBackup = false
+    var requireBad = false
+    var requireFavorite = false
+    var allowedScenes: Set<Int>? = nil
+    var allowedClips: Set<Int>? = nil
+    var allowedTakes: Set<Int>? = nil
+    var textTokens: [String] = []
+
+    for t in tokens {
+        let lower = t.lowercased()
+        if t.contains("完美") || lower.contains("good") { requireGood = true; continue }
+        if t.contains("备用") || lower.contains("backup") { requireBackup = true; continue }
+        if t.contains("废镜") || lower.contains("bad") { requireBad = true; continue }
+        if t.contains("核心镜头") || t.contains("核心") || t.contains("已收藏") || t.contains("收藏") || lower.contains("favorite") { requireFavorite = true; continue }
+
+        if let m = lower.first, (m == "s" || m == "c" || m == "t"), lower.count > 1 {
+            let expr = String(lower.dropFirst())
+
+            func addRangeToSet(_ lo: Int, _ hi: Int, into set: inout Set<Int>?) {
+                var s = set ?? []
+                for v in lo...hi { s.insert(v) }
+                set = s
+            }
+
+            func targetSet(for m: Character) -> WritableKeyPath<(Set<Int>?, Set<Int>?, Set<Int>?), Set<Int>?> {
+                switch m {
+                case "s": return \.0
+                case "c": return \.1
+                default:  return \.2
+                }
+            }
+
+            // Range: s1-3
+            if expr.contains("-") {
+                let parts = expr.split(separator: "-", omittingEmptySubsequences: false).map(String.init)
+                if parts.count == 2, let a = Int(parts[0]), let b = Int(parts[1]) {
+                    let lo = min(a, b), hi = max(a, b)
+                    if m == "s" { addRangeToSet(lo, hi, into: &allowedScenes); continue }
+                    else if m == "c" { addRangeToSet(lo, hi, into: &allowedClips); continue }
+                    else { addRangeToSet(lo, hi, into: &allowedTakes); continue }
+                }
+            }
+
+            // Comparison: s>1, c>=2, t<3
+            if expr.hasPrefix(">=") || expr.hasPrefix("<=") || expr.hasPrefix(">") || expr.hasPrefix("<") {
+                var op = ""
+                var numberPart = expr
+                if expr.hasPrefix(">=") { op = ">="; numberPart = String(expr.dropFirst(2)) }
+                else if expr.hasPrefix("<=") { op = "<="; numberPart = String(expr.dropFirst(2)) }
+                else if expr.hasPrefix(">") { op = ">"; numberPart = String(expr.dropFirst(1)) }
+                else if expr.hasPrefix("<") { op = "<"; numberPart = String(expr.dropFirst(1)) }
+
+                if let n = Int(numberPart) {
+                    let RANGE_MAX = 999
+                    func applyOp(_ op: String, n: Int, into set: inout Set<Int>?) {
+                        switch op {
+                        case ">":
+                            let lo = n + 1
+                            if lo <= RANGE_MAX { addRangeToSet(lo, RANGE_MAX, into: &set) }
+                        case ">=":
+                            if n <= RANGE_MAX { addRangeToSet(n, RANGE_MAX, into: &set) }
+                        case "<":
+                            let hi = max(1, n - 1)
+                            if hi >= 1 { addRangeToSet(1, hi, into: &set) }
+                        case "<=":
+                            let hi = max(1, n)
+                            if hi >= 1 { addRangeToSet(1, hi, into: &set) }
+                        default: break
+                        }
+                    }
+                    if m == "s" { applyOp(op, n: n, into: &allowedScenes); continue }
+                    else if m == "c" { applyOp(op, n: n, into: &allowedClips); continue }
+                    else { applyOp(op, n: n, into: &allowedTakes); continue }
+                }
+            }
+
+            // Exact: s1, c2, t3
+            if let n = Int(expr) {
+                if m == "s" { var s = allowedScenes ?? []; s.insert(n); allowedScenes = s; continue }
+                if m == "c" { var s = allowedClips ?? []; s.insert(n); allowedClips = s; continue }
+                if m == "t" { var s = allowedTakes ?? []; s.insert(n); allowedTakes = s; continue }
+            }
+        }
+        textTokens.append(t)
+    }
+
+    return items.filter { item in
+        if requireGood && item.status != .good { return false }
+        if requireBackup && item.status != .backup { return false }
+        if requireBad && item.status != .bad { return false }
+        if requireFavorite && !item.isFavorite { return false }
+        if let scenes = allowedScenes, !scenes.contains(item.scene) { return false }
+        if let clips = allowedClips, !clips.contains(item.clip) { return false }
+        if let takes = allowedTakes, !takes.contains(item.take) { return false }
+        guard !textTokens.isEmpty else { return true }
+        return textTokens.contains(where: { tok in
+            item.title.localizedCaseInsensitiveContains(tok)
+                || item.notes.localizedCaseInsensitiveContains(tok)
+                || item.timestamp.formatted(date: .numeric, time: .shortened).localizedCaseInsensitiveContains(tok)
+        })
+    }
+}
+
+private func defaultSort(_ items: [FootageItem]) -> [FootageItem] {
+    items.sorted { a, b in
+        if (a.status == .good) != (b.status == .good) { return a.status == .good }
+        if a.scene != b.scene { return a.scene > b.scene }
+        if a.clip != b.clip { return a.clip > b.clip }
+        return a.take > b.take
+    }
+}
+
+// MARK: - FootageShelfView
+
 struct FootageShelfView: View {
     @EnvironmentObject var store: VlogSlateStore
-    @State private var isSearching = false
     @State private var showExportSheet = false
     @State private var showImportPicker = false
     @State private var selected: FootageItem?
@@ -14,139 +139,14 @@ struct FootageShelfView: View {
     private var filteredItems: [FootageItem] {
         let filtered: [FootageItem]
         switch filter {
-        case .all:
-            filtered = store.items
-        case .good:
-            filtered = store.items.filter { $0.status == .good }
-        case .favorite:
-            filtered = store.items.filter(\.isFavorite)
+        case .all:     filtered = store.items
+        case .good:    filtered = store.items.filter { $0.status == .good }
+        case .favorite: filtered = store.items.filter(\.isFavorite)
         }
 
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !query.isEmpty else {
-            return filtered.sorted { a, b in
-                if (a.status == .good) != (b.status == .good) { return a.status == .good }
-                if a.scene != b.scene { return a.scene > b.scene }
-                if a.clip != b.clip { return a.clip > b.clip }
-                return a.take > b.take
-            }
-        }
-
-        let tokens = query.split{ $0.isWhitespace }.map { String($0) }
-        var requireGood = false
-        var requireBackup = false
-        var requireBad = false
-        var requireFavorite = false
-        let requireScene: Int? = nil
-        let requireTake: Int? = nil
-        var allowedScenes: Set<Int>? = nil
-        var allowedTakes: Set<Int>? = nil
-        var textTokens: [String] = []
-
-        for t in tokens {
-            let lower = t.lowercased()
-            if t.contains("完美") || lower.contains("good") { requireGood = true; continue }
-            if t.contains("备用") || lower.contains("backup") { requireBackup = true; continue }
-            if t.contains("废镜") || lower.contains("bad") { requireBad = true; continue }
-            if t.contains("核心镜头") || t.contains("核心") || t.contains("已收藏") || t.contains("收藏") || lower.contains("favorite") { requireFavorite = true; continue }
-
-            if let m = lower.first, (m == "s" || m == "t"), lower.count > 1 {
-                let expr = String(lower.dropFirst())
-                func addRangeToSet(_ lo: Int, _ hi: Int, into set: inout Set<Int>?) {
-                    var s = set ?? []
-                    for v in lo...hi { s.insert(v) }
-                    set = s
-                }
-
-                if expr.contains("-") {
-                    let parts = expr.split(separator: "-", omittingEmptySubsequences: false).map(String.init)
-                    if parts.count == 2, let a = Int(parts[0]), let b = Int(parts[1]) {
-                        let lo = min(a,b), hi = max(a,b)
-                        if m == "s" { addRangeToSet(lo, hi, into: &allowedScenes); continue }
-                        else { addRangeToSet(lo, hi, into: &allowedTakes); continue }
-                    }
-                }
-
-                if expr.hasPrefix(">=") || expr.hasPrefix("<=") || expr.hasPrefix(">") || expr.hasPrefix("<") {
-                    var op = ""
-                    var numberPart = expr
-                    if expr.hasPrefix(">=") { op = ">="; numberPart = String(expr.dropFirst(2)) }
-                    else if expr.hasPrefix("<=") { op = "<="; numberPart = String(expr.dropFirst(2)) }
-                    else if expr.hasPrefix(">") { op = ">"; numberPart = String(expr.dropFirst(1)) }
-                    else if expr.hasPrefix("<") { op = "<"; numberPart = String(expr.dropFirst(1)) }
-
-                    if let n = Int(numberPart) {
-                        let RANGE_MAX = 999
-                        switch op {
-                        case ">":
-                            let lo = n+1
-                            if lo <= RANGE_MAX {
-                                if m == "s" { addRangeToSet(lo, RANGE_MAX, into: &allowedScenes) } else { addRangeToSet(lo, RANGE_MAX, into: &allowedTakes) }
-                                continue
-                            }
-                        case ">=":
-                            if n <= RANGE_MAX {
-                                if m == "s" { addRangeToSet(n, RANGE_MAX, into: &allowedScenes) } else { addRangeToSet(n, RANGE_MAX, into: &allowedTakes) }
-                                continue
-                            }
-                        case "<":
-                            let hi = max(1, n-1)
-                            if hi >= 1 {
-                                if m == "s" { addRangeToSet(1, hi, into: &allowedScenes) } else { addRangeToSet(1, hi, into: &allowedTakes) }
-                                continue
-                            }
-                        case "<=":
-                            let hi = max(1, n)
-                            if hi >= 1 {
-                                if m == "s" { addRangeToSet(1, hi, into: &allowedScenes) } else { addRangeToSet(1, hi, into: &allowedTakes) }
-                                continue
-                            }
-                        default: break
-                        }
-                    }
-                }
-
-                if let n = Int(expr) {
-                    if m == "s" {
-                        var s = allowedScenes ?? []
-                        s.insert(n)
-                        allowedScenes = s
-                        continue
-                    }
-                    if m == "t" {
-                        var s = allowedTakes ?? []
-                        s.insert(n)
-                        allowedTakes = s
-                        continue
-                    }
-                }
-            }
-            textTokens.append(t)
-        }
-
-        return filtered.filter { item in
-            if requireGood && item.status != .good { return false }
-            if requireBackup && item.status != .backup { return false }
-            if requireBad && item.status != .bad { return false }
-            if requireFavorite && !item.isFavorite { return false }
-            if let s = requireScene, item.scene != s { return false }
-            if let t = requireTake, item.take != t { return false }
-            if let scenes = allowedScenes, !scenes.contains(item.scene) { return false }
-            if let takes = allowedTakes, !takes.contains(item.take) { return false }
-
-            guard !textTokens.isEmpty else { return true }
-
-            return textTokens.contains(where: { tok in
-                item.title.localizedCaseInsensitiveContains(tok)
-                    || item.notes.localizedCaseInsensitiveContains(tok)
-                    || item.timestamp.formatted(date: .numeric, time: .shortened).localizedCaseInsensitiveContains(tok)
-            })
-        }.sorted { a, b in
-            if (a.status == .good) != (b.status == .good) { return a.status == .good }
-            if a.scene != b.scene { return a.scene > b.scene }
-            if a.clip != b.clip { return a.clip > b.clip }
-            return a.take > b.take
-        }
+        guard !query.isEmpty else { return defaultSort(filtered) }
+        return defaultSort(applySearchTokens(query: query, items: filtered))
     }
 
     var body: some View {
@@ -204,13 +204,10 @@ struct FootageShelfView: View {
             Button("删除所有镜头", systemImage: "trash", role: .destructive) {
                 store.clearAll()
             }
-
             Divider()
-
             Button("导入项目", systemImage: "square.and.arrow.down") {
                 showImportPicker = true
             }
-
             Button("导出项目", systemImage: "square.and.arrow.up") {
                 showExportSheet = true
             }
@@ -256,14 +253,11 @@ struct FootageShelfView: View {
         guard case .success(let url) = result else { return }
         let shouldStopAccessing = url.startAccessingSecurityScopedResource()
         defer {
-            if shouldStopAccessing {
-                url.stopAccessingSecurityScopedResource()
-            }
+            if shouldStopAccessing { url.stopAccessingSecurityScopedResource() }
         }
-
         guard let data = try? Data(contentsOf: url) else { return }
         if let snapshot = try? JSONDecoder.vlogSlate.decode(VlogExportSnapshot.self, from: data) {
-            store.replaceItems(snapshot.items, currentScene: snapshot.currentScene, currentTake: snapshot.currentTake)
+            store.replaceItems(snapshot.items, currentScene: snapshot.currentScene)
         } else if let items = try? JSONDecoder.vlogSlate.decode([FootageItem].self, from: data) {
             store.replaceItems(items)
         }
@@ -273,6 +267,8 @@ struct FootageShelfView: View {
         VlogExportDocument(items: store.items, currentScene: store.currentScene, currentTake: 1)
     }
 }
+
+// MARK: - FootageRow
 
 struct FootageRow: View {
     @EnvironmentObject var store: VlogSlateStore
@@ -314,9 +310,7 @@ struct FootageRow: View {
 
                 HStack(spacing: 8) {
                     VlogSlateStatusBadge(status: item.status)
-
                     Spacer()
-
                     Button {
                         if let idx = store.items.firstIndex(where: { $0.id == item.id }) {
                             store.items[idx].isFavorite.toggle()
@@ -329,12 +323,10 @@ struct FootageRow: View {
                             .animation(.snappy(duration: 0.18), value: item.isFavorite)
                             .frame(width: 34, height: 34)
                             .background {
-                                Circle()
-                                    .fill(.white.opacity(item.isFavorite ? 0.1 : 0.04))
+                                Circle().fill(.white.opacity(item.isFavorite ? 0.1 : 0.04))
                             }
                             .overlay {
-                                Circle()
-                                    .stroke(.white.opacity(item.isFavorite ? 0.18 : 0.08), lineWidth: 1)
+                                Circle().stroke(.white.opacity(item.isFavorite ? 0.18 : 0.08), lineWidth: 1)
                             }
                     }
                     .buttonStyle(.plain)
@@ -399,6 +391,8 @@ struct FootageRow: View {
     }
 }
 
+// MARK: - FootageFilter
+
 private enum FootageFilter: String, CaseIterable, Identifiable {
     case all, good, favorite
 
@@ -406,20 +400,22 @@ private enum FootageFilter: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .all: return "全部"
-        case .good: return "完美"
+        case .all:      return "全部"
+        case .good:     return "完美"
         case .favorite: return "收藏"
         }
     }
 
     var systemImage: String {
         switch self {
-        case .all: return "line.3.horizontal.decrease.circle"
-        case .good: return "checkmark.circle.fill"
+        case .all:      return "line.3.horizontal.decrease.circle"
+        case .good:     return "checkmark.circle.fill"
         case .favorite: return "heart.fill"
         }
     }
 }
+
+// MARK: - Supporting types
 
 struct FootageItemBinding: Identifiable {
     let id: String
@@ -466,6 +462,8 @@ private extension FootageItem {
     }
 }
 
+// MARK: - FootageSearchView
+
 struct FootageSearchView: View {
     @EnvironmentObject var store: VlogSlateStore
     @State private var searchText = ""
@@ -473,105 +471,7 @@ struct FootageSearchView: View {
     private var filteredItems: [FootageItem] {
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !query.isEmpty else { return store.items }
-
-        let tokens = query.split{ $0.isWhitespace }.map { String($0) }
-        var requireGood = false
-        var requireBackup = false
-        var requireBad = false
-        var requireFavorite = false
-        let requireScene: Int? = nil
-        let requireTake: Int? = nil
-        var allowedScenes: Set<Int>? = nil
-        var allowedTakes: Set<Int>? = nil
-        var textTokens: [String] = []
-
-        for t in tokens {
-            let lower = t.lowercased()
-            if t.contains("完美") || lower.contains("good") { requireGood = true; continue }
-            if t.contains("备用") || lower.contains("backup") { requireBackup = true; continue }
-            if t.contains("废镜") || lower.contains("bad") { requireBad = true; continue }
-            if t.contains("核心镜头") || t.contains("核心") || t.contains("已收藏") || t.contains("收藏") || lower.contains("favorite") { requireFavorite = true; continue }
-
-            if let m = lower.first, (m == "s" || m == "t"), lower.count > 1 {
-                let expr = String(lower.dropFirst())
-                func addRangeToSet(_ lo: Int, _ hi: Int, into set: inout Set<Int>?) {
-                    var s = set ?? []
-                    for v in lo...hi { s.insert(v) }
-                    set = s
-                }
-
-                if expr.contains("-") {
-                    let parts = expr.split(separator: "-", omittingEmptySubsequences: false).map(String.init)
-                    if parts.count == 2, let a = Int(parts[0]), let b = Int(parts[1]) {
-                        let lo = min(a,b), hi = max(a,b)
-                        if m == "s" { addRangeToSet(lo, hi, into: &allowedScenes); continue }
-                        else { addRangeToSet(lo, hi, into: &allowedTakes); continue }
-                    }
-                }
-
-                if expr.hasPrefix(">=") || expr.hasPrefix("<=") || expr.hasPrefix(">") || expr.hasPrefix("<") {
-                    var op = ""
-                    var numberPart = expr
-                    if expr.hasPrefix(">=") { op = ">="; numberPart = String(expr.dropFirst(2)) }
-                    else if expr.hasPrefix("<=") { op = "<="; numberPart = String(expr.dropFirst(2)) }
-                    else if expr.hasPrefix(">") { op = ">"; numberPart = String(expr.dropFirst(1)) }
-                    else if expr.hasPrefix("<") { op = "<"; numberPart = String(expr.dropFirst(1)) }
-
-                    if let n = Int(numberPart) {
-                        let RANGE_MAX = 999
-                        switch op {
-                        case ">":
-                            let lo = n+1
-                            if lo <= RANGE_MAX {
-                                if m == "s" { addRangeToSet(lo, RANGE_MAX, into: &allowedScenes) } else { addRangeToSet(lo, RANGE_MAX, into: &allowedTakes) }
-                                continue
-                            }
-                        case ">=":
-                            if n <= RANGE_MAX {
-                                if m == "s" { addRangeToSet(n, RANGE_MAX, into: &allowedScenes) } else { addRangeToSet(n, RANGE_MAX, into: &allowedTakes) }
-                                continue
-                            }
-                        case "<":
-                            let hi = max(1, n-1)
-                            if hi >= 1 {
-                                if m == "s" { addRangeToSet(1, hi, into: &allowedScenes) } else { addRangeToSet(1, hi, into: &allowedTakes) }
-                                continue
-                            }
-                        case "<=":
-                            let hi = max(1, n)
-                            if hi >= 1 {
-                                if m == "s" { addRangeToSet(1, hi, into: &allowedScenes) } else { addRangeToSet(1, hi, into: &allowedTakes) }
-                                continue
-                            }
-                        default: break
-                        }
-                    }
-                }
-
-                if let n = Int(expr) {
-                    if m == "s" { var s = allowedScenes ?? []; s.insert(n); allowedScenes = s; continue }
-                    if m == "t" { var s = allowedTakes ?? []; s.insert(n); allowedTakes = s; continue }
-                }
-            }
-            textTokens.append(t)
-        }
-
-        return store.items.filter { item in
-            if requireGood && item.status != .good { return false }
-            if requireBackup && item.status != .backup { return false }
-            if requireBad && item.status != .bad { return false }
-            if requireFavorite && !item.isFavorite { return false }
-            if let s = requireScene, item.scene != s { return false }
-            if let t = requireTake, item.take != t { return false }
-            if let scenes = allowedScenes, !scenes.contains(item.scene) { return false }
-            if let takes = allowedTakes, !takes.contains(item.take) { return false }
-            guard !textTokens.isEmpty else { return true }
-            return textTokens.contains(where: { tok in
-                item.title.localizedCaseInsensitiveContains(tok)
-                    || item.notes.localizedCaseInsensitiveContains(tok)
-                    || item.timestamp.formatted(date: .numeric, time: .shortened).localizedCaseInsensitiveContains(tok)
-            })
-        }
+        return applySearchTokens(query: query, items: store.items)
     }
 
     var body: some View {
