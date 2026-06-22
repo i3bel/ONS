@@ -329,15 +329,20 @@ struct FootageRow: View {
                         }
                     } label: {
                         Image(systemName: item.status == .good ? "heart.fill" : "heart")
+                            .font(.footnote.weight(.semibold))
                             .foregroundStyle(item.status == .good ? .pink.opacity(0.94) : .secondary.opacity(0.9))
+                            .contentTransition(.symbolEffect(.replace))
                             .animation(.snappy(duration: 0.18), value: item.status)
+                            .frame(width: 33, height: 33)
                             .background {
                                 Circle().fill(.white.opacity(item.status == .good ? 0.1 : 0.04))
                             }
                             .overlay {
                                 Circle().stroke(.white.opacity(item.status == .good ? 0.18 : 0.08), lineWidth: 1)
                             }
+                            .contentShape(.rect)
                     }
+                    .sensoryFeedback(.impact, trigger: item.status)
                     .buttonStyle(.plain)
                 }
                 .padding(.top, 7)
