@@ -306,7 +306,7 @@ struct FootageRow: View {
             VStack(alignment: .leading, spacing: 0) {
                 headerBlock
 
-                Text(item.notes.isEmpty ? "No notes" : item.notes)
+                Text(item.notes.isEmpty ? "没有备注" : item.notes)
                     .font(.system(size: 11, weight: .regular))
                     .foregroundStyle(.secondary.opacity(item.notes.isEmpty ? 0.62 : 0.82))
                     .multilineTextAlignment(.leading)

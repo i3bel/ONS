@@ -213,13 +213,13 @@ struct VlogSlateRootView: View {
 
     var body: some View {
         TabView(selection: $selectedTab) {
-            Tab("Shelf", systemImage: "list.bullet", value: 0) {
+            Tab("片库", systemImage: "list.bullet", value: 0) {
                 FootageShelfView()
             }
-            Tab("Slate", systemImage: "viewfinder", value: 1) {
+            Tab("场记", systemImage: "viewfinder", value: 1) {
                 SlateControllerView()
             }
-            Tab("Scanner", systemImage: "qrcode.viewfinder", value: 2) {
+            Tab("扫码", systemImage: "qrcode.viewfinder", value: 2) {
                 ScannerView()
             }
             Tab(value: 3, role: .search) {

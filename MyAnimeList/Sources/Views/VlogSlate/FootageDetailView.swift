@@ -25,7 +25,7 @@ struct FootageDetailView: View {
                     .padding(.vertical, 20)
                 }
                 .background(Color(.systemGroupedBackground))
-                .navigationTitle("Take Detail")
+                .navigationTitle("详细信息")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .topBarTrailing) {
@@ -171,7 +171,7 @@ struct FootageDetailView: View {
 
     private func notesPanel(for binding: Binding<FootageItem>) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label("Footage Notes", systemImage: "text.alignleft")
+            Label("备注", systemImage: "text.alignleft")
                 .font(.headline)
                 .foregroundStyle(.secondary)
 

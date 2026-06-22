@@ -2589,9 +2589,6 @@
         }
       }
     },
-    "Footage Notes" : {
-
-    },
     "Frieren\nA Silent Voice\nKiki's Delivery Service" : {
       "localizations" : {
         "ja" : {
@@ -4665,9 +4662,6 @@
         }
       }
     },
-    "Scanner" : {
-
-    },
     "Scene" : {
 
     },
@@ -4963,9 +4957,6 @@
         }
       }
     },
-    "Shelf" : {
-
-    },
     "Show Detail" : {
       "localizations" : {
         "ja" : {
@@ -5063,9 +5054,6 @@
           }
         }
       }
-    },
-    "Slate" : {
-
     },
     "Some support options are not ready yet. Please try again after App Store Connect finishes syncing." : {
       "extractionState" : "stale",
@@ -5281,13 +5269,7 @@
         }
       }
     },
-    "Take Detail" : {
-
-    },
     "takes" : {
-
-    },
-    "Takes" : {
 
     },
     "Tap to cycle runtime statistics." : {
@@ -6519,6 +6501,12 @@
     "场" : {
 
     },
+    "场记" : {
+
+    },
+    "备注" : {
+
+    },
     "导入项目" : {
 
     },
@@ -6529,6 +6517,9 @@
 
     },
     "扫描素材画面中的二维码" : {
+
+    },
+    "扫码" : {
 
     },
     "拍板 + 插入" : {
@@ -6558,7 +6549,16 @@
     "没有镜头" : {
 
     },
+    "片库" : {
+
+    },
+    "详细信息" : {
+
+    },
     "镜" : {
+
+    },
+    "镜头" : {
 
     },
     "隐藏废镜" : {

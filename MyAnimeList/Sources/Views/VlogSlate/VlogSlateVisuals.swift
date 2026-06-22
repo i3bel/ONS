@@ -102,13 +102,14 @@ struct VlogSlateNavigationTitleCapsule: View {
                 .font(.title2.weight(.bold))
                 .monospacedDigit()
                 .contentTransition(.numericText(value: Double(count)))
-            Text("Takes")
+            Text("镜头")
                 .font(.headline.weight(.semibold))
                 .foregroundStyle(.secondary)
                 .contentTransition(.identity)
         }
         .padding(.horizontal, 13)
         .padding(.vertical, 7)
+        .frame(minWidth: 90)
         .animation(.bouncy, value: count)
     }
 }
