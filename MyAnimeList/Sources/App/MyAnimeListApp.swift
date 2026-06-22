@@ -67,9 +67,9 @@ final class VlogSlateStore: ObservableObject {
         save()
     }
 
-    func replaceItems(_ importedItems: [FootageItem], currentScene importedScene: Int? = nil, currentTake importedTake: Int? = nil) {
+    func replaceItems(_ importedItems: [FootageItem], currentScene importedScene: Int? = nil, currentTake _: Int? = nil) {
         items = importedItems.sorted { $0.timestamp > $1.timestamp }
-        if let importedScene, let importedTake {
+        if let importedScene {
             currentScene = importedScene
             currentClip = 1
         } else if let latest = items.max(by: { lhs, rhs in
