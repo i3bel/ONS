@@ -6,9 +6,6 @@
 //
 
 import SwiftUI
-import UIKit
-import PhotosUI
-import Foundation
 
 struct VlogSlatePosterBlock: View {
     var scene: Int

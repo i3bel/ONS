@@ -13,7 +13,7 @@ struct FootageDetailView: View {
     var body: some View {
         NavigationStack {
             if let idx = store.items.firstIndex(where: { $0.id == itemId }) {
-                let binding = $store.items[idx]
+                let binding = Bindable(store).items[idx]
 
                 ScrollView {
                     VStack(alignment: .leading, spacing: 24) {

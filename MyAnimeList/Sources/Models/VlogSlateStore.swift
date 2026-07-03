@@ -1,6 +1,7 @@
 import Foundation
 import Observation
 import SwiftUI
+import UniformTypeIdentifiers
 
 // MARK: - Store
 
@@ -235,7 +236,7 @@ struct VlogExportDocument: FileDocument {
     }
 }
 
-private struct VlogExportSnapshot: Codable {
+struct VlogExportSnapshot: Codable {
     var items: [FootageItem]
     var currentScene: Int
     var currentTake: Int

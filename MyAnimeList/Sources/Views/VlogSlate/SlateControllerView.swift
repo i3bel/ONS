@@ -35,9 +35,10 @@ struct SlateControllerView: View {
     }
 
     private var controlCards: some View {
-        HStack(spacing: 12) {
-            SlateCounterCard(title: "场", value: $store.currentScene, systemImage: "rectangle.stack.fill")
-            SlateCounterCard(title: "镜", value: $store.currentClip, systemImage: "camera.aperture", tint: .cyan)
+        let store = Bindable(self.store)
+        return HStack(spacing: 12) {
+            SlateCounterCard(title: "场", value: store.currentScene, systemImage: "rectangle.stack.fill")
+            SlateCounterCard(title: "镜", value: store.currentClip, systemImage: "camera.aperture", tint: .cyan)
         }
     }
 
