@@ -232,5 +232,6 @@ struct VlogSlateRootView: View {
                 FootageSearchView()
             }
         }
+        .tabBarMinimizeBehavior(.onScrollDown)
     }
 }
