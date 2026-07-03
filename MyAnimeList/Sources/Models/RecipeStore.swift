@@ -2,223 +2,193 @@ import Foundation
 import Observation
 import UniformTypeIdentifiers
 
-// MARK: - Recipe Store
-
-@Observable
-final class RecipeStore {
-    var recipes: [Recipe] = []
-
-    private let fileURL: URL
-    private var isLoading = false
-
-    init() {
-        let supportDirectory = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-        let directory = supportDirectory.appendingPathComponent("VlogSlate", isDirectory: true)
-        fileURL = directory.appendingPathComponent("recipes.json")
-        load()
-    }
-
-    // MARK: - CRUD
-
-    func addRecipe(_ recipe: Recipe) {
-        recipes.insert(recipe, at: 0)
-        save()
-    }
-
-    func deleteRecipe(_ recipe: Recipe) {
-        recipes.removeAll { $0.id == recipe.id }
-        // Clean up thumbnail
-        if let filename = recipe.thumbnailFilename {
-            let url = fileURL.deletingLastPathComponent().appendingPathComponent(filename)
-            try? FileManager.default.removeItem(at: url)
-        }
-        save()
-    }
-
-    func updateRecipe(_ recipe: Recipe) {
-        guard let idx = recipes.firstIndex(where: { $0.id == recipe.id }) else { return }
-        recipes[idx] = recipe
-        save()
-    }
-
-    func thumbnailURL(for recipe: Recipe) -> URL? {
-        guard let filename = recipe.thumbnailFilename else { return nil }
-        return fileURL.deletingLastPathComponent().appendingPathComponent(filename)
-    }
-
-    func saveThumbnail(data: Data, for recipeID: String) -> String? {
-        let dir = fileURL.deletingLastPathComponent()
-        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        let filename = "recipe_\(recipeID)_thumb.jpg"
-        let url = dir.appendingPathComponent(filename)
-        do {
-            try data.write(to: url, options: [.atomic])
-            return filename
-        } catch {
-            print("Failed to save recipe thumbnail: \(error)")
-            return nil
-        }
-    }
-
-    // MARK: - Persistence
-
-    private func load() {
-        isLoading = true
-        defer { isLoading = false }
-        guard let data = try? Data(contentsOf: fileURL),
-              let snapshot = try? JSONDecoder.recipeStore.decode(RecipeSnapshot.self, from: data)
-        else { return }
-        recipes = snapshot.recipes
-    }
-
-    func save() {
-        guard !isLoading else { return }
-        do {
-            try FileManager.default.createDirectory(
-                at: fileURL.deletingLastPathComponent(),
-                withIntermediateDirectories: true
-            )
-            let snapshot = RecipeSnapshot(recipes: recipes)
-            let data = try JSONEncoder.recipeStore.encode(snapshot)
-            try data.write(to: fileURL, options: [.atomic])
-        } catch {
-            assertionFailure("Failed to save recipes: \(error)")
-        }
-    }
-}
-
-private struct RecipeSnapshot: Codable {
-    var recipes: [Recipe]
-}
-
-extension JSONEncoder {
-    static var recipeStore: JSONEncoder {
-        let encoder = JSONEncoder()
-        encoder.dateEncodingStrategy = .iso8601
-        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-        return encoder
-    }
-}
-
-extension JSONDecoder {
-    static var recipeStore: JSONDecoder {
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
-        return decoder
-    }
-}
-
 // MARK: - Recipe Model
 
 struct Recipe: Identifiable, Codable, Equatable {
     var id: String
     var name: String
-    var thumbnailFilename: String?
-    var defaultServings: Int = 1
-    var status: RecipeStatus = .neutral
-    var notes: String = ""
-    var ingredients: [Ingredient] = []
-    var steps: [CookingStep] = []
-    var createdAt: Date = .now
+    var servings: Int
+    var prepTime: TimeInterval
+    var cookTime: TimeInterval
+    var ingredients: [Ingredient]
+    var steps: [CookingStep]
+    var photoFilename: String?
+    var tags: [String]
+    var createdAt: Date
 
-    func scaledIngredients(for servings: Int) -> [Ingredient] {
-        guard defaultServings > 0 else { return ingredients }
-        let scale = Double(servings) / Double(defaultServings)
-        return ingredients.map { ingredient in
-            Ingredient(
-                id: ingredient.id,
-                name: ingredient.name,
-                amount: ingredient.amount * scale,
-                unit: ingredient.unit,
-                category: ingredient.category,
-                isPrepared: ingredient.isPrepared
-            )
+    var totalTime: TimeInterval { prepTime + cookTime }
+
+    init(id: String = UUID().uuidString, name: String, servings: Int = 2, prepTime: TimeInterval = 0, cookTime: TimeInterval = 0, ingredients: [Ingredient] = [], steps: [CookingStep] = [], photoFilename: String? = nil, tags: [String] = [], createdAt: Date = .now) {
+        self.id = id
+        self.name = name
+        self.servings = servings
+        self.prepTime = prepTime
+        self.cookTime = cookTime
+        self.ingredients = ingredients
+        self.steps = steps
+        self.photoFilename = photoFilename
+        self.tags = tags
+        self.createdAt = createdAt
+    }
+
+    /// Scale an ingredient by target servings
+    func scaledAmount(for ingredient: Ingredient, targetServings: Int) -> String {
+        guard servings > 0 else { return ingredient.displayString }
+        let scale = Double(targetServings) / Double(servings)
+        let scaled = ingredient.amount * scale
+        if scaled == floor(scaled) {
+            return "\(Int(scaled)) \(ingredient.unit)"
         }
+        return String(format: "%.1f \(ingredient.unit)", scaled)
     }
 }
 
-enum RecipeStatus: String, Codable, CaseIterable {
-    case wantToEat = "想吃"
-    case neutral = "一般"
-    case favorite = "最爱吃"
-    case worst = "最难吃"
-
-    var systemImage: String {
-        switch self {
-        case .wantToEat: return "heart"
-        case .neutral: return "minus"
-        case .favorite: return "heart.fill"
-        case .worst: return "hand.thumbsdown"
-        }
-    }
-}
-
-// MARK: - Ingredient Model
+// MARK: - Ingredient
 
 struct Ingredient: Identifiable, Codable, Equatable {
     var id: String
     var name: String
     var amount: Double
     var unit: String
-    var category: IngredientCategory = .other
-    var isPrepared: Bool = false
 
-    var displayAmount: String {
-        if amount == 0 { return "适量" }
+    var displayString: String {
         if amount == floor(amount) {
-            return "\(Int(amount)) \(unit)"
+            return "\(Int(amount)) \(unit) \(name)"
         }
-        return String(format: "%.1f %@", amount, unit)
+        return String(format: "%.1f %@ %@", amount, unit, name)
+    }
+
+    init(id: String = UUID().uuidString, name: String, amount: Double, unit: String) {
+        self.id = id
+        self.name = name
+        self.amount = amount
+        self.unit = unit
+    }
+
+    /// Parse Chinese text like "一勺糖" → Ingredient(name:"糖", amount:1, unit:"勺")
+    static func parseChinese(_ text: String) -> Ingredient {
+        let trimmed = text.trimmingCharacters(in: .whitespaces)
+        let chineseDigits: [Character: Double] = [
+            "零": 0, "一": 1, "二": 2, "三": 3, "四": 4, "五": 5,
+            "六": 6, "七": 7, "八": 8, "九": 9, "十": 10
+        ]
+        let knownUnits = ["杯", "碗", "勺", "汤匙", "茶匙", "个", "根", "片", "只", "粒",
+                          "颗", "瓣", "块", "条", "束", "包", "盒", "瓶", "罐",
+                          "克", "毫升", "斤", "两", "公斤", "升", "ml", "g", "kg",
+                          "cup", "tbsp", "tsp", "oz", "lb", "pinch"]
+
+        var amount: Double = 1
+        var unit = ""
+        var name = trimmed
+
+        // Extract amount from Chinese digits at start
+        for (char, val) in chineseDigits {
+            if trimmed.hasPrefix(String(char)) {
+                amount = val
+                name = String(trimmed.dropFirst(String(char).count))
+                break
+            }
+        }
+        // Try Arabic digits at start
+        if amount == 1, let firstDigit = trimmed.first, firstDigit.isNumber {
+            let digits = trimmed.prefix(while: \.isNumber)
+            if let parsed = Double(digits) {
+                amount = parsed
+                name = String(trimmed.dropFirst(digits.count))
+            }
+        }
+
+        // Extract unit
+        name = name.trimmingCharacters(in: .whitespaces)
+        for u in knownUnits {
+            if name.hasPrefix(u) {
+                unit = u
+                name = String(name.dropFirst(u.count)).trimmingCharacters(in: .whitespaces)
+                break
+            }
+        }
+
+        return Ingredient(name: name.isEmpty ? trimmed : name, amount: amount, unit: unit)
     }
 }
 
-enum IngredientCategory: String, Codable, CaseIterable {
-    case vegetable = "蔬菜"
-    case meat = "肉类"
-    case seafood = "海鲜"
-    case seasoning = "调料"
-    case dairy = "乳制品"
-    case dry = "干货"
-    case grain = "主食"
-    case fruit = "水果"
-    case other = "其他"
-
-    var systemImage: String {
-        switch self {
-        case .vegetable: return "leaf"
-        case .meat: return "flame"
-        case .seafood: return "fish"
-        case .seasoning: return "drop"
-        case .dairy: return "cup.and.saucer"
-        case .dry: return "archivebox"
-        case .grain: return "crown"
-        case .fruit: return "applelogo"
-        case .other: return "questionmark"
-        }
-    }
-}
-
-// MARK: - Cooking Step Model
+// MARK: - Cooking Step
 
 struct CookingStep: Identifiable, Codable, Equatable {
     var id: String
     var order: Int
     var description: String
-    var duration: TimeInterval? = nil
 
-    var hasTimer: Bool {
-        guard let d = duration, d > 0 else { return false }
-        return true
-    }
-
-    var durationDisplay: String {
-        guard let d = duration, d > 0 else { return "" }
-        let totalMinutes = Int(d / 60)
-        if totalMinutes >= 60 {
-            let hours = totalMinutes / 60
-            let mins = totalMinutes % 60
-            return "\(hours)小时\(mins)分钟"
-        }
-        return "\(totalMinutes)分钟"
+    init(id: String = UUID().uuidString, order: Int, description: String) {
+        self.id = id
+        self.order = order
+        self.description = description
     }
 }
+
+// MARK: - Recipe Store
+
+@Observable
+final class RecipeStore {
+    var recipes: [Recipe] = []
+    var sortOrder: SortOrder = .name
+
+    enum SortOrder: String, Codable { case name, prepTime }
+
+    private let fileURL: URL
+    private var isLoading = false
+
+    init() {
+        let dir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("RecipeSlate", isDirectory: true)
+        fileURL = dir.appendingPathComponent("recipes.json")
+        load()
+    }
+
+    var sortedRecipes: [Recipe] {
+        switch sortOrder {
+        case .name: return recipes.sorted { $0.name.localizedCompare($1.name) == .orderedAscending }
+        case .prepTime: return recipes.sorted { $0.totalTime < $1.totalTime }
+        }
+    }
+
+    func add(_ recipe: Recipe) { recipes.append(recipe); save() }
+    func update(_ recipe: Recipe) { guard let i = recipes.firstIndex(where: { $0.id == recipe.id }) else { return }; recipes[i] = recipe; save() }
+    func delete(_ recipe: Recipe) { recipes.removeAll { $0.id == recipe.id }; save() }
+    func delete(_ recipes: [Recipe]) { let ids = Set(recipes.map(\.id)); self.recipes.removeAll { ids.contains($0.id) }; save() }
+
+    func savePhoto(data: Data, for recipeID: String) -> String? {
+        let dir = fileURL.deletingLastPathComponent()
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        let fn = "photo_\(recipeID).jpg"
+        let url = dir.appendingPathComponent(fn)
+        do { try data.write(to: url, options: .atomic); return fn } catch { return nil }
+    }
+
+    func photoURL(for recipe: Recipe) -> URL? {
+        guard let fn = recipe.photoFilename else { return nil }
+        return fileURL.deletingLastPathComponent().appendingPathComponent(fn)
+    }
+
+    private func load() {
+        isLoading = true; defer { isLoading = false }
+        guard let data = try? Data(contentsOf: fileURL),
+              let snap = try? JSONDecoder.recipeStore.decode(Snapshot.self, from: data) else { return }
+        recipes = snap.recipes; sortOrder = snap.sortOrder
+    }
+
+    func save() {
+        guard !isLoading else { return }
+        try? FileManager.default.createDirectory(at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+        let snap = Snapshot(recipes: recipes, sortOrder: sortOrder)
+        if let data = try? JSONEncoder.recipeStore.encode(snap) { try? data.write(to: fileURL, options: .atomic) }
+    }
+}
+
+private struct Snapshot: Codable {
+    var recipes: [Recipe]
+    var sortOrder: RecipeStore.SortOrder
+}
+
+extension JSONEncoder { static var recipeStore: JSONEncoder { let e = JSONEncoder(); e.dateEncodingStrategy = .iso8601; e.outputFormatting = [.prettyPrinted, .sortedKeys]; return e } }
+extension JSONDecoder { static var recipeStore: JSONDecoder { let d = JSONDecoder(); d.dateDecodingStrategy = .iso8601; return d } }

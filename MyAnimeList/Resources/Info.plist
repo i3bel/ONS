@@ -15,5 +15,7 @@
 	<string>RecipeSlate uses the microphone for voice commands while cooking (say "next step" to advance hands-free).</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>RecipeSlate uses speech recognition to understand your cooking commands when your hands are busy.</string>
+	<key>NSRemindersUsageDescription</key>
+	<string>RecipeSlate syncs your grocery list to Reminders so you can check items on your Apple Watch.</string>
 </dict>
 </plist>

@@ -6,9 +6,6 @@
 	objectVersion = 77;
 	objects = {
 
-/* Begin PBXBuildFile section */
-/* End PBXBuildFile section */
-
 /* Begin PBXContainerItemProxy section */
 		9F8D66412D055FF000CF355D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -37,40 +34,8 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Resources/Info.plist,
-				Tests/MyAnimeListTests/EntryDetailViewModelTests.swift,
-				Tests/MyAnimeListTests/InfoFetcherAndLibraryTests.swift,
-				Tests/MyAnimeListTests/LibraryExportManagerTests.swift,
-				Tests/MyAnimeListTests/LibraryPreferencesAndActionsTests.swift,
-				Tests/MyAnimeListTests/LibrarySortingAndDeletionTests.swift,
-				Tests/MyAnimeListTests/MyAnimeListTestSupport.swift,
-				Tests/MyAnimeListTests/UserEntryInfoAndLibraryStatsTests.swift,
-				Tests/MyAnimeListTests/WhatsNewAndRefreshTests.swift,
-				Tests/MyAnimeListUITests/MyAnimeListUITests.swift,
-				Tests/MyAnimeListUITests/MyAnimeListUITestsLaunchTests.swift,
 			);
 			target = 9F8D662F2D055FEF00CF355D /* MyAnimeList */;
-		};
-		9F93FC182DE1FD800071FB56 /* Exceptions for "MyAnimeList" folder in "MyAnimeListTests" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Tests/MyAnimeListTests/EntryDetailViewModelTests.swift,
-				Tests/MyAnimeListTests/InfoFetcherAndLibraryTests.swift,
-				Tests/MyAnimeListTests/LibraryExportManagerTests.swift,
-				Tests/MyAnimeListTests/LibraryPreferencesAndActionsTests.swift,
-				Tests/MyAnimeListTests/LibrarySortingAndDeletionTests.swift,
-				Tests/MyAnimeListTests/MyAnimeListTestSupport.swift,
-				Tests/MyAnimeListTests/UserEntryInfoAndLibraryStatsTests.swift,
-				Tests/MyAnimeListTests/WhatsNewAndRefreshTests.swift,
-			);
-			target = 9F8D663F2D055FF000CF355D /* MyAnimeListTests */;
-		};
-		9F93FC192DE1FD800071FB56 /* Exceptions for "MyAnimeList" folder in "MyAnimeListUITests" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Tests/MyAnimeListUITests/MyAnimeListUITests.swift,
-				Tests/MyAnimeListUITests/MyAnimeListUITestsLaunchTests.swift,
-			);
-			target = 9F8D66492D055FF000CF355D /* MyAnimeListUITests */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
@@ -79,8 +44,6 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				9F08B7672DBC745500CC3925 /* Exceptions for "MyAnimeList" folder in "MyAnimeList" target */,
-				9F93FC182DE1FD800071FB56 /* Exceptions for "MyAnimeList" folder in "MyAnimeListTests" target */,
-				9F93FC192DE1FD800071FB56 /* Exceptions for "MyAnimeList" folder in "MyAnimeListUITests" target */,
 			);
 			path = MyAnimeList;
 			sourceTree = "<group>";
@@ -195,6 +158,9 @@
 			productReference = 9F8D664A2D055FF000CF355D /* MyAnimeListUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
 		9F8D66282D055FEF00CF355D /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
@@ -238,6 +204,7 @@
 			);
 		};
 /* End PBXProject section */
+
 /* Begin PBXResourcesBuildPhase section */
 		9F8D662E2D055FEF00CF355D /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
@@ -623,12 +590,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
-/* Begin XCRemoteSwiftPackageReference section */
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 9F8D66282D055FEF00CF355D /* Project object */;
 }
