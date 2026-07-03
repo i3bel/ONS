@@ -1,26 +1,24 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
-// MARK: - RecipeShelfView
+// MARK: - RecipeShelfView (Crouton-style list)
 
 struct RecipeShelfView: View {
     @Environment(RecipeStore.self) private var store
-    var toggleMode: (() -> Void)?
     @State private var showNewRecipe = false
     @State private var selectedRecipe: Recipe?
     @State private var filter: RecipeFilter = .all
     @State private var searchText = ""
-    @State private var showExportSheet = false
     @State private var showImportPicker = false
+    @State private var showExportSheet = false
 
     private var filteredRecipes: [Recipe] {
         var result = store.recipes
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
         if !query.isEmpty {
-            result = result.filter { recipe in
-                recipe.name.localizedCaseInsensitiveContains(query)
-                    || recipe.ingredients.contains(where: { $0.name.localizedCaseInsensitiveContains(query) })
-                    || recipe.notes.localizedCaseInsensitiveContains(query)
+            result = result.filter {
+                $0.name.localizedCaseInsensitiveContains(query)
+                    || $0.ingredients.contains(where: { $0.name.localizedCaseInsensitiveContains(query) })
             }
         }
         switch filter {
@@ -36,43 +34,32 @@ struct RecipeShelfView: View {
         NavigationStack {
             List {
                 if filteredRecipes.isEmpty {
-                    ContentUnavailableView(
-                        "没有菜谱",
-                        systemImage: "book",
-                        description: Text("点击右上角 + 添加第一个菜谱")
-                    )
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
+                    emptySection
                 } else {
                     ForEach(filteredRecipes) { recipe in
                         Button(action: { selectedRecipe = recipe }) {
-                            RecipeRow(recipe: recipe, store: store)
+                            RecipeListRow(recipe: recipe, store: store)
                         }
                         .buttonStyle(.plain)
-                        .listRowInsets(.init(top: 8, leading: 10, bottom: 8, trailing: 10))
-                        .listRowSeparator(.visible)
-                        .listRowSeparatorTint(.white.opacity(0.06))
+                        .listRowInsets(.init(top: 6, leading: 16, bottom: 6, trailing: 16))
+                        .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
                         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                             Button(role: .destructive) {
                                 store.deleteRecipe(recipe)
-                            } label: {
-                                Label("删除", systemImage: "trash")
-                            }
+                            } label: { Label("删除", systemImage: "trash") }
                         }
                     }
                 }
             }
             .listStyle(.plain)
             .background(Color(.systemGroupedBackground))
-            .navigationTitle("")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationTitle("菜谱")
+            .navigationBarTitleDisplayMode(.large)
+            .searchable(text: $searchText, prompt: "搜索菜谱或食材")
             .toolbar {
-                ToolbarItem(placement: .principal) {
-                    RecipeNavigationTitleCapsule(count: filteredRecipes.count, onLongPress: toggleMode)
-                }
                 ToolbarItem(placement: .topBarTrailing) {
-                    HStack(spacing: 4) {
+                    HStack(spacing: 2) {
                         filterMenu
                         addMenu
                     }
@@ -87,18 +74,30 @@ struct RecipeShelfView: View {
             .fileImporter(isPresented: $showImportPicker, allowedContentTypes: [.json]) { result in
                 importRecipes(from: result)
             }
-            .fileExporter(
-                isPresented: $showExportSheet,
-                document: exportDocument(),
-                contentType: .json,
-                defaultFilename: "Recipes.json"
-            ) { _ in }
+            .fileExporter(isPresented: $showExportSheet, document: exportDocument(), contentType: .json, defaultFilename: "Recipes.json") { _ in }
         }
+    }
+
+    private var emptySection: some View {
+        VStack(spacing: 16) {
+            Spacer().frame(height: 60)
+            Image(systemName: "book.closed")
+                .font(.system(size: 48))
+                .foregroundStyle(.secondary.opacity(0.5))
+            Text("还没有菜谱")
+                .font(.title2.weight(.semibold))
+            Text("点击右上角 + 添加第一个菜谱")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+        .listRowBackground(Color.clear)
+        .listRowSeparator(.hidden)
     }
 
     private var filterMenu: some View {
         Menu {
-            Picker("Filter", selection: $filter) {
+            Picker("筛选", selection: $filter) {
                 ForEach(RecipeFilter.allCases) { f in
                     Label(f.title, systemImage: f.systemImage).tag(f)
                 }
@@ -116,26 +115,19 @@ struct RecipeShelfView: View {
 
     private var addMenu: some View {
         Menu {
-            Button("新建菜谱", systemImage: "plus") {
-                showNewRecipe = true
-            }
+            Button("新建菜谱", systemImage: "plus") { showNewRecipe = true }
             Divider()
-            Button("导入", systemImage: "square.and.arrow.down") {
-                showImportPicker = true
-            }
-            Button("导出", systemImage: "square.and.arrow.up") {
-                showExportSheet = true
-            }
+            Button("导入", systemImage: "square.and.arrow.down") { showImportPicker = true }
+            Button("导出", systemImage: "square.and.arrow.up") { showExportSheet = true }
             if !store.recipes.isEmpty {
                 Divider()
-                Button("清空所有菜谱", systemImage: "trash", role: .destructive) {
-                    store.recipes.removeAll()
-                    store.save()
+                Button("清空", systemImage: "trash", role: .destructive) {
+                    store.recipes.removeAll(); store.save()
                 }
             }
         } label: {
-            Image(systemName: "ellipsis")
-                .font(.title2)
+            Image(systemName: "plus")
+                .font(.title2.weight(.semibold))
                 .frame(width: 20, height: 20)
                 .padding(10)
         }
@@ -150,9 +142,7 @@ struct RecipeShelfView: View {
         guard let data = try? Data(contentsOf: url),
               let imported = try? JSONDecoder.recipeStore.decode([Recipe].self, from: data)
         else { return }
-        for recipe in imported {
-            store.addRecipe(recipe)
-        }
+        imported.forEach { store.addRecipe($0) }
     }
 
     private func exportDocument() -> RecipeExportDocument {
@@ -160,81 +150,65 @@ struct RecipeShelfView: View {
     }
 }
 
-// MARK: - Recipe Row
+// MARK: - Crouton-style List Row
 
-private struct RecipeRow: View {
+private struct RecipeListRow: View {
     var recipe: Recipe
     var store: RecipeStore
 
     var body: some View {
-        HStack(spacing: 11) {
+        HStack(spacing: 14) {
             // Thumbnail
-            Group {
+            ZStack {
                 if let url = store.thumbnailURL(for: recipe),
                    let uiImage = UIImage(contentsOfFile: url.path) {
                     Image(uiImage: uiImage)
                         .resizable()
                         .scaledToFill()
                 } else {
-                    ZStack {
-                        LinearGradient(
-                            colors: [.orange.opacity(0.3), .red.opacity(0.2)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                        Image(systemName: "fork.knife")
-                            .font(.title2)
-                            .foregroundStyle(.orange)
-                    }
+                    LinearGradient(colors: [.orange.opacity(0.3), .red.opacity(0.2)], startPoint: .topLeading, endPoint: .bottomTrailing)
+                    Image(systemName: "fork.knife")
+                        .font(.title2)
+                        .foregroundStyle(.orange)
                 }
             }
-            .frame(width: 72, height: 72)
+            .frame(width: 80, height: 80)
             .clipped()
-            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
 
-            VStack(alignment: .leading, spacing: 4) {
+            // Info
+            VStack(alignment: .leading, spacing: 6) {
                 Text(recipe.name)
-                    .font(.headline.weight(.semibold))
+                    .font(.body.weight(.semibold))
                     .lineLimit(2)
 
                 HStack(spacing: 6) {
                     RecipeStatusBadge(status: recipe.status)
-                    if recipe.totalTime > 0 {
-                        Text("•")
-                            .foregroundStyle(.secondary)
-                        Text(timeDisplay(recipe.totalTime))
-                            .font(.caption.weight(.medium))
-                            .foregroundStyle(.secondary)
+                    if !recipe.ingredients.isEmpty {
+                        Text("\(recipe.ingredients.count) 种食材")
+                            .font(.caption)
+                            .foregroundStyle(.tertiary)
                     }
                 }
 
-                if !recipe.ingredients.isEmpty {
-                    Text("\(recipe.ingredients.count) 种食材 · \(recipe.steps.count) 步")
-                        .font(.caption)
-                        .foregroundStyle(.tertiary)
-                }
+                Text("\(recipe.steps.count) 步")
+                    .font(.caption)
+                    .foregroundStyle(.quaternary)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(.vertical, 4)
-    }
-
-    private func timeDisplay(_ interval: TimeInterval) -> String {
-        let total = Int(interval / 60)
-        if total >= 60 {
-            return "\(total / 60)h \(total % 60)m"
-        }
-        return "\(total)m"
+        .padding(10)
+        .background(Color(.systemBackground).opacity(0.6), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
     }
 }
 
-// MARK: - Recipe Status Badge
+// MARK: - Status Badge
 
 struct RecipeStatusBadge: View {
     var status: RecipeStatus
 
     var body: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 3) {
             Image(systemName: status.systemImage)
                 .font(.caption2)
             Text(status.rawValue)
@@ -243,9 +217,7 @@ struct RecipeStatusBadge: View {
         .foregroundStyle(status.tintColor)
         .padding(.horizontal, 8)
         .padding(.vertical, 3)
-        .background {
-            Capsule().fill(status.tintColor.opacity(0.12))
-        }
+        .background(Capsule().fill(status.tintColor.opacity(0.12)))
     }
 }
 
@@ -288,15 +260,8 @@ private enum RecipeFilter: String, CaseIterable, Identifiable {
 private struct RecipeExportDocument: FileDocument {
     static var readableContentTypes: [UTType] { [.json] }
     var recipes: [Recipe]
-
-    init(recipes: [Recipe]) {
-        self.recipes = recipes
-    }
-
-    init(configuration: ReadConfiguration) throws {
-        recipes = []
-    }
-
+    init(recipes: [Recipe]) { self.recipes = recipes }
+    init(configuration: ReadConfiguration) throws { recipes = [] }
     func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
         let data = try JSONEncoder.recipeStore.encode(recipes)
         return .init(regularFileWithContents: data)

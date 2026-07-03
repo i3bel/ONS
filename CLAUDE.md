@@ -17,7 +17,7 @@ make format
 # Lint code (swift-format lint)
 make lint
 
-# Build, install, and launch on connected iPhone
+# Build, install, launch on connected iPhone
 make run-device
 
 # Open in Xcode
@@ -26,66 +26,55 @@ open MyAnimeList.xcodeproj
 
 ## Project Overview
 
-**VlogSlate** — dual-mode iOS app: **镜头模式** (film slate) + **菜谱模式** (recipe management). Long-press the navigation title to toggle between modes. Target: iOS 26+.
+**RecipeSlate** — a native iOS recipe app inspired by Crouton (2024 Apple Design Award winner). 3-tab app: 菜谱浏览 → 分步烹饪(免触) → 购物清单.
 
-## Dual-Mode Architecture
+## Architecture
 
-### Mode Switching
-- `MyAnimeListApp.swift` — Root `@main` manages `isRecipeMode` state, renders `VlogSlateTabView` or `RecipeTabView` with crossfade transition
-- Long-press on `VlogSlateNavigationTitleCapsule` ("X镜头") or `RecipeNavigationTitleCapsule` ("X菜谱") triggers toggle
+### Tab Structure
 
-### 镜头模式 (VlogSlate)
-| Tab | File | Function |
-|-----|------|----------|
-| 片库 | `VlogSlate/FootageShelfView.swift` | Footage library + token search |
-| 场记 | `VlogSlate/SlateControllerView.swift` | Slate controller + QR codes |
-| 扫码 | `VlogSlate/ScannerView.swift` | QR scanner |
-| (搜索) | `VlogSlate/FootageShelfView.swift:FootageSearchView` | Search tab |
+| # | Tab | File | Description |
+|---|-----|------|-------------|
+| 1 | 菜谱 | `Views/Recipe/RecipeShelfView.swift` | Crouton-style list: thumbnail + name + status + search/filter. Opens `RecipeDetailView.swift` for editing. |
+| 2 | 烹饪 | `Views/Recipe/CookModeView.swift` | Crouton-style step-by-step: full-screen step cards, swipe/click navigation, voice commands, inline timers |
+| 3 | 食材 | `Views/Recipe/ShoppingListView.swift` | Grocery list: aggregated ingredients by category, checkable |
 
-### 菜谱模式 (Recipe)
-| Tab | File | Function |
-|-----|------|----------|
-| 菜谱 | `Recipe/RecipeShelfView.swift` | Recipe library + status filter + smart search |
-| 食材 | `Recipe/ShoppingListView.swift` | Ingredient shopping list, grouped & checkable |
-| 制作 | `Recipe/CookingView.swift` | Step-by-step cooking with per-step countdown timers |
-| 计价 | `Recipe/PriceCalculatorView.swift` | Takeout price sum / homemade ingredient cost + time |
+### Crouton-Inspired Features
 
-## Data Models
+- **Single-step focus**: One card at a time during cook mode, no distraction
+- **Hands-free navigation**: `SFSpeechRecognizer` for voice commands ("下一步"/"next"/"上一步"/"back")
+- **Swipe gestures**: `DragGesture` for step navigation (left=next, right=previous)
+- **Tap navigation**: Tap left/right half of screen for prev/next
+- **Inline timers**: Per-step countdown timers (`Timer.scheduledTimer`), haptic feedback on completion
+- **Ingredient highlighting**: Step text highlights ingredient names in orange
+- **Ingredient popup**: Show all ingredient quantities from current step
+- **Smart step input**: Detects cooking verbs (煮/炖/烤) → auto-shows time picker
 
-### Store (`Models/VlogSloteStore.swift`)
-- `VlogSlateStore` — `@Observable`, JSON persistence for footage items
-- `FootageItem` — scene/clip/take tracking
+### Data Model
 
-### Store (`Models/RecipeStore.swift`)
-- `RecipeStore` — `@Observable`, JSON persistence for recipes
-- `Recipe` — name, servings, times, status, `[Ingredient]`, `[CookingStep]`
+`Models/RecipeStore.swift` — `@Observable` store with JSON persistence:
+- `Recipe` — name, thumbnail, servings, status, ingredients[], steps[], notes
 - `Ingredient` — name, amount, unit, category, isPrepared
-- `CookingStep` — order, description, optional duration (for timer)
+- `CookingStep` — order, description, duration (optional, for timer)
 - `scaledIngredients(for:)` — auto-scale amounts by serving count
-
-## Key Design Patterns
-
-- **`@Observable`** + `@Environment` for state management
-- **Bindable**: `Bindable(store).$property` for two-way bindings with `@Observable`
-- **JSON persistence**: Manual load/save in `applicationSupportDirectory/VlogSlate/`
-- **Thumbnails**: JPEG files in same directory, `RecipeStore.saveThumbnail(data:for:)`
-- **Smart step input**: `RecipeDetailView` detects cooking verbs (煮/炖/烤/煎) → auto-shows time picker
-- **Step timers**: `CookingView.StepCookingCard` uses `Timer.publish` for countdown per step
 
 ## Data Persistence
 
-All JSON files in `~/Library/Application Support/VlogSlate/`:
-- `footage.json` — VlogSlateStore items
-- `recipes.json` — RecipeStore recipes
-- Thumbnails as `recipe_<id>_thumb.jpg` / `scene_<id>_thumb.jpg`
+JSON files at `~/Library/Application Support/VlogSlate/`:
+- `recipes.json` — all recipes
+- Thumbnails as `recipe_<id>_thumb.jpg`
 
-## iOS 26+ APIs Used
-- `@Observable` macro, `tabBarMinimizeBehavior(.onScrollDown)`, `glassEffect`, `contentTransition(.numericText)`, `.symbolEffect(.replace)`, `sensoryFeedback()`
+## Voice & Permissions
+
+- **Speech**: `SFSpeechRecognizer` (zh-Hans) listens for commands during cooking
+- Info.plist includes: `NSSpeechRecognitionUsageDescription`, `NSMicrophoneUsageDescription`, `NSCameraUsageDescription`
 
 ## Dependencies
-- **None.** System frameworks only: SwiftUI, UIKit, AVFoundation, CoreImage, PhotosUI, Observation
+
+None. System frameworks only: SwiftUI, UIKit, AVFoundation, Speech, PhotosUI, Observation, UniformTypeIdentifiers.
 
 ## Code Style
-- Follow `swift-format` (config: `.swift-format`)
-- Git: conventional commits, imperative capitalized subject, no period
-- Prefer `.environment(store)` + `@Environment(StoreType.self)` over `@EnvironmentObject`
+
+- Follow `swift-format`
+- Use `@Observable` + `@Environment` for state management
+- For bindings: `Bindable(store).$property`
+- Git: conventional commits, imperative capitalized subject

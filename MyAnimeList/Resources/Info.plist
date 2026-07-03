@@ -2,19 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>CFBundleDocumentTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleTypeName</key>
-			<string>AniShelf User Library</string>
-			<key>LSHandlerRank</key>
-			<string>Owner</string>
-			<key>LSItemContentTypes</key>
-			<array>
-				<string>mallib</string>
-			</array>
-		</dict>
-	</array>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -22,50 +9,11 @@
 		<key>UISceneConfigurations</key>
 		<dict/>
 	</dict>
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>remote-notification</string>
-	</array>
-	<key>UTExportedTypeDeclarations</key>
-	<array>
-		<dict>
-			<key>UTTypeConformsTo</key>
-			<array>
-				<string>public.data</string>
-			</array>
-			<key>UTTypeDescription</key>
-			<string>AniShelf Library</string>
-			<key>UTTypeIconFiles</key>
-			<array/>
-			<key>UTTypeIdentifier</key>
-			<string>com.samuelhe.myanimelist.mallib</string>
-			<key>UTTypeTagSpecification</key>
-			<dict>
-				<key>public.filename-extension</key>
-				<array>
-					<string>mallib</string>
-				</array>
-			</dict>
-		</dict>
-		<dict>
-			<key>UTTypeConformsTo</key>
-			<array>
-				<string>public.json</string>
-			</array>
-			<key>UTTypeDescription</key>
-			<string>AniShelf - UserEntryInfo</string>
-			<key>UTTypeIconFiles</key>
-			<array/>
-			<key>UTTypeIdentifier</key>
-			<string>com.samuelhe.myanimelist.userentryinfo</string>
-			<key>UTTypeTagSpecification</key>
-			<dict>
-				<key>public.filename-extension</key>
-				<array>
-					<string>.userentryinfo</string>
-				</array>
-			</dict>
-		</dict>
-	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>RecipeSlate uses the camera to take photos of your recipes for thumbnails.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>RecipeSlate uses the microphone for voice commands while cooking (say "next step" to advance hands-free).</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>RecipeSlate uses speech recognition to understand your cooking commands when your hands are busy.</string>
 </dict>
 </plist>

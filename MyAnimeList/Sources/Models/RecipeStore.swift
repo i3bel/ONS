@@ -115,15 +115,11 @@ struct Recipe: Identifiable, Codable, Equatable {
     var name: String
     var thumbnailFilename: String?
     var defaultServings: Int = 1
-    var prepTime: TimeInterval = 0
-    var cookTime: TimeInterval = 0
     var status: RecipeStatus = .neutral
     var notes: String = ""
     var ingredients: [Ingredient] = []
     var steps: [CookingStep] = []
     var createdAt: Date = .now
-
-    var totalTime: TimeInterval { prepTime + cookTime }
 
     func scaledIngredients(for servings: Int) -> [Ingredient] {
         guard defaultServings > 0 else { return ingredients }
