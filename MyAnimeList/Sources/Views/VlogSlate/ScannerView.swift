@@ -1,6 +1,6 @@
 //
 //  ScannerView.swift
-//  AniShelf
+//  VlogSlate
 //
 //  Created by OpenAI Codex on behalf of hole on 2026/6/20.
 //
@@ -9,7 +9,7 @@
 import SwiftUI
 
 struct ScannerView: View {
-    @EnvironmentObject private var store: VlogSlateStore
+    @Environment(VlogSlateStore.self) private var store
     @State private var selectedItem: FootageItem?
     @State private var scannedCode: String?
     @State private var isScanning = false

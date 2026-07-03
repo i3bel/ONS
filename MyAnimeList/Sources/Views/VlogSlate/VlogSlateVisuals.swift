@@ -1,6 +1,6 @@
 //
 //  VlogSlateVisuals.swift
-//  AniShelf
+//  VlogSlate
 //
 //  Created by OpenAI Codex on behalf of hole on 2026/6/20.
 //

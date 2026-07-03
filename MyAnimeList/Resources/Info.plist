@@ -14,16 +14,7 @@
 					<string>com.openai.vlogslate</string>
 				</array>
 			</dict>
-			<dict>
-				<key>CFBundleTypeName</key>
-				<string>AniShelf User Library</string>
-				<key>LSHandlerRank</key>
-				<string>Owner</string>
-			<key>LSItemContentTypes</key>
-			<array>
-				<string>mallib</string>
-			</array>
-		</dict>
+
 	</array>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
@@ -34,7 +25,6 @@
 	</dict>
 		<key>UIBackgroundModes</key>
 		<array>
-			<string>remote-notification</string>
 		</array>
 		<key>NSCameraUsageDescription</key>
 		<string>VlogSlate uses the camera to scan QR codes from recorded footage and open the matching take.</string>
@@ -59,44 +49,7 @@
 					</array>
 				</dict>
 			</dict>
-			<dict>
-				<key>UTTypeConformsTo</key>
-				<array>
-				<string>public.data</string>
-			</array>
-			<key>UTTypeDescription</key>
-			<string>AniShelf Library</string>
-			<key>UTTypeIconFiles</key>
-			<array/>
-			<key>UTTypeIdentifier</key>
-			<string>com.samuelhe.myanimelist.mallib</string>
-			<key>UTTypeTagSpecification</key>
-			<dict>
-				<key>public.filename-extension</key>
-				<array>
-					<string>mallib</string>
-				</array>
-			</dict>
-		</dict>
-		<dict>
-			<key>UTTypeConformsTo</key>
-			<array>
-				<string>public.json</string>
-			</array>
-			<key>UTTypeDescription</key>
-			<string>AniShelf - UserEntryInfo</string>
-			<key>UTTypeIconFiles</key>
-			<array/>
-			<key>UTTypeIdentifier</key>
-			<string>com.samuelhe.myanimelist.userentryinfo</string>
-			<key>UTTypeTagSpecification</key>
-			<dict>
-				<key>public.filename-extension</key>
-				<array>
-					<string>.userentryinfo</string>
-				</array>
-			</dict>
-		</dict>
+
 	</array>
 </dict>
 </plist>

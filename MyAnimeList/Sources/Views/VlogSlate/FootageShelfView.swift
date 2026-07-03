@@ -129,7 +129,7 @@ private func defaultSort(_ items: [FootageItem]) -> [FootageItem] {
 // MARK: - FootageShelfView
 
 struct FootageShelfView: View {
-    @EnvironmentObject var store: VlogSlateStore
+    @Environment(VlogSlateStore.self) private var store
     @State private var showExportSheet = false
     @State private var showImportPicker = false
     @State private var selected: FootageItem?
@@ -279,7 +279,7 @@ struct FootageShelfView: View {
 // MARK: - FootageRow
 
 struct FootageRow: View {
-    @EnvironmentObject var store: VlogSlateStore
+    @Environment(VlogSlateStore.self) private var store
     var item: FootageItem
 
     private let rowHeight: CGFloat = 126
@@ -414,58 +414,10 @@ private enum FootageFilter: String, CaseIterable, Identifiable {
     }
 }
 
-// MARK: - Supporting types
-
-struct FootageItemBinding: Identifiable {
-    let id: String
-}
-
-struct VlogExportDocument: FileDocument {
-    static var readableContentTypes: [UTType] { [.vlogSlate, .json] }
-    var items: [FootageItem]
-    var currentScene: Int
-    var currentTake: Int
-
-    init(items: [FootageItem], currentScene: Int, currentTake: Int) {
-        self.items = items
-        self.currentScene = currentScene
-        self.currentTake = currentTake
-    }
-
-    init(configuration: ReadConfiguration) throws {
-        items = []
-        currentScene = 1
-        currentTake = 1
-    }
-
-    func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
-        let snapshot = VlogExportSnapshot(items: items, currentScene: currentScene, currentTake: currentTake)
-        let data = try JSONEncoder.vlogSlate.encode(snapshot)
-        return .init(regularFileWithContents: data)
-    }
-}
-
-private struct VlogExportSnapshot: Codable {
-    var items: [FootageItem]
-    var currentScene: Int
-    var currentTake: Int
-}
-
-private extension UTType {
-    static let vlogSlate = UTType(exportedAs: "com.openai.vlogslate")
-}
-
-// 改后
-private extension FootageItem {
-    var title: String {
-        "\(scene) 场 - \(clip) 镜 - \(take) 次"
-    }
-}
-
 // MARK: - FootageSearchView
 
 struct FootageSearchView: View {
-    @EnvironmentObject var store: VlogSlateStore
+    @Environment(VlogSlateStore.self) private var store
     @State private var searchText = ""
 
     private var filteredItems: [FootageItem] {

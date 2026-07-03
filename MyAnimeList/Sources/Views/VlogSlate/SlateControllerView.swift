@@ -3,7 +3,7 @@ import SwiftUI
 import UIKit
 
 struct SlateControllerView: View {
-    @EnvironmentObject var store: VlogSlateStore
+    @Environment(VlogSlateStore.self) private var store
     @State private var showsFullScreenSlate = false
     @State private var fullScreenCountdown = 3
     @State private var countdownTask: Task<Void, Never>?

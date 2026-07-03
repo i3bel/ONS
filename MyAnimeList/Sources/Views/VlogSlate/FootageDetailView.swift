@@ -2,7 +2,7 @@ import SwiftUI
 import PhotosUI
 
 struct FootageDetailView: View {
-    @EnvironmentObject var store: VlogSlateStore
+    @Environment(VlogSlateStore.self) private var store
     @Environment(\.dismiss) private var dismiss
     @State private var itemId: String
 
