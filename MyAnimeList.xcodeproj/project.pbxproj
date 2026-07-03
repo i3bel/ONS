@@ -6,6 +6,7 @@
 	objectVersion = 77;
 	objects = {
 
+<<<<<<< Updated upstream
 /* Begin PBXBuildFile section */
 		9F1BC6CA2E7F024E00221B77 /* AlertToast in Frameworks */ = {isa = PBXBuildFile; productRef = 9F1BC6C92E7F024E00221B77 /* AlertToast */; };
 		9F1BC6CD2E7F028100221B77 /* AlertToast in Frameworks */ = {isa = PBXBuildFile; productRef = 9F1BC6CC2E7F028100221B77 /* AlertToast */; };
@@ -20,6 +21,8 @@
 		9FFCB76E2EC896520088FF36 /* Collections in Frameworks */ = {isa = PBXBuildFile; productRef = 9FFCB76D2EC896520088FF36 /* Collections */; };
 /* End PBXBuildFile section */
 
+=======
+>>>>>>> Stashed changes
 /* Begin PBXContainerItemProxy section */
 		9F8D66412D055FF000CF355D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -678,6 +681,7 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+<<<<<<< Updated upstream
 
 /* Begin XCRemoteSwiftPackageReference section */
 		9F1BC6CB2E7F028100221B77 /* XCRemoteSwiftPackageReference "AlertToast" */ = {
@@ -782,6 +786,8 @@
 			productName = Collections;
 		};
 /* End XCSwiftPackageProductDependency section */
+=======
+>>>>>>> Stashed changes
 	};
 	rootObject = 9F8D66282D055FEF00CF355D /* Project object */;
 }

@@ -33,6 +33,32 @@
         }
       }
     },
+    "·" : {
+
+    },
+    "%@" : {
+
+    },
+    "%@ · %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ · %2$@"
+          }
+        }
+      }
+    },
+    "%@ 已完成全部 %lld 步！" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ 已完成全部 %2$lld 步！"
+          }
+        }
+      }
+    },
     "%lld" : {
       "localizations" : {
         "ja" : {
@@ -49,6 +75,7 @@
         }
       }
     },
+<<<<<<< Updated upstream
     "%lld Anime" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -62,10 +89,19 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%lld 部动画"
+=======
+    "%lld / %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld / %2$lld"
+>>>>>>> Stashed changes
           }
         }
       }
     },
+<<<<<<< Updated upstream
     "%lld episodes" : {
       "localizations" : {
         "ja" : {
@@ -78,10 +114,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%lld 集"
+=======
+    "%lld 人份" : {
+
+    },
+    "%lld 人份基准 · 当前 %lld 人份" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld 人份基准 · 当前 %2$lld 人份"
+>>>>>>> Stashed changes
           }
         }
       }
     },
+<<<<<<< Updated upstream
     "%lld Filters" : {
       "localizations" : {
         "ja" : {
@@ -147,6 +195,12 @@
       }
     },
     "%lld x %lld" : {
+=======
+    "%lld 分钟" : {
+
+    },
+    "%lld 场 - %lld 镜 - %lld 次" : {
+>>>>>>> Stashed changes
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -184,7 +238,53 @@
         }
       }
     },
+    "%lld 种食材 · %lld 步" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld 种食材 · %2$lld 步"
+          }
+        }
+      }
+    },
+    "%lld 项" : {
+
+    },
     "•" : {
+<<<<<<< Updated upstream
+=======
+
+    },
+    "= ¥%.1f" : {
+
+    },
+    "¥%.2f" : {
+
+    },
+    "¥%.2f / 项" : {
+
+    },
+    "Delete" : {
+
+    },
+    "Done" : {
+
+    },
+    "Filter" : {
+
+    },
+    "Insert take" : {
+
+    },
+    "Item not found" : {
+
+    },
+    "Project actions" : {
+
+    },
+    "S%lld T%lld" : {
+>>>>>>> Stashed changes
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -234,6 +334,7 @@
         }
       }
     },
+<<<<<<< Updated upstream
     "A native anime tracker built around your own library." : {
       "extractionState" : "stale",
       "localizations" : {
@@ -284,6 +385,61 @@
           }
         }
       }
+=======
+    "Step %lld" : {
+
+    },
+    "上一步" : {
+
+    },
+    "下一步" : {
+
+    },
+    "仅显示未准备" : {
+
+    },
+    "从相册选择" : {
+
+    },
+    "价格" : {
+
+    },
+    "份数" : {
+
+    },
+    "保存" : {
+
+    },
+    "停止扫码" : {
+
+    },
+    "元" : {
+
+    },
+    "先在菜谱页添加菜谱" : {
+
+    },
+    "先在菜谱页添加菜谱和食材" : {
+
+    },
+    "全部已准备" : {
+
+    },
+    "准备时间" : {
+
+    },
+    "分类" : {
+
+    },
+    "分钟" : {
+
+    },
+    "删除" : {
+
+    },
+    "删除所有镜头" : {
+
+>>>>>>> Stashed changes
     },
     "Actions" : {
       "localizations" : {
@@ -301,6 +457,7 @@
         }
       }
     },
+<<<<<<< Updated upstream
     "Add a free API key once to unlock search, posters, and more." : {
       "localizations" : {
         "ja" : {
@@ -332,6 +489,31 @@
           }
         }
       }
+=======
+    "制作" : {
+
+    },
+    "制作时间" : {
+
+    },
+    "单价" : {
+
+    },
+    "单位" : {
+
+    },
+    "取消" : {
+
+    },
+    "合计" : {
+
+    },
+    "名称" : {
+
+    },
+    "在 Slate 页拍板后，镜头会出现在这里。" : {
+
+>>>>>>> Stashed changes
     },
     "Added a rating feature: you can now rate anime in your library from 1 to 5." : {
       "localizations" : {
@@ -397,6 +579,7 @@
         }
       }
     },
+<<<<<<< Updated upstream
     "Added bulk-add support: you can trigger it from the top-right button on the search screen." : {
       "localizations" : {
         "ja" : {
@@ -444,6 +627,31 @@
           }
         }
       }
+=======
+    "好的" : {
+
+    },
+    "完成" : {
+
+    },
+    "完成！" : {
+
+    },
+    "完美" : {
+
+    },
+    "导入" : {
+
+    },
+    "导入项目" : {
+
+    },
+    "导出" : {
+
+    },
+    "导出项目" : {
+
+>>>>>>> Stashed changes
     },
     "Added optional episode-level progress tracking. To use this feature, enable it in settings." : {
       "localizations" : {
@@ -477,6 +685,7 @@
         }
       }
     },
+<<<<<<< Updated upstream
     "Added TV anime / movie filtering." : {
       "localizations" : {
         "ja" : {
@@ -492,6 +701,22 @@
           }
         }
       }
+=======
+    "开始烹饪" : {
+
+    },
+    "开始计时 %@" : {
+
+    },
+    "总用时" : {
+
+    },
+    "所有食材都已准备就绪" : {
+
+    },
+    "扫描素材画面中的二维码" : {
+
+>>>>>>> Stashed changes
     },
     "All" : {
       "localizations" : {
@@ -542,6 +767,7 @@
         }
       }
     },
+<<<<<<< Updated upstream
     "Already in library." : {
       "localizations" : {
         "ja" : {
@@ -557,6 +783,13 @@
           }
         }
       }
+=======
+    "描述" : {
+
+    },
+    "搜索使用示例" : {
+
+>>>>>>> Stashed changes
     },
     "An error occurred" : {
       "extractionState" : "manual",
@@ -575,6 +808,7 @@
         }
       }
     },
+<<<<<<< Updated upstream
     "An error occurred while loading results." : {
       "localizations" : {
         "ja" : {
@@ -622,6 +856,40 @@
           }
         }
       }
+=======
+    "搜索食材" : {
+
+    },
+    "新建菜谱" : {
+
+    },
+    "无" : {
+
+    },
+    "时间到！" : {
+
+    },
+    "暂停" : {
+
+    },
+    "更换场景缩略图" : {
+
+    },
+    "检查食材是否准备齐全" : {
+
+    },
+    "模式" : {
+
+    },
+    "次" : {
+
+    },
+    "步骤" : {
+
+    },
+    "没有找到匹配的镜头。" : {
+
+>>>>>>> Stashed changes
     },
     "Anime Multi-selection" : {
       "localizations" : {
@@ -639,6 +907,7 @@
         }
       }
     },
+<<<<<<< Updated upstream
     "AniShelf" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -704,6 +973,109 @@
           }
         }
       }
+=======
+    "没有菜谱" : {
+
+    },
+    "没有镜头" : {
+
+    },
+    "没有食材" : {
+
+    },
+    "添加" : {
+
+    },
+    "添加步骤" : {
+
+    },
+    "添加计时" : {
+
+    },
+    "清空所有菜谱" : {
+
+    },
+    "点击右上角 + 添加第一个菜谱" : {
+
+    },
+    "点击添加步骤开始编写" : {
+
+    },
+    "烹饪完成！🎉" : {
+
+    },
+    "烹饪时间" : {
+
+    },
+    "片库" : {
+
+    },
+    "状态" : {
+
+    },
+    "用量" : {
+
+    },
+    "确定" : {
+
+    },
+    "继续" : {
+
+    },
+    "编辑菜谱" : {
+
+    },
+    "编辑食材" : {
+
+    },
+    "菜品名" : {
+
+    },
+    "菜谱" : {
+
+    },
+    "菜谱名称" : {
+
+    },
+    "计价" : {
+
+    },
+    "计时完成！" : {
+
+    },
+    "设置烹饪时间" : {
+
+    },
+    "设置菜谱缩略图" : {
+
+    },
+    "详细信息" : {
+
+    },
+    "调整时间" : {
+
+    },
+    "返回选择" : {
+
+    },
+    "还没有添加食材" : {
+
+    },
+    "还没有食材，点击添加" : {
+
+    },
+    "选择菜谱" : {
+
+    },
+    "选择要制作的菜谱" : {
+
+    },
+    "重新开始" : {
+
+    },
+    "镜" : {
+
+>>>>>>> Stashed changes
     },
     "AniShelf on GitHub" : {
       "localizations" : {
@@ -721,6 +1093,7 @@
         }
       }
     },
+<<<<<<< Updated upstream
     "Another season entry for this series is already in your library. Converting this season to a series can leave both the series and the sibling season entries in the library." : {
       "localizations" : {
         "ja" : {
@@ -6435,6 +6808,28 @@
           }
         }
       }
+=======
+    "隐藏废镜" : {
+
+    },
+    "食材" : {
+
+    },
+    "食材价格" : {
+
+    },
+    "食材信息" : {
+
+    },
+    "食材合计" : {
+
+    },
+    "食材清单" : {
+
+    },
+    "食材用量基于 %lld 人份，制作时可缩放" : {
+
+>>>>>>> Stashed changes
     }
   },
   "version" : "1.2"
