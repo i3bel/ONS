@@ -21,6 +21,7 @@ struct RecipeEditView: View {
     @State private var photoData: Data? = nil
     @State private var showPhotoPicker = false
     @State private var showCamera = false
+    @State private var showFilePicker = false
     @State private var showAddPhotoMenu = false
     @State private var photoItem: PhotosPickerItem? = nil
     @State private var newIngredientText = ""
@@ -83,6 +84,17 @@ struct RecipeEditView: View {
             }
             .sheet(isPresented: $showCamera) {
                 UIImagePicker(source: .camera) { img in photoData = img.jpegData(compressionQuality: 0.8); showCamera = false }
+            }
+            .fileImporter(isPresented: $showFilePicker, allowedContentTypes: [.image], allowsMultipleSelection: false) { result in
+                switch result {
+                case .success(let urls):
+                    guard let url = urls.first else { return }
+                    guard url.startAccessingSecurityScopedResource() else { return }
+                    defer { url.stopAccessingSecurityScopedResource() }
+                    if let data = try? Data(contentsOf: url) { photoData = data }
+                case .failure:
+                    break
+                }
             }
             .sheet(isPresented: $showServingsPicker) {
                 NumberPickerView(title: "Servings", value: $servings, range: 1...30)
@@ -421,6 +433,7 @@ struct RecipeEditView: View {
                 .confirmationDialog("Add Photo", isPresented: $showAddPhotoMenu) {
                     Button("Photo Library") { photoItem = nil; showPhotoPicker = true }
                     Button("Camera") { showCamera = true }
+                    Button("Files") { showFilePicker = true }
                     Button("Cancel", role: .cancel) {}
                 }
 

@@ -6,6 +6,12 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		E83BA2D12FF90C9900592A1B /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E83BA2D02FF90C9900592A1B /* WidgetKit.framework */; };
+		E83BA2D32FF90C9900592A1B /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E83BA2D22FF90C9900592A1B /* SwiftUI.framework */; };
+		E83BA2E22FF90C9A00592A1B /* CookingTimerWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = E83BA2CE2FF90C9900592A1B /* CookingTimerWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		9F8D66412D055FF000CF355D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -21,12 +27,36 @@
 			remoteGlobalIDString = 9F8D662F2D055FEF00CF355D;
 			remoteInfo = MyAnimeList;
 		};
+		E83BA2E02FF90C9A00592A1B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9F8D66282D055FEF00CF355D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E83BA2CD2FF90C9900592A1B;
+			remoteInfo = CookingTimerWidgetExtension;
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		E83BA2E72FF90C9A00592A1B /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				E83BA2E22FF90C9A00592A1B /* CookingTimerWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		9F8D66302D055FEF00CF355D /* MyAnimeList.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MyAnimeList.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9F8D66402D055FF000CF355D /* MyAnimeListTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MyAnimeListTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		9F8D664A2D055FF000CF355D /* MyAnimeListUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MyAnimeListUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		E83BA2CE2FF90C9900592A1B /* CookingTimerWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = CookingTimerWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		E83BA2D02FF90C9900592A1B /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		E83BA2D22FF90C9900592A1B /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -37,6 +67,14 @@
 			);
 			target = 9F8D662F2D055FEF00CF355D /* MyAnimeList */;
 		};
+		E83BA2E62FF90C9A00592A1B /* Exceptions for "CookingTimerWidget" folder in "CookingTimerWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = E83BA2CD2FF90C9900592A1B /* CookingTimerWidgetExtension */;
+		};
+
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -46,6 +84,14 @@
 				9F08B7672DBC745500CC3925 /* Exceptions for "MyAnimeList" folder in "MyAnimeList" target */,
 			);
 			path = MyAnimeList;
+			sourceTree = "<group>";
+		};
+		E83BA2D42FF90C9900592A1B /* CookingTimerWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				E83BA2E62FF90C9A00592A1B /* Exceptions for "CookingTimerWidget" folder in "CookingTimerWidgetExtension" target */,
+			);
+			path = CookingTimerWidget;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -72,6 +118,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		E83BA2CB2FF90C9900592A1B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E83BA2D32FF90C9900592A1B /* SwiftUI.framework in Frameworks */,
+				E83BA2D12FF90C9900592A1B /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -79,6 +134,8 @@
 			isa = PBXGroup;
 			children = (
 				9F8D66322D055FEF00CF355D /* MyAnimeList */,
+				E83BA2D42FF90C9900592A1B /* CookingTimerWidget */,
+				E83BA2CF2FF90C9900592A1B /* Frameworks */,
 				9F8D66312D055FEF00CF355D /* Products */,
 			);
 			sourceTree = "<group>";
@@ -89,8 +146,18 @@
 				9F8D66302D055FEF00CF355D /* MyAnimeList.app */,
 				9F8D66402D055FF000CF355D /* MyAnimeListTests.xctest */,
 				9F8D664A2D055FF000CF355D /* MyAnimeListUITests.xctest */,
+				E83BA2CE2FF90C9900592A1B /* CookingTimerWidgetExtension.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		E83BA2CF2FF90C9900592A1B /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				E83BA2D02FF90C9900592A1B /* WidgetKit.framework */,
+				E83BA2D22FF90C9900592A1B /* SwiftUI.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -103,16 +170,19 @@
 				9F8D662C2D055FEF00CF355D /* Sources */,
 				9F8D662D2D055FEF00CF355D /* Frameworks */,
 				9F8D662E2D055FEF00CF355D /* Resources */,
+				E83BA2E72FF90C9A00592A1B /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				E83BA2E12FF90C9A00592A1B /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				9F8D66322D055FEF00CF355D /* MyAnimeList */,
 			);
 			name = MyAnimeList;
 			packageProductDependencies = (
+				F7790AB7E3964EC28DDD32E7 /* RecipeSlateShared */,
 			);
 			productName = MyAnimeList;
 			productReference = 9F8D66302D055FEF00CF355D /* MyAnimeList.app */;
@@ -133,6 +203,7 @@
 			);
 			name = MyAnimeListTests;
 			packageProductDependencies = (
+				F7790AB7E3964EC28DDD32E7 /* RecipeSlateShared */,
 			);
 			productName = MyAnimeListTests;
 			productReference = 9F8D66402D055FF000CF355D /* MyAnimeListTests.xctest */;
@@ -153,10 +224,34 @@
 			);
 			name = MyAnimeListUITests;
 			packageProductDependencies = (
+				F7790AB7E3964EC28DDD32E7 /* RecipeSlateShared */,
 			);
 			productName = MyAnimeListUITests;
 			productReference = 9F8D664A2D055FF000CF355D /* MyAnimeListUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		E83BA2CD2FF90C9900592A1B /* CookingTimerWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E83BA2E32FF90C9A00592A1B /* Build configuration list for PBXNativeTarget "CookingTimerWidgetExtension" */;
+			buildPhases = (
+				E83BA2CA2FF90C9900592A1B /* Sources */,
+				E83BA2CB2FF90C9900592A1B /* Frameworks */,
+				E83BA2CC2FF90C9900592A1B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				E83BA2D42FF90C9900592A1B /* CookingTimerWidget */,
+			);
+			name = CookingTimerWidgetExtension;
+			packageProductDependencies = (
+				F7790AB7E3964EC28DDD32E7 /* RecipeSlateShared */,
+			);
+			productName = CookingTimerWidgetExtension;
+			productReference = E83BA2CE2FF90C9900592A1B /* CookingTimerWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -165,7 +260,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1610;
+				LastSwiftUpdateCheck = 2650;
 				LastUpgradeCheck = 2600;
 				TargetAttributes = {
 					9F8D662F2D055FEF00CF355D = {
@@ -178,6 +273,9 @@
 					9F8D66492D055FF000CF355D = {
 						CreatedOnToolsVersion = 16.1;
 						TestTargetID = 9F8D662F2D055FEF00CF355D;
+					};
+					E83BA2CD2FF90C9900592A1B = {
+						CreatedOnToolsVersion = 26.5;
 					};
 				};
 			};
@@ -192,6 +290,7 @@
 			mainGroup = 9F8D66272D055FEF00CF355D;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				938336C3FD5B4517B47E6493 /* RecipeSlateShared */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9F8D66312D055FEF00CF355D /* Products */;
@@ -201,6 +300,7 @@
 				9F8D662F2D055FEF00CF355D /* MyAnimeList */,
 				9F8D663F2D055FF000CF355D /* MyAnimeListTests */,
 				9F8D66492D055FF000CF355D /* MyAnimeListUITests */,
+				E83BA2CD2FF90C9900592A1B /* CookingTimerWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -221,6 +321,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		9F8D66482D055FF000CF355D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E83BA2CC2FF90C9900592A1B /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -251,6 +358,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		E83BA2CA2FF90C9900592A1B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -264,7 +378,28 @@
 			target = 9F8D662F2D055FEF00CF355D /* MyAnimeList */;
 			targetProxy = 9F8D664B2D055FF000CF355D /* PBXContainerItemProxy */;
 		};
+		E83BA2E12FF90C9A00592A1B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E83BA2CD2FF90C9900592A1B /* CookingTimerWidgetExtension */;
+			targetProxy = E83BA2E02FF90C9A00592A1B /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
+
+
+/* Begin XCLocalSwiftPackageReference section */
+	938336C3FD5B4517B47E6493 /* RecipeSlateShared */ = {
+		isa = XCLocalSwiftPackageReference;
+		relativePath = Packages/RecipeSlateShared/;
+	};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+	F7790AB7E3964EC28DDD32E7 /* RecipeSlateShared */ = {
+		isa = XCSwiftPackageProductDependency;
+		productName = "RecipeSlateShared";
+		package = 938336C3FD5B4517B47E6493 /* RecipeSlateShared */;
+	};
+/* End XCSwiftPackageProductDependency section */
 
 /* Begin XCBuildConfiguration section */
 		9F8D66522D055FF000CF355D /* Debug */ = {
@@ -550,6 +685,68 @@
 			};
 			name = Release;
 		};
+		E83BA2E42FF90C9A00592A1B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = J2HNLDQU4J;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = CookingTimerWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = CookingTimerWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = i3bel.CookingTimerWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		E83BA2E52FF90C9A00592A1B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = J2HNLDQU4J;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = CookingTimerWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = CookingTimerWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = i3bel.CookingTimerWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -585,6 +782,15 @@
 			buildConfigurations = (
 				9F8D665B2D055FF000CF355D /* Debug */,
 				9F8D665C2D055FF000CF355D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E83BA2E32FF90C9A00592A1B /* Build configuration list for PBXNativeTarget "CookingTimerWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E83BA2E42FF90C9A00592A1B /* Debug */,
+				E83BA2E52FF90C9A00592A1B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
