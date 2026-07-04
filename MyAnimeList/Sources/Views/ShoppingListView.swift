@@ -33,8 +33,8 @@ struct ShoppingListView: View {
                                     .font(.bodyText)
                                     .strikethrough(completed.contains(item.id))
                                     .foregroundColor(completed.contains(item.id) ? .textSecondary : .black)
-                                Text(item.displayString)
-                                    .font(.captionText).foregroundColor(.textTertiary)
+
+                                ingredientSubtitle(item: item, completed: completed.contains(item.id))
                             }
 
                             Spacer()
@@ -56,9 +56,16 @@ struct ShoppingListView: View {
             }
             .listStyle(.plain)
             .background(Color.bgSecondary)
-            .navigationTitle("采购清单")
+            .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .principal) {
+                    (Text("\(store.shoppingItems.count - completed.count)")
+                        .font(.title2.weight(.bold)).foregroundColor(.black)
+                    + Text(" left")
+                        .font(.bodyText.weight(.bold)).foregroundColor(.textSecondary))
+                    .contentTransition(.numericText())
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(action: {
                         ingredientEditorText = ""
@@ -118,5 +125,11 @@ struct ShoppingListView: View {
         let parsed = Ingredient.parseChinese(text)
         store.addShoppingItem(parsed)
         ingredientEditorText = ""
+    }
+
+    private func ingredientSubtitle(item: Ingredient, completed: Bool) -> some View {
+        let amt = Text(item.amountWithUnit).font(.captionText.weight(.semibold)).foregroundColor(.brandBlue)
+        let name = Text("  \(item.name)").font(.captionText).foregroundColor(.textTertiary)
+        return (amt + name).strikethrough(completed)
     }
 }

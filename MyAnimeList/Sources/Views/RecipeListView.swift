@@ -2,7 +2,6 @@ import SwiftUI
 
 struct RecipeListView: View {
     @Environment(RecipeStore.self) private var store
-    @State private var showSortSheet = false
     @State private var selectMode = false
     @State private var selected = Set<String>()
     @State private var showActionBar = false
@@ -39,7 +38,7 @@ struct RecipeListView: View {
                             .listRowBackground(Color.clear)
                             .listRowSeparator(.hidden)
                             .swipeActions(edge: .leading, allowsFullSwipe: true) {
-                                Button(action: {}) { Label("Make", systemImage: "play.fill") }.tint(.accentGreen)
+                                Button(action: { store.startCooking(recipe: recipe) }) { Label("Make", systemImage: "play.fill") }.tint(.accentGreen)
                             }
                     }
                 }
@@ -58,23 +57,11 @@ struct RecipeListView: View {
                         Button("Cancel") { selectMode = false; selected.removeAll(); showActionBar = false }
                             .font(.bodyText).foregroundColor(.brandBlue)
                     } else {
-                        HStack(spacing: 12) {
-                            Button(action: { showSortSheet = true }) {
-                                Image(systemName: "ellipsis").font(.title2).foregroundColor(.black)
-                            }
-                            Button(action: { showNewRecipe = true }) {
-                                Image(systemName: "plus").font(.title2.weight(.semibold)).foregroundColor(.brandBlue)
-                            }
+                        Button(action: { showNewRecipe = true }) {
+                            Image(systemName: "plus").font(.title2.weight(.semibold)).foregroundColor(.brandBlue)
                         }
-                        .padding(.horizontal, 10)
                     }
                 }
-            }
-            .confirmationDialog("", isPresented: $showSortSheet) {
-                Button("Sort by Name") { store.sortOrder = .name; store.save() }
-                Button("Sort by Cook Time") { store.sortOrder = .prepTime; store.save() }
-                Button("Select Recipes") { selectMode = true }
-                Button("Cancel", role: .cancel) {}
             }
             .sheet(isPresented: $showNewRecipe) { RecipeEditView() }
             .fullScreenCover(item: $showDetail) { r in NavigationStack { RecipeDetailView(recipe: r) } }

@@ -180,6 +180,36 @@ struct CookingStep: Identifiable, Codable, Equatable {
     }
 }
 
+// MARK: - Cooking Timer
+
+struct CookingTimer: Identifiable, Equatable {
+    let id: String
+    let label: String
+    let duration: TimeInterval
+    var remaining: TimeInterval
+    var isRunning: Bool = false
+    let createdAt: Date = .now
+
+    init(id: String = UUID().uuidString, label: String, duration: TimeInterval) {
+        self.id = id
+        self.label = label
+        self.duration = duration
+        self.remaining = duration
+    }
+
+    var progress: Double {
+        duration > 0 ? 1.0 - (remaining / duration) : 0
+    }
+
+    var displayTime: String {
+        let total = Int(remaining)
+        let m = total / 60
+        let s = total % 60
+        if m > 0 { return "\(m):\(String(format: "%02d", s))" }
+        return "\(s)s"
+    }
+}
+
 // MARK: - Recipe Store
 
 @Observable
@@ -243,6 +273,52 @@ final class RecipeStore {
     func clearShoppingList() {
         shoppingItems.removeAll()
         save()
+    }
+
+    // MARK: - Cooking State
+
+    var cookingSteps: [CookingStep] = []
+    var completedStepIds: Set<String> = []
+    var cookingRecipeName: String = ""
+
+    func startCooking(recipe: Recipe) {
+        cookingSteps = recipe.steps
+        completedStepIds = []
+        cookingRecipeName = recipe.name
+    }
+
+    func toggleStep(_ id: String) {
+        if completedStepIds.contains(id) {
+            completedStepIds.remove(id)
+        } else {
+            completedStepIds.insert(id)
+            // First step completed → clear shopping list
+            if completedStepIds.count == 1 {
+                clearShoppingList()
+            }
+            // Last step completed → clear cooking
+            if completedStepIds.count == cookingSteps.count {
+                cookingSteps = []
+                completedStepIds = []
+                cookingRecipeName = ""
+            }
+        }
+    }
+
+    var remainingSteps: Int {
+        cookingSteps.count - completedStepIds.count
+    }
+
+    // MARK: - Timers
+
+    var activeTimers: [CookingTimer] = []
+
+    func addTimer(label: String, duration: TimeInterval) {
+        activeTimers.append(CookingTimer(label: label, duration: duration))
+    }
+
+    func removeTimer(_ id: String) {
+        activeTimers.removeAll { $0.id == id }
     }
 
     private func load() {

@@ -82,7 +82,7 @@ struct RecipeDetailView: View {
     private var actionButtons: some View {
         HStack(spacing: 12) {
             // Start (green per spec)
-            Button(action: { }) {
+            Button(action: { store.startCooking(recipe: recipe); dismiss() }) {
                 Label("Start", systemImage: "play.fill")
                     .font(.bodyText.weight(.semibold)).foregroundColor(.white)
                     .frame(maxWidth: .infinity).frame(height: 56).background(Color.accentGreen).clipShape(Capsule())
