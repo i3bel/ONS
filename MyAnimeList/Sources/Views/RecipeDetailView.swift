@@ -280,16 +280,16 @@ struct RecipeDetailView: View {
             Text("Tags").font(.title2)
                 .padding(.horizontal, 20).padding(.top, 12)
 
-            HStack(spacing: 8) {
-                // Sample tags
-                Text("#dessert").font(.calloutText).foregroundColor(.tagText)
-                    .padding(.horizontal, 16).padding(.vertical, 6)
-                    .background(Color.tagBg).clipShape(Capsule())
-                Text("#baking").font(.calloutText).foregroundColor(.tagText)
-                    .padding(.horizontal, 16).padding(.vertical, 6)
-                    .background(Color.tagBg).clipShape(Capsule())
+            if !recipe.tags.isEmpty {
+                TagFlowLayout(spacing: 8) {
+                    ForEach(recipe.tags, id: \.self) { tag in
+                        Text("#\(tag)").font(.calloutText).foregroundColor(.tagText)
+                            .padding(.horizontal, 16).padding(.vertical, 6)
+                            .background(Color.tagBg).clipShape(Capsule())
+                    }
+                }
+                .padding(.horizontal, 20)
             }
-            .padding(.horizontal, 20)
 
             Text("").frame(height: 16)
         }
@@ -370,9 +370,37 @@ private struct AddToGroceriesSheet: View {
                     .background(Color.brandBlue).clipShape(Capsule())
                     .disabled(selected.isEmpty)
                 }
-                .padding(.horizontal, 20).padding(.vertical, 12)
                 .background(.regularMaterial)
             }
+        }
+    }
+}
+
+// MARK: - Tag Flow Layout
+
+private struct TagFlowLayout: Layout {
+    var spacing: CGFloat = 8
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout Void) -> CGSize {
+        let width = proposal.width ?? 300
+        var y: CGFloat = 0, x: CGFloat = 0, rowH: CGFloat = 0
+        for sv in subviews {
+            let sz = sv.sizeThatFits(.unspecified)
+            if x + sz.width > width { x = 0; y += rowH + spacing; rowH = 0 }
+            rowH = max(rowH, sz.height)
+            x += sz.width + spacing
+        }
+        return CGSize(width: width, height: y + rowH)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout Void) {
+        var x = bounds.minX, y = bounds.minY, rowH: CGFloat = 0
+        for sv in subviews {
+            let sz = sv.sizeThatFits(.unspecified)
+            if x + sz.width > bounds.maxX { x = bounds.minX; y += rowH + spacing; rowH = 0 }
+            sv.place(at: CGPoint(x: x, y: y), proposal: .unspecified)
+            rowH = max(rowH, sz.height)
+            x += sz.width + spacing
         }
     }
 }
