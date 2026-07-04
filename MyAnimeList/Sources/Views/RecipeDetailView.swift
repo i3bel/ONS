@@ -48,6 +48,11 @@ struct RecipeDetailView: View {
         }
         .sheet(isPresented: $showGroceries) { AddToGroceriesSheet(recipe: recipe) }
         .sheet(isPresented: $showEdit) { RecipeEditView(existingRecipe: recipe) }
+        .onChange(of: showEdit) { _, isPresented in
+            if !isPresented, let updated = store.recipes.first(where: { $0.id == recipe.id }) {
+                recipe = updated
+            }
+        }
         .alert("Delete Recipe", isPresented: $showDelete) {
             Button("Cancel", role: .cancel) {}
             Button("Delete", role: .destructive) { store.delete(recipe); dismiss() }
@@ -228,36 +233,36 @@ struct RecipeDetailView: View {
         var result = Text("")
         var remaining = text
         let sortedIng = recipe.ingredients.sorted { $0.name.count > $1.name.count }
+        let timePattern = #"(?:\d+\s*(?:min(?:ute)?s?|mins|秒|hour(?:s)?|分钟|小时|分|天|周|个月|年))|(?:[一两二三四五六七八九十半几数]+\s*(?:分钟|小时|天|周|个月|年))|一刻|一会|一会儿|片刻|半天|半个月|半年|半日|数日"#
+        let tempPattern = #"\d+\s*(°[FC]|度)"#
 
         while !remaining.isEmpty {
-            var matched = false
+            // Find the earliest match among all three pattern types
+            var earliestStart = remaining.endIndex
+            var earliestRange: Range<String.Index>?
+            var earliestColor: Color?
+
             // Ingredients → blue
             for ing in sortedIng {
-                if let r = remaining.range(of: ing.name, options: .caseInsensitive) {
-                    let before = String(remaining[remaining.startIndex..<r.lowerBound])
-                    if !before.isEmpty { result = result + Text(before).foregroundColor(.black) }
-                    result = result + Text(String(remaining[r])).foregroundColor(.brandBlue).bold()
-                    remaining = String(remaining[r.upperBound...])
-                    matched = true; break
+                if let r = remaining.range(of: ing.name, options: .caseInsensitive), r.lowerBound < earliestStart {
+                    earliestStart = r.lowerBound; earliestRange = r; earliestColor = .brandBlue
                 }
             }
-            if matched { continue }
 
-            // Temperature → orange (#\d+\s*°[FC]#)
-            if let r = remaining.range(of: #"\d+\s*(°[FC]|度)"#, options: .regularExpression) {
-                let before = String(remaining[remaining.startIndex..<r.lowerBound])
-                if !before.isEmpty { result = result + Text(before).foregroundColor(.black) }
-                result = result + Text(String(remaining[r])).foregroundColor(.accentOrange).fontWeight(.bold)
-                remaining = String(remaining[r.upperBound...])
-                continue
+            // Time → red
+            if let r = remaining.range(of: timePattern, options: .regularExpression), r.lowerBound < earliestStart {
+                earliestStart = r.lowerBound; earliestRange = r; earliestColor = .accentRed
             }
 
-            // Time → red (Chinese time expressions + numeric)
-            let timePattern = #"(?:\d+\s*(?:min(?:ute)?s?|mins|秒|hour(?:s)?|分钟|小时|分|天|周|个月|年))|(?:[一两二三四五六七八九十半几数]+\s*(?:分钟|小时|天|周|个月|年))|一刻|一会|一会儿|片刻|半天|半个月|半年|半日|数日"#
-            if let r = remaining.range(of: timePattern, options: .regularExpression) {
+            // Temperature → orange
+            if let r = remaining.range(of: tempPattern, options: .regularExpression), r.lowerBound < earliestStart {
+                earliestStart = r.lowerBound; earliestRange = r; earliestColor = .accentOrange
+            }
+
+            if let r = earliestRange, let color = earliestColor {
                 let before = String(remaining[remaining.startIndex..<r.lowerBound])
                 if !before.isEmpty { result = result + Text(before).foregroundColor(.black) }
-                result = result + Text(String(remaining[r])).foregroundColor(.accentRed).fontWeight(.bold)
+                result = result + Text(String(remaining[r])).foregroundColor(color).fontWeight(.bold)
                 remaining = String(remaining[r.upperBound...])
                 continue
             }

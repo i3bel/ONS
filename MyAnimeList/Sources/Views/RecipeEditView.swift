@@ -18,10 +18,10 @@ struct RecipeEditView: View {
     @State private var ingredients: [Ingredient] = []
     @State private var steps: [CookingStep] = []
     @State private var tags: [String] = []
-    @State private var newTag = ""
     @State private var photoData: Data? = nil
     @State private var showPhotoPicker = false
     @State private var showCamera = false
+    @State private var showAddPhotoMenu = false
     @State private var photoItem: PhotosPickerItem? = nil
     @State private var newIngredientText = ""
 
@@ -33,6 +33,11 @@ struct RecipeEditView: View {
     // Drag reorder
     @State private var draggedIngredient: Ingredient?
     @State private var draggedStep: CookingStep?
+    @State private var draggedTag: String?
+
+    // Focus management for new rows
+    @FocusState private var focusedStepId: String?
+    @FocusState private var focusedTagIndex: Int?
 
     // Picker wheels
     @State private var showServingsPicker = false
@@ -262,7 +267,9 @@ struct RecipeEditView: View {
 
                 // Add step button at the bottom inside the rounded rect
                 Button(action: {
-                    steps.append(CookingStep(order: steps.count + 1, description: ""))
+                    let newStep = CookingStep(order: steps.count + 1, description: "")
+                    steps.append(newStep)
+                    focusedStepId = newStep.id
                 }) {
                     HStack(spacing: 6) {
                         Image(systemName: "plus.circle.fill").font(.title3).foregroundColor(.brandBlue)
@@ -298,6 +305,7 @@ struct RecipeEditView: View {
             TextField("输入步骤内容", text: $steps[i].description, axis: .vertical)
                 .font(.bodyText)
                 .lineLimit(1...10)
+                .focused($focusedStepId, equals: step.id)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             // Drag handle
@@ -314,33 +322,71 @@ struct RecipeEditView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Tags").font(.captionText).foregroundColor(.textSecondary)
 
-            if !tags.isEmpty {
-                FlowLayout(spacing: 8) {
+            // Rounded rect container
+            VStack(spacing: 0) {
+                if !tags.isEmpty {
                     ForEach(tags.indices, id: \.self) { i in
-                        HStack(spacing: 4) {
-                            Text("#\(tags[i])").font(.calloutText).foregroundColor(.tagText)
-                            Button(action: { tags.remove(at: i) }) {
-                                Image(systemName: "xmark").font(.caption2).foregroundColor(.tagText)
+                        tagRow(i: i)
+                            .onDrag {
+                                draggedTag = tags[i]
+                                return NSItemProvider(object: tags[i] as NSString)
                             }
+                            .onDrop(of: [.text], delegate: TagDropDelegate(
+                                targetId: tags[i],
+                                tags: $tags,
+                                draggedTag: $draggedTag
+                            ))
+                        if i < tags.count - 1 {
+                            Divider().padding(.leading, 44)
                         }
-                        .padding(.horizontal, 12).padding(.vertical, 6)
-                        .background(Color.tagBg).clipShape(Capsule())
                     }
                 }
-            }
 
-            HStack(spacing: 8) {
-                TextField("添加标签", text: $newTag).font(.subheadline).textFieldStyle(.plain)
-                Button("Add") {
-                    let tag = newTag.trimmingCharacters(in: .whitespaces)
-                    guard !tag.isEmpty else { return }
-                    tags.append(tag); newTag = ""
+                // Add tag button at the bottom inside the rounded rect
+                Button(action: {
+                    tags.append("")
+                    focusedTagIndex = tags.count - 1
+                }) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "plus.circle.fill").font(.title3).foregroundColor(.brandBlue)
+                        Text("Add Tag").font(.bodyText.weight(.medium)).foregroundColor(.brandBlue)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(12)
+                    .background(Color.brandBlueLight, in: RoundedRectangle(cornerRadius: 10))
                 }
-                .font(.subheadline.weight(.semibold)).foregroundColor(newTag.trimmingCharacters(in: .whitespaces).isEmpty ? .textTertiary : .brandBlue)
+                .padding(12)
+                .buttonStyle(.plain)
             }
-            .padding(12).background(Color.cardBg, in: RoundedRectangle(cornerRadius: 10))
+            .background(Color.cardBg, in: RoundedRectangle(cornerRadius: 14))
         }
         .padding(.horizontal, 20)
+    }
+
+    private func tagRow(i: Int) -> some View {
+        HStack(spacing: 8) {
+            // Delete button
+            Button(action: { tags.remove(at: i) }) {
+                Image(systemName: "minus.circle.fill").font(.title3).foregroundColor(.accentRed)
+            }
+            .buttonStyle(.plain)
+
+            // # prefix
+            Text("#").font(.bodyText).foregroundColor(.tagText)
+
+            // Inline editable text field
+            TextField("输入标签", text: $tags[i])
+                .font(.bodyText)
+                .foregroundColor(.tagText)
+                .focused($focusedTagIndex, equals: i)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            // Drag handle
+            Image(systemName: "line.3.horizontal")
+                .font(.title3).foregroundColor(.textTertiary)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
     }
 
     // MARK: Photos
@@ -348,21 +394,53 @@ struct RecipeEditView: View {
     private var photosSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Photos").font(.captionText).foregroundColor(.textSecondary)
-            if let data = photoData, let img = UIImage(data: data) {
-                Image(uiImage: img).resizable().scaledToFill().frame(height: 160).clipped()
-                    .clipShape(RoundedRectangle(cornerRadius: 14))
-            }
-            HStack(spacing: 24) {
-                Button(action: { photoItem = nil; showPhotoPicker = true }) {
-                    Label("Photo Library", systemImage: "photo.on.rectangle").font(.subheadline).foregroundColor(.brandBlue)
+
+            // Rounded rect container
+            VStack(spacing: 0) {
+                // Image preview if exists
+                if let data = photoData, let img = UIImage(data: data) {
+                    Image(uiImage: img).resizable().scaledToFill().frame(height: 160).clipped()
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                        .padding(12)
                 }
-                Button(action: { showCamera = true }) {
-                    Label("Camera", systemImage: "camera").font(.subheadline).foregroundColor(.brandBlue)
+
+                // Add Photo button
+                Button(action: { showAddPhotoMenu = true }) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "plus.circle.fill").font(.title3).foregroundColor(.brandBlue)
+                        Text("Add Photo").font(.bodyText.weight(.medium)).foregroundColor(.brandBlue)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(12)
+                    .background(Color.brandBlueLight, in: RoundedRectangle(cornerRadius: 10))
                 }
+                .padding(.horizontal, 12)
+                .padding(.top, photoData != nil ? 0 : 12)
+                .padding(.bottom, photoData != nil ? 8 : 6)
+                .buttonStyle(.plain)
+                .confirmationDialog("Add Photo", isPresented: $showAddPhotoMenu) {
+                    Button("Photo Library") { photoItem = nil; showPhotoPicker = true }
+                    Button("Camera") { showCamera = true }
+                    Button("Cancel", role: .cancel) {}
+                }
+
+                // Delete Photo button (only when photo exists)
                 if photoData != nil {
-                    Button("Remove", role: .destructive) { photoData = nil }.font(.subheadline)
+                    Button(action: { photoData = nil }) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "trash.circle.fill").font(.title3).foregroundColor(.accentRed)
+                            Text("Delete Photo").font(.bodyText.weight(.medium)).foregroundColor(.accentRed)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(12)
+                        .background(Color.accentRed.opacity(0.08), in: RoundedRectangle(cornerRadius: 10))
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.bottom, 12)
+                    .buttonStyle(.plain)
                 }
             }
+            .background(Color.cardBg, in: RoundedRectangle(cornerRadius: 14))
         }
         .padding(.horizontal, 20)
     }
@@ -494,6 +572,32 @@ private struct StepDropDelegate: DropDelegate {
     }
 }
 
+private struct TagDropDelegate: DropDelegate {
+    let targetId: String
+    @Binding var tags: [String]
+    @Binding var draggedTag: String?
+
+    func dropEntered(info: DropInfo) {
+        guard let draggedTag,
+              draggedTag != targetId,
+              let fromIdx = tags.firstIndex(of: draggedTag),
+              let toIdx = tags.firstIndex(of: targetId),
+              tags.indices.contains(fromIdx), tags.indices.contains(toIdx) else { return }
+        withAnimation(.interactiveSpring) {
+            tags.move(fromOffsets: IndexSet(integer: fromIdx), toOffset: toIdx > fromIdx ? toIdx + 1 : toIdx)
+        }
+    }
+
+    func performDrop(info: DropInfo) -> Bool {
+        draggedTag = nil
+        return true
+    }
+
+    func dropUpdated(info: DropInfo) -> DropProposal? {
+        DropProposal(operation: .move)
+    }
+}
+
 // MARK: - Number Picker Wheel
 
 private struct NumberPickerView: View {
@@ -536,31 +640,3 @@ private struct TimePickerView: View {
     }
 }
 
-// MARK: - Simple Flow Layout
-
-private struct FlowLayout: Layout {
-    var spacing: CGFloat = 8
-
-    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout Void) -> CGSize {
-        let width = proposal.width ?? 300
-        var y: CGFloat = 0, x: CGFloat = 0, rowH: CGFloat = 0
-        for sv in subviews {
-            let sz = sv.sizeThatFits(.unspecified)
-            if x + sz.width > width { x = 0; y += rowH + spacing; rowH = 0 }
-            rowH = max(rowH, sz.height)
-            x += sz.width + spacing
-        }
-        return CGSize(width: width, height: y + rowH)
-    }
-
-    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout Void) {
-        var x = bounds.minX, y = bounds.minY, rowH: CGFloat = 0
-        for sv in subviews {
-            let sz = sv.sizeThatFits(.unspecified)
-            if x + sz.width > bounds.maxX { x = bounds.minX; y += rowH + spacing; rowH = 0 }
-            sv.place(at: CGPoint(x: x, y: y), proposal: .unspecified)
-            rowH = max(rowH, sz.height)
-            x += sz.width + spacing
-        }
-    }
-}

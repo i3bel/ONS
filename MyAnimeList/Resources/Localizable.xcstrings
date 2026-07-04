@@ -7,7 +7,7 @@
     "  %@" : {
 
     },
-    "#%@" : {
+    "#" : {
 
     },
     "#baking" : {
@@ -47,16 +47,19 @@
     "👥" : {
 
     },
-    "Add" : {
-
-    },
     "Add %lld Items" : {
 
     },
     "Add Ingredient" : {
 
     },
+    "Add Photo" : {
+
+    },
     "Add Step" : {
+
+    },
+    "Add Tag" : {
 
     },
     "Add Tags" : {
@@ -84,6 +87,9 @@
 
     },
     "Delete (%lld)" : {
+
+    },
+    "Delete Photo" : {
 
     },
     "Delete Recipe" : {
@@ -156,9 +162,6 @@
     "Recipes, Ingredients and More" : {
 
     },
-    "Remove" : {
-
-    },
     "Scale" : {
 
     },
@@ -204,10 +207,10 @@
     "没有食材" : {
 
     },
-    "添加标签" : {
+    "烹饪" : {
 
     },
-    "烹饪" : {
+    "输入标签" : {
 
     },
     "输入步骤内容" : {
