@@ -245,6 +245,21 @@ final class RecipeStore {
         save()
     }
 
+    // MARK: - Clear All
+
+    func clearAll() {
+        recipes.removeAll()
+        shoppingItems.removeAll()
+        // Delete all cached photo files
+        let dir = fileURL.deletingLastPathComponent()
+        if let files = try? FileManager.default.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil) {
+            for f in files where f.lastPathComponent.hasPrefix("photo_") {
+                try? FileManager.default.removeItem(at: f)
+            }
+        }
+        save()
+    }
+
     // MARK: - Cooking State
 
     var cookingSteps: [CookingStep] = []

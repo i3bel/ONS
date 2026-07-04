@@ -16,6 +16,18 @@
     " steps" : {
 
     },
+    "/clear   –  Delete all recipes and photos" : {
+
+    },
+    "/export  –  Export all recipes as JSON" : {
+
+    },
+    "/import  –  Import recipes from a JSON file" : {
+
+    },
+    "/import or /export" : {
+
+    },
     "#" : {
 
     },
@@ -90,6 +102,18 @@
     "Cancel" : {
 
     },
+    "Clear" : {
+
+    },
+    "Clear All Recipes" : {
+
+    },
+    "Clear All Recipes?" : {
+
+    },
+    "Clear Everything" : {
+
+    },
     "Cook" : {
 
     },
@@ -100,6 +124,9 @@
 
     },
     "Delete (%lld)" : {
+
+    },
+    "Delete all %lld recipes and their photos." : {
 
     },
     "Delete Photo" : {
@@ -120,14 +147,33 @@
     "Edit Recipe" : {
 
     },
-    "Files" : {
+    "Export" : {
 
     },
-    "Find recipes by name, ingredients, or tags" : {
+    "Export all %lld recipes as a single JSON file." : {
+
+    },
+    "Export Recipes" : {
+
+    },
+    "Files" : {
 
     },
     "h" : {
 
+    },
+    "Import Recipes" : {
+
+    },
+    "Imported %lld recipe%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Imported %1$lld recipe%2$@"
+          }
+        }
+      }
     },
     "Info" : {
 
@@ -190,7 +236,13 @@
     "Search Recipes" : {
 
     },
+    "Select a JSON file containing one or more recipes to import." : {
+
+    },
     "Select All" : {
+
+    },
+    "Select File" : {
 
     },
     "Servings" : {
@@ -203,6 +255,12 @@
 
     },
     "Tap + to add your first recipe" : {
+
+    },
+    "This will delete all %lld recipes and their photos. This cannot be undone." : {
+
+    },
+    "Unknown command" : {
 
     },
     "Update" : {
