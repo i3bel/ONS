@@ -1,5 +1,6 @@
 import SwiftUI
 import PhotosUI
+import UniformTypeIdentifiers
 
 // MARK: - Recipe Editor
 
@@ -23,12 +24,15 @@ struct RecipeEditView: View {
     @State private var showCamera = false
     @State private var photoItem: PhotosPickerItem? = nil
     @State private var newIngredientText = ""
-    @State private var newStepText = ""
 
     // Ingredient editor sheet
     @State private var showIngredientEditor = false
     @State private var editingIngredientIndex: Int?
     @State private var ingredientEditorText = ""
+
+    // Drag reorder
+    @State private var draggedIngredient: Ingredient?
+    @State private var draggedStep: CookingStep?
 
     // Picker wheels
     @State private var showServingsPicker = false
@@ -163,6 +167,15 @@ struct RecipeEditView: View {
                 if !ingredients.isEmpty {
                     ForEach(Array(ingredients.enumerated()), id: \.element.id) { i, ing in
                         ingredientRow(i: i, ing: ing)
+                            .onDrag {
+                                draggedIngredient = ing
+                                return NSItemProvider(object: ing.id as NSString)
+                            }
+                            .onDrop(of: [.text], delegate: IngredientDropDelegate(
+                                targetId: ing.id,
+                                ingredients: $ingredients,
+                                draggedIngredient: $draggedIngredient
+                            ))
                         if i < ingredients.count - 1 {
                             Divider().padding(.leading, 44)
                         }
@@ -227,42 +240,72 @@ struct RecipeEditView: View {
                 Text("\(steps.count)").font(.caption).foregroundColor(.textTertiary)
             }
 
-            if !steps.isEmpty {
-                List {
+            // Rounded rect container
+            VStack(spacing: 0) {
+                if !steps.isEmpty {
                     ForEach(Array(steps.enumerated()), id: \.element.id) { i, step in
-                        HStack(alignment: .top, spacing: 8) {
-                            Button(action: { steps.remove(at: i) }) {
-                                Image(systemName: "minus.circle.fill").font(.title3).foregroundColor(.accentRed)
+                        stepRow(i: i, step: step)
+                            .onDrag {
+                                draggedStep = step
+                                return NSItemProvider(object: step.id as NSString)
                             }
-                            .buttonStyle(.plain)
-                            ZStack {
-                                Circle().fill(Color.brandBlue).frame(width: 22, height: 22)
-                                Text("\(i + 1)").font(.caption.weight(.bold)).foregroundColor(.white)
-                            }
-                            Text(step.description).font(.subheadline).frame(maxWidth: .infinity, alignment: .leading)
+                            .onDrop(of: [.text], delegate: StepDropDelegate(
+                                targetId: step.id,
+                                steps: $steps,
+                                draggedStep: $draggedStep
+                            ))
+                        if i < steps.count - 1 {
+                            Divider().padding(.leading, 44)
                         }
-                        .padding(4)
                     }
-                    .onMove { from, to in steps.move(fromOffsets: from, toOffset: to) }
-                    .onDelete { i in steps.remove(at: i.first!) }
                 }
-                .listStyle(.plain).frame(minHeight: CGFloat(steps.count * 50))
-            }
 
-            // Add step
-            HStack(spacing: 8) {
-                TextField("例如：热油下锅翻炒", text: $newStepText).font(.subheadline).textFieldStyle(.plain)
-                Button("Add") {
-                    guard !newStepText.trimmingCharacters(in: .whitespaces).isEmpty else { return }
-                    steps.append(CookingStep(order: steps.count + 1, description: newStepText))
-                    newStepText = ""
+                // Add step button at the bottom inside the rounded rect
+                Button(action: {
+                    steps.append(CookingStep(order: steps.count + 1, description: ""))
+                }) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "plus.circle.fill").font(.title3).foregroundColor(.brandBlue)
+                        Text("Add Step").font(.bodyText.weight(.medium)).foregroundColor(.brandBlue)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(12)
+                    .background(Color.brandBlueLight, in: RoundedRectangle(cornerRadius: 10))
                 }
-                .font(.subheadline.weight(.semibold)).foregroundColor(newStepText.trimmingCharacters(in: .whitespaces).isEmpty ? .textTertiary : .brandBlue)
-                .disabled(newStepText.trimmingCharacters(in: .whitespaces).isEmpty)
+                .padding(12)
+                .buttonStyle(.plain)
             }
-            .padding(12).background(Color.cardBg.opacity(0.6), in: RoundedRectangle(cornerRadius: 10))
+            .background(Color.cardBg, in: RoundedRectangle(cornerRadius: 14))
         }
         .padding(.horizontal, 20)
+    }
+
+    private func stepRow(i: Int, step: CookingStep) -> some View {
+        HStack(spacing: 8) {
+            // Delete button
+            Button(action: { steps.remove(at: i) }) {
+                Image(systemName: "minus.circle.fill").font(.title3).foregroundColor(.accentRed)
+            }
+            .buttonStyle(.plain)
+
+            // Step number
+            ZStack {
+                Circle().fill(Color.brandBlue).frame(width: 22, height: 22)
+                Text("\(i + 1)").font(.caption.weight(.bold)).foregroundColor(.white)
+            }
+
+            // Inline editable text field (multi-line)
+            TextField("输入步骤内容", text: $steps[i].description, axis: .vertical)
+                .font(.bodyText)
+                .lineLimit(1...10)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            // Drag handle
+            Image(systemName: "line.3.horizontal")
+                .font(.title3).foregroundColor(.textTertiary)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
     }
 
     // MARK: Tags
@@ -393,6 +436,61 @@ struct RecipeEditView: View {
             ingredients.append(parsed)
             ingredientEditorText = ""
         }
+    }
+
+    // MARK: Step Editor Sheet
+
+}
+
+// MARK: - Drag Reorder Delegates
+
+private struct IngredientDropDelegate: DropDelegate {
+    let targetId: String
+    @Binding var ingredients: [Ingredient]
+    @Binding var draggedIngredient: Ingredient?
+
+    func dropEntered(info: DropInfo) {
+        guard let draggedIngredient,
+              draggedIngredient.id != targetId,
+              let fromIdx = ingredients.firstIndex(where: { $0.id == draggedIngredient.id }),
+              let toIdx = ingredients.firstIndex(where: { $0.id == targetId }) else { return }
+        withAnimation(.interactiveSpring) {
+            ingredients.move(fromOffsets: IndexSet(integer: fromIdx), toOffset: toIdx > fromIdx ? toIdx + 1 : toIdx)
+        }
+    }
+
+    func performDrop(info: DropInfo) -> Bool {
+        draggedIngredient = nil
+        return true
+    }
+
+    func dropUpdated(info: DropInfo) -> DropProposal? {
+        DropProposal(operation: .move)
+    }
+}
+
+private struct StepDropDelegate: DropDelegate {
+    let targetId: String
+    @Binding var steps: [CookingStep]
+    @Binding var draggedStep: CookingStep?
+
+    func dropEntered(info: DropInfo) {
+        guard let draggedStep,
+              draggedStep.id != targetId,
+              let fromIdx = steps.firstIndex(where: { $0.id == draggedStep.id }),
+              let toIdx = steps.firstIndex(where: { $0.id == targetId }) else { return }
+        withAnimation(.interactiveSpring) {
+            steps.move(fromOffsets: IndexSet(integer: fromIdx), toOffset: toIdx > fromIdx ? toIdx + 1 : toIdx)
+        }
+    }
+
+    func performDrop(info: DropInfo) -> Bool {
+        draggedStep = nil
+        return true
+    }
+
+    func dropUpdated(info: DropInfo) -> DropProposal? {
+        DropProposal(operation: .move)
     }
 }
 
