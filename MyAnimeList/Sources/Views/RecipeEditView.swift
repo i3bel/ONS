@@ -10,18 +10,25 @@ struct RecipeEditView: View {
 
     @State private var name = ""
     @State private var servings = 2
-    @State private var prepMin = 0
-    @State private var cookMin = 0
+    @State private var prepH = 0
+    @State private var prepM = 0
+    @State private var cookH = 0
+    @State private var cookM = 0
     @State private var ingredients: [Ingredient] = []
     @State private var steps: [CookingStep] = []
+    @State private var tags: [String] = []
+    @State private var newTag = ""
     @State private var photoData: Data? = nil
     @State private var showPhotoPicker = false
     @State private var showCamera = false
     @State private var photoItem: PhotosPickerItem? = nil
-
-    // Inline ingredient input
     @State private var newIngredientText = ""
     @State private var newStepText = ""
+
+    // Picker wheels
+    @State private var showServingsPicker = false
+    @State private var showPrepPicker = false
+    @State private var showCookPicker = false
 
     private var isNew: Bool { existingRecipe == nil }
 
@@ -30,31 +37,32 @@ struct RecipeEditView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
                     nameField
-                    infoFields
+                    infoSection
                     ingredientsSection
                     stepsSection
+                    tagsSection
                     photosSection
                 }
                 .padding(.vertical)
             }
-            .background(Color(.systemGroupedBackground))
+            .background(Color.pageBg)
             .navigationTitle(isNew ? "New Recipe" : "Edit Recipe")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Button("Cancel") { dismiss() }
-                        .font(.bodyText.weight(.medium)).foregroundColor(.black)
-                        .padding(.horizontal, 16).padding(.vertical, 8)
-                        .background(Color.cardBg).clipShape(Capsule())
+                    Button(action: { dismiss() }) {
+                        Image(systemName: "xmark.circle.fill").font(.title2).foregroundColor(.textSecondary)
+                    }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Update") { save() }
-                        .font(.bodyText.weight(.semibold))
-                        .foregroundColor(name.isEmpty ? Color.disabledText : .white)
-                        .padding(.horizontal, 20).padding(.vertical, 10)
-                        .background(name.isEmpty ? Color.disabledBg : Color.brandBlue)
-                        .clipShape(Capsule())
-                        .disabled(name.isEmpty)
+                    HStack(spacing: 8) {
+                        EditButton()
+                        Button("Update") { save() }
+                            .font(.bodyText.weight(.semibold)).foregroundColor(.white)
+                            .padding(.horizontal, 24).padding(.vertical, 10)
+                            .background(name.isEmpty ? Color.disabledBg : Color.accentRed).clipShape(Capsule())
+                            .disabled(name.isEmpty)
+                    }
                 }
             }
             .onAppear(perform: loadExisting)
@@ -65,46 +73,72 @@ struct RecipeEditView: View {
             .sheet(isPresented: $showCamera) {
                 UIImagePicker(source: .camera) { img in photoData = img.jpegData(compressionQuality: 0.8); showCamera = false }
             }
+            .sheet(isPresented: $showServingsPicker) {
+                NumberPickerView(title: "Servings", value: $servings, range: 1...30)
+            }
+            .sheet(isPresented: $showPrepPicker) {
+                TimePickerView(title: "Prep Time", hours: $prepH, minutes: $prepM)
+            }
+            .sheet(isPresented: $showCookPicker) {
+                TimePickerView(title: "Cook Time", hours: $cookH, minutes: $cookM)
+            }
         }
     }
 
     // MARK: Name
 
     private var nameField: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Name").font(.headline).foregroundColor(Color.textSecondary)
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Name").font(.captionText).foregroundColor(.textSecondary)
             TextField("Recipe Name", text: $name)
-                .font(.title2.weight(.semibold))
-                .textFieldStyle(.plain)
-                .padding(14)
-                .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 12))
+                .font(.title2.weight(.semibold)).textFieldStyle(.plain)
+                .padding(16).background(Color.cardBg, in: RoundedRectangle(cornerRadius: 12))
         }
         .padding(.horizontal, 20)
     }
 
-    // MARK: Info (Servings, Prep, Cook)
+    // MARK: Info (left-right aligned + picker wheels)
 
-    private var infoFields: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Info").font(.headline).foregroundColor(Color.textSecondary)
-            VStack(spacing: 10) {
+    private var infoSection: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Info").font(.captionText).foregroundColor(.textSecondary)
+            VStack(spacing: 0) {
+                // Servings
                 HStack {
-                    Text("Servings").frame(width: 80, alignment: .leading)
-                    Stepper("\(servings) 人份", value: $servings, in: 1...20).labelsHidden()
+                    Text("Servings").font(.bodyText).foregroundColor(.black)
                     Spacer()
-                    Text("\(servings) 人份").font(.subheadline.monospacedDigit())
+                    Button(action: { showServingsPicker = true }) {
+                        Text("\(servings)").font(.bodyText.weight(.semibold)).foregroundColor(.brandBlue)
+                        Image(systemName: "chevron.down").font(.caption).foregroundColor(.brandBlue)
+                    }
                 }
+                .padding(16)
+                Divider().padding(.leading, 16)
+
+                // Prep
                 HStack {
-                    Text("Prep").frame(width: 80, alignment: .leading)
-                    Picker("", selection: $prepMin) { ForEach(0...180, id: \.self) { Text("\($0) 分钟").tag($0) } }
+                    Text("Prep").font(.bodyText).foregroundColor(.black)
+                    Spacer()
+                    Button(action: { showPrepPicker = true }) {
+                        Text("\(prepH)h \(prepM)m").font(.bodyText.weight(.semibold)).foregroundColor(.brandBlue)
+                        Image(systemName: "chevron.down").font(.caption).foregroundColor(.brandBlue)
+                    }
                 }
+                .padding(16)
+                Divider().padding(.leading, 16)
+
+                // Cook
                 HStack {
-                    Text("Cook").frame(width: 80, alignment: .leading)
-                    Picker("", selection: $cookMin) { ForEach(0...300, id: \.self) { Text("\($0) 分钟").tag($0) } }
+                    Text("Cook").font(.bodyText).foregroundColor(.black)
+                    Spacer()
+                    Button(action: { showCookPicker = true }) {
+                        Text("\(cookH)h \(cookM)m").font(.bodyText.weight(.semibold)).foregroundColor(.brandBlue)
+                        Image(systemName: "chevron.down").font(.caption).foregroundColor(.brandBlue)
+                    }
                 }
+                .padding(16)
             }
-            .padding(14)
-            .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 12))
+            .background(Color.cardBg, in: RoundedRectangle(cornerRadius: 16))
         }
         .padding(.horizontal, 20)
     }
@@ -112,96 +146,127 @@ struct RecipeEditView: View {
     // MARK: Ingredients
 
     private var ingredientsSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 6) {
             HStack {
-                Text("Ingredients").font(.headline).foregroundColor(Color.textSecondary)
+                Text("Ingredients").font(.captionText).foregroundColor(.textSecondary)
                 Spacer()
-                Text("\(ingredients.count)").font(.caption).foregroundColor(Color.textTertiary)
+                Text("\(ingredients.count)").font(.caption).foregroundColor(.textTertiary)
             }
 
-            ForEach(Array(ingredients.enumerated()), id: \.element.id) { i, ing in
-                HStack(spacing: 8) {
-                    Button(action: { ingredients.remove(at: i) }) {
-                        Image(systemName: "minus.circle.fill").foregroundColor(.red).font(.title3)
+            if !ingredients.isEmpty {
+                List {
+                    ForEach(Array(ingredients.enumerated()), id: \.element.id) { i, ing in
+                        HStack(spacing: 8) {
+                            Button(action: { ingredients.remove(at: i) }) {
+                                Image(systemName: "minus.circle.fill").font(.title3).foregroundColor(.accentRed)
+                            }
+                            .buttonStyle(.plain)
+                            Text(ing.displayString).font(.subheadline).frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        .padding(4)
                     }
-                    .buttonStyle(.plain)
-
-                    Text(ing.displayString).font(.subheadline).frame(maxWidth: .infinity, alignment: .leading)
-
-                    Image(systemName: "line.3.horizontal").foregroundColor(Color.textTertiary).font(.caption)
+                    .onMove { from, to in ingredients.move(fromOffsets: from, toOffset: to) }
+                    .onDelete { i in ingredients.remove(at: i.first!) }
                 }
-                .padding(10)
-                .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 10))
+                .listStyle(.plain).frame(minHeight: CGFloat(ingredients.count * 50))
             }
 
-            // Add ingredient inline
+            // Add ingredient
             HStack(spacing: 8) {
-                TextField("例如：一勺糖", text: $newIngredientText)
-                    .font(.subheadline)
-                    .textFieldStyle(.plain)
+                TextField("例如：一勺糖", text: $newIngredientText).font(.subheadline).textFieldStyle(.plain)
                 Button("Add") {
                     guard !newIngredientText.trimmingCharacters(in: .whitespaces).isEmpty else { return }
-                    let parsed = Ingredient.parseChinese(newIngredientText)
-                    ingredients.append(parsed)
+                    ingredients.append(Ingredient.parseChinese(newIngredientText))
                     newIngredientText = ""
                 }
-                .font(.subheadline.weight(.semibold))
+                .font(.subheadline.weight(.semibold)).foregroundColor(newIngredientText.trimmingCharacters(in: .whitespaces).isEmpty ? .textTertiary : .brandBlue)
                 .disabled(newIngredientText.trimmingCharacters(in: .whitespaces).isEmpty)
             }
-            .padding(10)
-            .background(Color(.systemBackground).opacity(0.6), in: RoundedRectangle(cornerRadius: 10))
+            .padding(12).background(Color.cardBg.opacity(0.6), in: RoundedRectangle(cornerRadius: 10))
         }
         .padding(.horizontal, 20)
+
     }
 
     // MARK: Steps
 
     private var stepsSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 6) {
             HStack {
-                Text("Method").font(.headline).foregroundColor(Color.textSecondary)
+                Text("Method").font(.captionText).foregroundColor(.textSecondary)
                 Spacer()
-                Text("\(steps.count)").font(.caption).foregroundColor(Color.textTertiary)
+                Text("\(steps.count)").font(.caption).foregroundColor(.textTertiary)
             }
 
-            ForEach(Array(steps.enumerated()), id: \.element.id) { i, step in
-                HStack(alignment: .top, spacing: 8) {
-                    Button(action: { steps.remove(at: i) }) {
-                        Image(systemName: "minus.circle.fill").foregroundColor(.red).font(.title3)
+            if !steps.isEmpty {
+                List {
+                    ForEach(Array(steps.enumerated()), id: \.element.id) { i, step in
+                        HStack(alignment: .top, spacing: 8) {
+                            Button(action: { steps.remove(at: i) }) {
+                                Image(systemName: "minus.circle.fill").font(.title3).foregroundColor(.accentRed)
+                            }
+                            .buttonStyle(.plain)
+                            ZStack {
+                                Circle().fill(Color.brandBlue).frame(width: 22, height: 22)
+                                Text("\(i + 1)").font(.caption.weight(.bold)).foregroundColor(.white)
+                            }
+                            Text(step.description).font(.subheadline).frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        .padding(4)
                     }
-                    .buttonStyle(.plain)
-
-                    ZStack {
-                        Circle().fill(Color.blue).frame(width: 22, height: 22)
-                        Text("\(i + 1)").font(.caption.weight(.bold)).foregroundColor(.white)
-                    }
-                    .padding(.top, 2)
-
-                    Text(step.description)
-                        .font(.subheadline)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-
-                    Image(systemName: "line.3.horizontal").foregroundColor(Color.textTertiary).font(.caption).padding(.top, 4)
+                    .onMove { from, to in steps.move(fromOffsets: from, toOffset: to) }
+                    .onDelete { i in steps.remove(at: i.first!) }
                 }
-                .padding(10)
-                .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 10))
+                .listStyle(.plain).frame(minHeight: CGFloat(steps.count * 50))
             }
 
-            // Add step inline
+            // Add step
             HStack(spacing: 8) {
-                TextField("例如：热油下锅翻炒", text: $newStepText)
-                    .font(.subheadline)
-                    .textFieldStyle(.plain)
+                TextField("例如：热油下锅翻炒", text: $newStepText).font(.subheadline).textFieldStyle(.plain)
                 Button("Add") {
                     guard !newStepText.trimmingCharacters(in: .whitespaces).isEmpty else { return }
                     steps.append(CookingStep(order: steps.count + 1, description: newStepText))
                     newStepText = ""
                 }
-                .font(.subheadline.weight(.semibold))
+                .font(.subheadline.weight(.semibold)).foregroundColor(newStepText.trimmingCharacters(in: .whitespaces).isEmpty ? .textTertiary : .brandBlue)
                 .disabled(newStepText.trimmingCharacters(in: .whitespaces).isEmpty)
             }
-            .padding(10)
-            .background(Color(.systemBackground).opacity(0.6), in: RoundedRectangle(cornerRadius: 10))
+            .padding(12).background(Color.cardBg.opacity(0.6), in: RoundedRectangle(cornerRadius: 10))
+        }
+        .padding(.horizontal, 20)
+    }
+
+    // MARK: Tags
+
+    private var tagsSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Tags").font(.captionText).foregroundColor(.textSecondary)
+
+            if !tags.isEmpty {
+                FlowLayout(spacing: 8) {
+                    ForEach(tags.indices, id: \.self) { i in
+                        HStack(spacing: 4) {
+                            Text("#\(tags[i])").font(.calloutText).foregroundColor(.tagText)
+                            Button(action: { tags.remove(at: i) }) {
+                                Image(systemName: "xmark").font(.caption2).foregroundColor(.tagText)
+                            }
+                        }
+                        .padding(.horizontal, 12).padding(.vertical, 6)
+                        .background(Color.tagBg).clipShape(Capsule())
+                    }
+                }
+            }
+
+            HStack(spacing: 8) {
+                TextField("添加标签", text: $newTag).font(.subheadline).textFieldStyle(.plain)
+                Button("Add") {
+                    let tag = newTag.trimmingCharacters(in: .whitespaces)
+                    guard !tag.isEmpty else { return }
+                    tags.append(tag); newTag = ""
+                }
+                .font(.subheadline.weight(.semibold)).foregroundColor(newTag.trimmingCharacters(in: .whitespaces).isEmpty ? .textTertiary : .brandBlue)
+            }
+            .padding(12).background(Color.cardBg, in: RoundedRectangle(cornerRadius: 10))
         }
         .padding(.horizontal, 20)
     }
@@ -210,24 +275,20 @@ struct RecipeEditView: View {
 
     private var photosSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Photos").font(.headline).foregroundColor(Color.textSecondary)
-
+            Text("Photos").font(.captionText).foregroundColor(.textSecondary)
             if let data = photoData, let img = UIImage(data: data) {
-                Image(uiImage: img).resizable().scaledToFill()
-                    .frame(height: 180).clipped()
+                Image(uiImage: img).resizable().scaledToFill().frame(height: 160).clipped()
                     .clipShape(RoundedRectangle(cornerRadius: 14))
             }
-
-            HStack(spacing: 12) {
+            HStack(spacing: 24) {
                 Button(action: { photoItem = nil; showPhotoPicker = true }) {
-                    Label("Photo Library", systemImage: "photo.on.rectangle").font(.subheadline)
+                    Label("Photo Library", systemImage: "photo.on.rectangle").font(.subheadline).foregroundColor(.brandBlue)
                 }
                 Button(action: { showCamera = true }) {
-                    Label("Camera", systemImage: "camera").font(.subheadline)
+                    Label("Camera", systemImage: "camera").font(.subheadline).foregroundColor(.brandBlue)
                 }
                 if photoData != nil {
-                    Button("Remove", role: .destructive) { photoData = nil }
-                        .font(.subheadline)
+                    Button("Remove", role: .destructive) { photoData = nil }.font(.subheadline)
                 }
             }
         }
@@ -242,10 +303,9 @@ struct RecipeEditView: View {
         if let d = photoData { photoFn = store.savePhoto(data: d, for: rid) }
         let r = Recipe(
             id: rid, name: name, servings: max(1, servings),
-            prepTime: TimeInterval(prepMin * 60), cookTime: TimeInterval(cookMin * 60),
+            prepTime: TimeInterval(prepH * 3600 + prepM * 60), cookTime: TimeInterval(cookH * 3600 + cookM * 60),
             ingredients: ingredients, steps: steps.enumerated().map { i, s in CookingStep(id: s.id, order: i + 1, description: s.description) },
-            photoFilename: photoFn, tags: existingRecipe?.tags ?? [],
-            createdAt: existingRecipe?.createdAt ?? .now
+            photoFilename: photoFn, tags: tags, createdAt: existingRecipe?.createdAt ?? .now
         )
         if isNew { store.add(r) } else { store.update(r) }
         dismiss()
@@ -254,8 +314,80 @@ struct RecipeEditView: View {
     private func loadExisting() {
         guard let r = existingRecipe else { return }
         name = r.name; servings = r.servings
-        prepMin = Int(r.prepTime / 60); cookMin = Int(r.cookTime / 60)
-        ingredients = r.ingredients; steps = r.steps
+        let p = Int(r.prepTime); prepH = p / 3600; prepM = (p % 3600) / 60
+        let c = Int(r.cookTime); cookH = c / 3600; cookM = (c % 3600) / 60
+        ingredients = r.ingredients; steps = r.steps; tags = r.tags
         if let fn = r.photoFilename, let url = store.photoURL(for: r), let d = try? Data(contentsOf: url) { photoData = d }
+    }
+}
+
+// MARK: - Number Picker Wheel
+
+private struct NumberPickerView: View {
+    var title: String
+    @Binding var value: Int
+    var range: ClosedRange<Int>
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            Picker(title, selection: $value) {
+                ForEach(range, id: \.self) { Text("\($0)").tag($0) }
+            }
+            .pickerStyle(.wheel)
+            .navigationTitle(title).navigationBarTitleDisplayMode(.inline)
+            .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("Done") { dismiss() } } }
+        }
+        .presentationDetents([.height(250)])
+    }
+}
+
+// MARK: - Time Picker Wheel (hours + minutes)
+
+private struct TimePickerView: View {
+    var title: String
+    @Binding var hours: Int
+    @Binding var minutes: Int
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            HStack(spacing: 0) {
+                Picker("h", selection: $hours) { ForEach(0...23, id: \.self) { Text("\($0) h").tag($0) } }.pickerStyle(.wheel)
+                Picker("m", selection: $minutes) { ForEach(0...59, id: \.self) { Text("\($0) m").tag($0) } }.pickerStyle(.wheel)
+            }
+            .navigationTitle(title).navigationBarTitleDisplayMode(.inline)
+            .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("Done") { dismiss() } } }
+        }
+        .presentationDetents([.height(250)])
+    }
+}
+
+// MARK: - Simple Flow Layout
+
+private struct FlowLayout: Layout {
+    var spacing: CGFloat = 8
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout Void) -> CGSize {
+        let width = proposal.width ?? 300
+        var y: CGFloat = 0, x: CGFloat = 0, rowH: CGFloat = 0
+        for sv in subviews {
+            let sz = sv.sizeThatFits(.unspecified)
+            if x + sz.width > width { x = 0; y += rowH + spacing; rowH = 0 }
+            rowH = max(rowH, sz.height)
+            x += sz.width + spacing
+        }
+        return CGSize(width: width, height: y + rowH)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout Void) {
+        var x = bounds.minX, y = bounds.minY, rowH: CGFloat = 0
+        for sv in subviews {
+            let sz = sv.sizeThatFits(.unspecified)
+            if x + sz.width > bounds.maxX { x = bounds.minX; y += rowH + spacing; rowH = 0 }
+            sv.place(at: CGPoint(x: x, y: y), proposal: .unspecified)
+            rowH = max(rowH, sz.height)
+            x += sz.width + spacing
+        }
     }
 }

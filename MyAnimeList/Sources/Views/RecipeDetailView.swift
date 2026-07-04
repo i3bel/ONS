@@ -88,13 +88,13 @@ struct RecipeDetailView: View {
             // Basket
             Button(action: { showGroceries = true }) {
                 Image(systemName: "basket").font(.title2).foregroundColor(.brandBlue)
-                    .frame(width: 48, height: 48).background(Color.bgSecondary).clipShape(Circle())
+                    .frame(width: 48, height: 48).background(Circle().fill(Color.cardBg).stroke(Color.dividerColor, lineWidth: 1))
             }
 
             // Share
             Button(action: { }) {
                 Image(systemName: "square.and.arrow.up").font(.title2).foregroundColor(.brandBlue)
-                    .frame(width: 48, height: 48).background(Color.bgSecondary).clipShape(Circle())
+                    .frame(width: 48, height: 48).background(Circle().fill(Color.cardBg).stroke(Color.dividerColor, lineWidth: 1))
             }
         }
         .padding(.horizontal, 20).padding(.vertical, 16)
@@ -106,16 +106,16 @@ struct RecipeDetailView: View {
         HStack(spacing: 16) {
             HStack(spacing: 6) {
                 Text("👥").font(.subheadline)
-                Text("\(recipe.servings)").font(.calloutText).foregroundColor(.textSecondary)
+                Text("\(displayServings)").font(.calloutText).foregroundColor(.textSecondary)
             }
-            .padding(.horizontal, 12).padding(.vertical, 6).background(Color.bgSecondary).clipShape(RoundedRectangle(cornerRadius: 12))
+            .padding(.horizontal, 12).padding(.vertical, 6).background(Color.cardBg).clipShape(RoundedRectangle(cornerRadius: 12)).overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.dividerColor, lineWidth: 1))
 
             if recipe.totalTime > 0 {
                 HStack(spacing: 6) {
                     Text("⏱").font(.subheadline)
                     Text("Prep \(timeStr(recipe.prepTime)) · Cook \(timeStr(recipe.cookTime))").font(.calloutText).foregroundColor(.textSecondary)
                 }
-                .padding(.horizontal, 12).padding(.vertical, 6).background(Color.bgSecondary).clipShape(RoundedRectangle(cornerRadius: 12))
+                .padding(.horizontal, 12).padding(.vertical, 6).background(Color.cardBg).clipShape(RoundedRectangle(cornerRadius: 12)).overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.dividerColor, lineWidth: 1))
             }
         }
         .padding(.horizontal, 20).padding(.bottom, 16)
@@ -124,50 +124,65 @@ struct RecipeDetailView: View {
     // MARK: Ingredients
 
     private var ingredientsSection: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading, spacing: 8) {
+            // Title and Scale outside the rounded rect
             HStack {
                 Text("Ingredients").font(.title2)
                 Spacer()
                 if showScale {
-                    Button("\(displayServings) servings") {
-                        withAnimation { showScale = false }
+                    Button(action: { withAnimation { showScale = false } }) {
+                        Text("\(displayServings) servings").font(.calloutText).foregroundColor(.brandBlue)
+                            .padding(.horizontal, 12).padding(.vertical, 6).background(Color.brandBlueLight).clipShape(Capsule())
                     }
-                    .font(.calloutText).foregroundColor(.brandBlue)
-                    .padding(.horizontal, 12).padding(.vertical, 6).background(Color.brandBlueLight).clipShape(Capsule())
                 } else {
-                    Button("Scale") {
-                        withAnimation { showScale = true; scaleServings = recipe.servings }
+                    Button(action: { withAnimation { showScale = true; scaleServings = recipe.servings } }) {
+                        Text("Scale").font(.calloutText).foregroundColor(.brandBlue)
+                            .padding(.horizontal, 12).padding(.vertical, 6).background(Color.brandBlueLight).clipShape(Capsule())
                     }
-                    .font(.calloutText).foregroundColor(.brandBlue)
-                    .padding(.horizontal, 12).padding(.vertical, 6).background(Color.brandBlueLight).clipShape(Capsule())
                 }
             }
-            .padding(.horizontal, 20).padding(.vertical, 8)
+            .padding(.horizontal, 20)
 
+            // Scale slider (video-timeline style)
             if showScale {
-                HStack {
-                    Text("Servings:")
-                    Stepper("\(displayServings)", value: Binding(get: { displayServings }, set: { scaleServings = $0 }), in: 1...20).labelsHidden()
-                    Text("\(displayServings)").font(.bodyText.monospacedDigit())
+                HStack(spacing: 12) {
+                    Slider(value: Binding(get: { Double(displayServings) }, set: { scaleServings = Int($0) }), in: 1...20, step: 1)
+                        .tint(.brandBlue)
+                    Text("\(displayServings) 份").font(.bodyText.weight(.semibold)).foregroundColor(.brandBlue)
+                        .frame(width: 60, alignment: .trailing)
                 }
-                .padding(.horizontal, 20).padding(.bottom, 8)
+                .padding(.horizontal, 20).padding(.vertical, 4)
             }
 
-            ForEach(recipe.ingredients) { ing in
-                HStack {
-                    Text(ing.name).font(.bodyText).foregroundColor(.black)
-                    Spacer()
+            // All ingredients in ONE rounded rect, left-aligned with blue quantifiers
+            VStack(alignment: .leading, spacing: 4) {
+                ForEach(Array(recipe.ingredients.enumerated()), id: \.element.id) { i, ing in
                     let display = showScale ? recipe.scaledAmount(for: ing, targetServings: displayServings) : "\(Int(ing.amount)) \(ing.unit)"
-                    Text(display)
-                        .font(.bodyEmphasis).foregroundColor(.brandBlue)
+                    ingredientDisplayLine(name: ing.name, amountUnit: display)
                 }
-                .padding(.horizontal, 20).padding(.vertical, 8)
-                Divider().padding(.leading, 20)
             }
+            .padding(16)
+            .background(Color.cardBg, in: RoundedRectangle(cornerRadius: 14))
+            .padding(.horizontal, 20)
         }
         .padding(.vertical, 8)
-        .background(Color.bgPrimary)
     }
+
+    private func ingredientDisplayLine(name: String, amountUnit: String) -> some View {
+        HStack {
+            // Left-aligned: quantifier blue, rest black
+            Text(amountUnit)
+                .font(.bodyText.weight(.semibold))
+                .foregroundColor(.brandBlue) +
+            Text("  \(name)")
+                .font(.bodyText)
+                .foregroundColor(.black)
+            Spacer()
+        }
+        .padding(.vertical, 6)
+        .padding(.horizontal, 4)
+    }
+
 
     // MARK: Method
 
@@ -179,7 +194,7 @@ struct RecipeDetailView: View {
             ForEach(Array(recipe.steps.enumerated()), id: \.element.id) { i, step in
                 HStack(alignment: .top, spacing: 12) {
                     ZStack {
-                        Circle().fill(Color.brandBlue).frame(width: 40, height: 40)
+                        Circle().fill(Color.brandBlue).frame(width: 28, height: 28)
                         Text("\(i + 1)").font(.calloutText.weight(.bold)).foregroundColor(.white)
                     }
 
@@ -187,8 +202,8 @@ struct RecipeDetailView: View {
                         .font(.bodyText).lineSpacing(6)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .padding(16)
-                .background(Color.bgPrimary, in: RoundedRectangle(cornerRadius: 16))
+                .padding(12)
+                .background(Color.bgPrimary, in: RoundedRectangle(cornerRadius: 14))
                 .padding(.horizontal, 16)
             }
         }
@@ -215,7 +230,7 @@ struct RecipeDetailView: View {
             if matched { continue }
 
             // Temperature → orange (#\d+\s*°[FC]#)
-            if let r = remaining.range(of: #"\d+\s*°[FC]"#, options: .regularExpression) {
+            if let r = remaining.range(of: #"\d+\s*(°[FC]|度)"#, options: .regularExpression) {
                 let before = String(remaining[remaining.startIndex..<r.lowerBound])
                 if !before.isEmpty { result = result + Text(before).foregroundColor(.black) }
                 result = result + Text(String(remaining[r])).foregroundColor(.accentOrange).fontWeight(.bold)

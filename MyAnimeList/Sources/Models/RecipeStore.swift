@@ -74,23 +74,45 @@ struct Ingredient: Identifiable, Codable, Equatable {
         ]
         let knownUnits = ["杯", "碗", "勺", "汤匙", "茶匙", "个", "根", "片", "只", "粒",
                           "颗", "瓣", "块", "条", "束", "包", "盒", "瓶", "罐",
-                          "克", "毫升", "斤", "两", "公斤", "升", "ml", "g", "kg",
-                          "cup", "tbsp", "tsp", "oz", "lb", "pinch"]
+                          "克", "毫升", "斤", "两", "公斤", "升", "头", "把",
+                          "ml", "g", "kg", "cup", "tbsp", "tsp", "oz", "lb", "pinch"]
+        let fuzzyQuantifiers = ["一勺半", "两勺半", "适量", "少许", "少量", "若干"]
+
+        // Check fuzzy quantifiers first
+        for q in fuzzyQuantifiers {
+            if trimmed.hasPrefix(q) {
+                let name = String(trimmed.dropFirst(q.count)).trimmingCharacters(in: .whitespaces)
+                return Ingredient(name: name.isEmpty ? trimmed : name, amount: 0, unit: q)
+            }
+        }
 
         var amount: Double = 1
         var unit = ""
         var name = trimmed
 
-        // Extract amount from Chinese digits at start
-        for (char, val) in chineseDigits {
-            if trimmed.hasPrefix(String(char)) {
-                amount = val
-                name = String(trimmed.dropFirst(String(char).count))
-                break
+        // Handle "两" (special: means 2, not 2)
+        if trimmed.hasPrefix("两") {
+            amount = 2
+            name = String(trimmed.dropFirst())
+        }
+        // Handle "半" at start (means 0.5)
+        else if trimmed.hasPrefix("半") {
+            amount = 0.5
+            name = String(trimmed.dropFirst())
+        }
+        else {
+            // Extract amount from Chinese digits at start
+            for (char, val) in chineseDigits {
+                if trimmed.hasPrefix(String(char)) {
+                    amount = val
+                    name = String(trimmed.dropFirst(String(char).count))
+                    break
+                }
             }
         }
+
         // Try Arabic digits at start
-        if amount == 1, let firstDigit = trimmed.first, firstDigit.isNumber {
+        if amount >= 1, let firstDigit = trimmed.first, firstDigit.isNumber {
             let digits = trimmed.prefix(while: \.isNumber)
             if let parsed = Double(digits) {
                 amount = parsed
@@ -98,13 +120,25 @@ struct Ingredient: Identifiable, Codable, Equatable {
             }
         }
 
-        // Extract unit
-        name = name.trimmingCharacters(in: .whitespaces)
-        for u in knownUnits {
-            if name.hasPrefix(u) {
+        // Handle "X勺半" pattern (e.g. "一勺半" = 1.5勺)
+        for u in ["勺", "杯", "碗", "汤匙", "茶匙", "个", "头", "把"] {
+            if name.hasPrefix(u) && name.dropFirst(u.count).hasPrefix("半") {
                 unit = u
-                name = String(name.dropFirst(u.count)).trimmingCharacters(in: .whitespaces)
+                amount += 0.5
+                name = String(name.dropFirst(u.count + 1)).trimmingCharacters(in: .whitespaces)
                 break
+            }
+        }
+
+        // Extract unit
+        if unit.isEmpty {
+            name = name.trimmingCharacters(in: .whitespaces)
+            for u in knownUnits {
+                if name.hasPrefix(u) {
+                    unit = u
+                    name = String(name.dropFirst(u.count)).trimmingCharacters(in: .whitespaces)
+                    break
+                }
             }
         }
 

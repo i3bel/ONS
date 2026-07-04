@@ -4,6 +4,12 @@
     "" : {
 
     },
+    "  %@" : {
+
+    },
+    "#%@" : {
+
+    },
     "#baking" : {
 
     },
@@ -13,14 +19,27 @@
     "%lld" : {
 
     },
+    "%lld h" : {
+
+    },
+    "%lld m" : {
+
+    },
     "%lld servings" : {
 
     },
-    "%lld 人份" : {
+    "%lld 份" : {
 
     },
-    "%lld 分钟" : {
-
+    "%lldh %lldm" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lldh %2$lldm"
+          }
+        }
+      }
     },
     "⏱" : {
 
@@ -67,16 +86,28 @@
     "Deselect All" : {
 
     },
+    "Done" : {
+
+    },
     "Edit Recipe" : {
 
     },
     "Edit Tags" : {
 
     },
+    "h" : {
+
+    },
     "Info" : {
 
     },
     "Ingredients" : {
+
+    },
+    "m" : {
+
+    },
+    "Make" : {
 
     },
     "Method" : {
@@ -134,9 +165,6 @@
     "Servings" : {
 
     },
-    "Servings:" : {
-
-    },
     "Shared by RecipeSlate ❤️" : {
 
     },
@@ -174,6 +202,9 @@
 
     },
     "没有食材" : {
+
+    },
+    "添加标签" : {
 
     },
     "烹饪" : {

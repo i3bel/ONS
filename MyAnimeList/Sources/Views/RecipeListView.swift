@@ -43,14 +43,17 @@ struct RecipeListView: View {
                                 else { selected.insert($0.id) }
                                 showActionBar = !selected.isEmpty
                             }
-                            .listRowInsets(.init(top: 4, leading: 16, bottom: 4, trailing: 16))
+                            .listRowInsets(.init(top: 8, leading: 16, bottom: 8, trailing: 16))
                             .listRowBackground(Color.clear)
                         }
                     } else {
                         ForEach(filtered) { recipe in
                             RecipeRow(recipe: recipe, store: store, selectMode: false, isSelected: false) { showDetail = $0 }
-                                .listRowInsets(.init(top: 4, leading: 16, bottom: 4, trailing: 16))
+                                .listRowInsets(.init(top: 8, leading: 16, bottom: 8, trailing: 16))
                                 .listRowBackground(Color.clear)
+                                .swipeActions(edge: .leading, allowsFullSwipe: true) {
+                                    Button(action: {}) { Label("Make", systemImage: "play.fill") }.tint(.accentGreen)
+                                }
                                 .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                                     Button(role: .destructive) { store.delete(recipe) } label: { Label("Delete", systemImage: "trash") }
                                 }
@@ -93,7 +96,7 @@ struct RecipeListView: View {
                 Button("Cancel", role: .cancel) {}
             }
             .sheet(isPresented: $showNewRecipe) { RecipeEditView() }
-            .sheet(item: $showDetail) { RecipeDetailView(recipe: $0) }
+            .fullScreenCover(item: $showDetail) { r in NavigationStack { RecipeDetailView(recipe: r) } }
             .overlay(alignment: .bottom) {
                 if showActionBar {
                     HStack(spacing: 20) {
@@ -162,7 +165,7 @@ private struct RecipeRow: View {
                         Image(systemName: "fork.knife").font(.title2).foregroundColor(.brandBlue)
                     }
                 }
-                .frame(width: 80, height: 80).clipShape(RoundedRectangle(cornerRadius: 12))
+                .frame(width: 100, height: 100).clipShape(RoundedRectangle(cornerRadius: 14))
 
                 VStack(alignment: .leading, spacing: 6) {
                     Text(recipe.name).font(.bodyText.weight(.semibold)).lineLimit(1).foregroundColor(.black)
