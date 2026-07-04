@@ -44,8 +44,9 @@ struct CookModeView: View {
             .toolbar {
                 ToolbarItem(placement: .principal) {
                     (Text("\(store.remainingSteps)").font(.title2.weight(.bold)).foregroundColor(.textPrimary)
-                    + Text(" steps").font(.bodyText.weight(.bold)).foregroundColor(.textSecondary))
+                    + Text(" Steps").font(.bodyText.weight(.bold)).foregroundColor(.textSecondary))
                         .contentTransition(.numericText())
+                        .animation(.default, value: store.remainingSteps)
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(action: { timerSelectionMode.toggle() }) {

@@ -62,7 +62,7 @@ struct ShoppingListView: View {
                 ToolbarItem(placement: .principal) {
                     (Text("\(leftCount)")
                         .font(.title2.weight(.bold)).foregroundColor(.textPrimary)
-                    + Text(" left")
+                    + Text(" Left")
                         .font(.bodyText.weight(.bold)).foregroundColor(.textSecondary))
                     .contentTransition(.numericText())
                 }
