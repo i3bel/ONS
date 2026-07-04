@@ -6,7 +6,7 @@ import PhotosUI
 struct RecipeDetailView: View {
     @Environment(RecipeStore.self) private var store
     @Environment(\.dismiss) private var dismiss
-    var recipe: Recipe
+    @State var recipe: Recipe
 
     @State private var showGroceries = false
     @State private var showEdit = false
@@ -130,7 +130,25 @@ struct RecipeDetailView: View {
                 Text("Ingredients").font(.title2)
                 Spacer()
                 if showScale {
-                    Button(action: { withAnimation { showScale = false } }) {
+                    Button(action: {
+                        withAnimation {
+                            // Commit the scale: scale ingredient amounts + update servings
+                            var updated = recipe
+                            let scale = Double(displayServings) / Double(recipe.servings)
+                            let fuzzy = ["适量", "少许", "少量", "若干"]
+                            updated.ingredients = updated.ingredients.map { ing in
+                                guard !fuzzy.contains(ing.unit) else { return ing }
+                                var scaled = ing
+                                scaled.amount = ing.amount * scale
+                                return scaled
+                            }
+                            updated.servings = displayServings
+                            store.update(updated)
+                            recipe = updated
+                            showScale = false
+                            scaleServings = nil
+                        }
+                    }) {
                         Text("\(displayServings) servings").font(.calloutText).foregroundColor(.brandBlue)
                             .padding(.horizontal, 12).padding(.vertical, 6).background(Color.brandBlueLight).clipShape(Capsule())
                     }
@@ -157,8 +175,10 @@ struct RecipeDetailView: View {
             // All ingredients in ONE rounded rect, left-aligned with blue quantifiers
             VStack(alignment: .leading, spacing: 4) {
                 ForEach(Array(recipe.ingredients.enumerated()), id: \.element.id) { i, ing in
-                    let display = showScale ? recipe.scaledAmount(for: ing, targetServings: displayServings) : "\(Int(ing.amount)) \(ing.unit)"
-                    ingredientDisplayLine(name: ing.name, amountUnit: display)
+                    let amountUnit = showScale
+                        ? recipe.scaledAmount(for: ing, targetServings: displayServings)
+                        : ing.amountWithUnit
+                    ingredientDisplayLine(name: ing.name, amountUnit: amountUnit)
                 }
             }
             .padding(16)

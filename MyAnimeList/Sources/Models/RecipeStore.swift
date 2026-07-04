@@ -31,9 +31,13 @@ struct Recipe: Identifiable, Codable, Equatable {
         self.createdAt = createdAt
     }
 
-    /// Scale an ingredient by target servings
+    /// Scale an ingredient by target servings (returns "amount unit" without ingredient name)
     func scaledAmount(for ingredient: Ingredient, targetServings: Int) -> String {
-        guard servings > 0 else { return ingredient.displayString }
+        let fuzzy = ["适量", "少许", "少量", "若干"]
+        if fuzzy.contains(ingredient.unit) {
+            return ingredient.unit
+        }
+        guard servings > 0 else { return ingredient.amountWithUnit }
         let scale = Double(targetServings) / Double(servings)
         let scaled = ingredient.amount * scale
         if scaled == floor(scaled) {
@@ -51,7 +55,23 @@ struct Ingredient: Identifiable, Codable, Equatable {
     var amount: Double
     var unit: String
 
+    /// "1.5 勺" — amount + unit without ingredient name
+    var amountWithUnit: String {
+        let fuzzy = ["适量", "少许", "少量", "若干"]
+        if fuzzy.contains(unit) {
+            return unit
+        }
+        if amount == floor(amount) {
+            return "\(Int(amount)) \(unit)"
+        }
+        return String(format: "%.1f %@", amount, unit)
+    }
+
     var displayString: String {
+        let fuzzy = ["适量", "少许", "少量", "若干"]
+        if fuzzy.contains(unit) {
+            return "\(unit) \(name)"
+        }
         if amount == floor(amount) {
             return "\(Int(amount)) \(unit) \(name)"
         }
@@ -76,7 +96,7 @@ struct Ingredient: Identifiable, Codable, Equatable {
                           "颗", "瓣", "块", "条", "束", "包", "盒", "瓶", "罐",
                           "克", "毫升", "斤", "两", "公斤", "升", "头", "把",
                           "ml", "g", "kg", "cup", "tbsp", "tsp", "oz", "lb", "pinch"]
-        let fuzzyQuantifiers = ["一勺半", "两勺半", "适量", "少许", "少量", "若干"]
+        let fuzzyQuantifiers = ["适量", "少许", "少量", "若干"]
 
         // Check fuzzy quantifiers first
         for q in fuzzyQuantifiers {
