@@ -25,6 +25,11 @@ struct RecipeEditView: View {
     @State private var newIngredientText = ""
     @State private var newStepText = ""
 
+    // Ingredient editor sheet
+    @State private var showIngredientEditor = false
+    @State private var editingIngredientIndex: Int?
+    @State private var ingredientEditorText = ""
+
     // Picker wheels
     @State private var showServingsPicker = false
     @State private var showPrepPicker = false
@@ -55,14 +60,11 @@ struct RecipeEditView: View {
                     }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
-                    HStack(spacing: 8) {
-                        EditButton()
-                        Button("Update") { save() }
-                            .font(.bodyText.weight(.semibold)).foregroundColor(.white)
-                            .padding(.horizontal, 24).padding(.vertical, 10)
-                            .background(name.isEmpty ? Color.disabledBg : Color.accentRed).clipShape(Capsule())
-                            .disabled(name.isEmpty)
-                    }
+                    Button("Update") { save() }
+                        .font(.bodyText.weight(.semibold)).foregroundColor(.white)
+                        .padding(.horizontal, 24).padding(.vertical, 10)
+                        .background(name.isEmpty ? Color.disabledBg : Color.accentRed).clipShape(Capsule())
+                        .disabled(name.isEmpty)
                 }
             }
             .onAppear(perform: loadExisting)
@@ -81,6 +83,9 @@ struct RecipeEditView: View {
             }
             .sheet(isPresented: $showCookPicker) {
                 TimePickerView(title: "Cook Time", hours: $cookH, minutes: $cookM)
+            }
+            .sheet(isPresented: $showIngredientEditor) {
+                ingredientEditorSheet
             }
         }
     }
@@ -153,39 +158,63 @@ struct RecipeEditView: View {
                 Text("\(ingredients.count)").font(.caption).foregroundColor(.textTertiary)
             }
 
-            if !ingredients.isEmpty {
-                List {
+            // Rounded rect container
+            VStack(spacing: 0) {
+                if !ingredients.isEmpty {
                     ForEach(Array(ingredients.enumerated()), id: \.element.id) { i, ing in
-                        HStack(spacing: 8) {
-                            Button(action: { ingredients.remove(at: i) }) {
-                                Image(systemName: "minus.circle.fill").font(.title3).foregroundColor(.accentRed)
-                            }
-                            .buttonStyle(.plain)
-                            Text(ing.displayString).font(.subheadline).frame(maxWidth: .infinity, alignment: .leading)
+                        ingredientRow(i: i, ing: ing)
+                        if i < ingredients.count - 1 {
+                            Divider().padding(.leading, 44)
                         }
-                        .padding(4)
                     }
-                    .onMove { from, to in ingredients.move(fromOffsets: from, toOffset: to) }
-                    .onDelete { i in ingredients.remove(at: i.first!) }
                 }
-                .listStyle(.plain).frame(minHeight: CGFloat(ingredients.count * 50))
-            }
 
-            // Add ingredient
-            HStack(spacing: 8) {
-                TextField("例如：一勺糖", text: $newIngredientText).font(.subheadline).textFieldStyle(.plain)
-                Button("Add") {
-                    guard !newIngredientText.trimmingCharacters(in: .whitespaces).isEmpty else { return }
-                    ingredients.append(Ingredient.parseChinese(newIngredientText))
-                    newIngredientText = ""
+                // Add ingredient button at the bottom inside the rounded rect
+                Button(action: {
+                    editingIngredientIndex = nil
+                    ingredientEditorText = ""
+                    showIngredientEditor = true
+                }) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "plus.circle.fill").font(.title3).foregroundColor(.brandBlue)
+                        Text("Add Ingredient").font(.bodyText.weight(.medium)).foregroundColor(.brandBlue)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(12)
+                    .background(Color.brandBlueLight, in: RoundedRectangle(cornerRadius: 10))
                 }
-                .font(.subheadline.weight(.semibold)).foregroundColor(newIngredientText.trimmingCharacters(in: .whitespaces).isEmpty ? .textTertiary : .brandBlue)
-                .disabled(newIngredientText.trimmingCharacters(in: .whitespaces).isEmpty)
+                .padding(12)
+                .buttonStyle(.plain)
             }
-            .padding(12).background(Color.cardBg.opacity(0.6), in: RoundedRectangle(cornerRadius: 10))
+            .background(Color.cardBg, in: RoundedRectangle(cornerRadius: 14))
         }
         .padding(.horizontal, 20)
+    }
 
+    private func ingredientRow(i: Int, ing: Ingredient) -> some View {
+        HStack(spacing: 8) {
+            // Delete button
+            Button(action: { ingredients.remove(at: i) }) {
+                Image(systemName: "minus.circle.fill").font(.title3).foregroundColor(.accentRed)
+            }
+            .buttonStyle(.plain)
+
+            // Tappable text → opens editor
+            Text(ing.displayString)
+                .font(.bodyText)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .onTapGesture {
+                    ingredientEditorText = "\(ing.amount) \(ing.unit) \(ing.name)"
+                    editingIngredientIndex = i
+                    showIngredientEditor = true
+                }
+
+            // Drag handle
+            Image(systemName: "line.3.horizontal")
+                .font(.title3).foregroundColor(.textTertiary)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
     }
 
     // MARK: Steps
@@ -318,6 +347,52 @@ struct RecipeEditView: View {
         let c = Int(r.cookTime); cookH = c / 3600; cookM = (c % 3600) / 60
         ingredients = r.ingredients; steps = r.steps; tags = r.tags
         if let fn = r.photoFilename, let url = store.photoURL(for: r), let d = try? Data(contentsOf: url) { photoData = d }
+    }
+
+    // MARK: Ingredient Editor Sheet
+
+    private var ingredientEditorSheet: some View {
+        NavigationStack {
+            VStack(spacing: 0) {
+                TextField("例如：一勺糖", text: $ingredientEditorText)
+                    .font(.bodyText)
+                    .textFieldStyle(.plain)
+                    .padding(16)
+                    .background(Color.cardBg, in: RoundedRectangle(cornerRadius: 12))
+                    .padding(20)
+                Spacer()
+            }
+            .background(Color.pageBg)
+            .navigationTitle(editingIngredientIndex != nil ? "Edit Ingredient" : "Add Ingredient")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Done") { showIngredientEditor = false }
+                        .font(.bodyText.weight(.medium)).foregroundColor(.brandBlue)
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button(action: commitIngredientEditor) {
+                        Image(systemName: "plus").font(.title2.weight(.semibold)).foregroundColor(.brandBlue)
+                    }
+                    .disabled(ingredientEditorText.trimmingCharacters(in: .whitespaces).isEmpty)
+                }
+            }
+        }
+        .presentationDetents([.height(200)])
+    }
+
+    private func commitIngredientEditor() {
+        let text = ingredientEditorText.trimmingCharacters(in: .whitespaces)
+        guard !text.isEmpty else { return }
+        let parsed = Ingredient.parseChinese(text)
+        if let idx = editingIngredientIndex, idx < ingredients.count {
+            ingredients[idx] = parsed
+            showIngredientEditor = false
+            editingIngredientIndex = nil
+        } else {
+            ingredients.append(parsed)
+            ingredientEditorText = ""
+        }
     }
 }
 

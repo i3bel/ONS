@@ -53,6 +53,9 @@
     "Add %lld Items" : {
 
     },
+    "Add Ingredient" : {
+
+    },
     "Add Tags" : {
 
     },
@@ -89,10 +92,10 @@
     "Done" : {
 
     },
-    "Edit Recipe" : {
+    "Edit Ingredient" : {
 
     },
-    "Edit Tags" : {
+    "Edit Recipe" : {
 
     },
     "h" : {
@@ -163,9 +166,6 @@
 
     },
     "Servings" : {
-
-    },
-    "Shared by RecipeSlate ❤️" : {
 
     },
     "Sort by Cook Time" : {

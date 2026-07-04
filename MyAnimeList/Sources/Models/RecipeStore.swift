@@ -131,9 +131,9 @@ struct Ingredient: Identifiable, Codable, Equatable {
             }
         }
 
-        // Try Arabic digits at start
-        if amount >= 1, let firstDigit = trimmed.first, firstDigit.isNumber {
-            let digits = trimmed.prefix(while: \.isNumber)
+        // Try Arabic digits at start (including decimal)
+        if let firstDigit = trimmed.first, firstDigit.isNumber || firstDigit == "." {
+            let digits = trimmed.prefix(while: { $0.isNumber || $0 == "." })
             if let parsed = Double(digits) {
                 amount = parsed
                 name = String(trimmed.dropFirst(digits.count))

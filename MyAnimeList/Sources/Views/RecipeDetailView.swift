@@ -40,8 +40,6 @@ struct RecipeDetailView: View {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Menu {
                     Button("Edit Recipe", systemImage: "pencil") { showEdit = true }
-                    Button("Edit Tags", systemImage: "tag") { }
-                    Divider()
                     Button("Delete Recipe", systemImage: "trash", role: .destructive) { showDelete = true }
                 } label: {
                     Image(systemName: "ellipsis").font(.title2).foregroundColor(.white)
@@ -82,19 +80,15 @@ struct RecipeDetailView: View {
             Button(action: { }) {
                 Label("Start", systemImage: "play.fill")
                     .font(.bodyText.weight(.semibold)).foregroundColor(.white)
-                    .frame(maxWidth: .infinity).frame(height: 48).background(Color.accentGreen).clipShape(Capsule())
+                    .frame(maxWidth: .infinity).frame(height: 56).background(Color.accentGreen).clipShape(Capsule())
             }
+
+            Spacer()
 
             // Basket
             Button(action: { showGroceries = true }) {
                 Image(systemName: "basket").font(.title2).foregroundColor(.brandBlue)
-                    .frame(width: 48, height: 48).background(Circle().fill(Color.cardBg).stroke(Color.dividerColor, lineWidth: 1))
-            }
-
-            // Share
-            Button(action: { }) {
-                Image(systemName: "square.and.arrow.up").font(.title2).foregroundColor(.brandBlue)
-                    .frame(width: 48, height: 48).background(Circle().fill(Color.cardBg).stroke(Color.dividerColor, lineWidth: 1))
+                    .frame(width: 56, height: 56).background(Circle().fill(Color.cardBg).stroke(Color.dividerColor, lineWidth: 1))
             }
         }
         .padding(.horizontal, 20).padding(.vertical, 16)
@@ -105,14 +99,14 @@ struct RecipeDetailView: View {
     private var infoBar: some View {
         HStack(spacing: 16) {
             HStack(spacing: 6) {
-                Text("👥").font(.subheadline)
+                Text("👥").font(.title3)
                 Text("\(displayServings)").font(.calloutText).foregroundColor(.textSecondary)
             }
             .padding(.horizontal, 12).padding(.vertical, 6).background(Color.cardBg).clipShape(RoundedRectangle(cornerRadius: 12)).overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.dividerColor, lineWidth: 1))
 
             if recipe.totalTime > 0 {
                 HStack(spacing: 6) {
-                    Text("⏱").font(.subheadline)
+                    Text("⏱").font(.title3)
                     Text("Prep \(timeStr(recipe.prepTime)) · Cook \(timeStr(recipe.cookTime))").font(.calloutText).foregroundColor(.textSecondary)
                 }
                 .padding(.horizontal, 12).padding(.vertical, 6).background(Color.cardBg).clipShape(RoundedRectangle(cornerRadius: 12)).overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.dividerColor, lineWidth: 1))
@@ -258,8 +252,9 @@ struct RecipeDetailView: View {
                 continue
             }
 
-            // Time → red (#\d+\s*(min|minutes|mins|分钟|秒|hour|hours)#)
-            if let r = remaining.range(of: #"\d+\s*(min(ute)?s?|mins|分钟|秒|hour(s)?)"#, options: .regularExpression) {
+            // Time → red (Chinese time expressions + numeric)
+            let timePattern = #"(?:\d+\s*(?:min(?:ute)?s?|mins|秒|hour(?:s)?|分钟|小时|分|天|周|个月|年))|(?:[一两二三四五六七八九十半几数]+\s*(?:分钟|小时|天|周|个月|年))|一刻|一会|一会儿|片刻|半天|半个月|半年|半日|数日"#
+            if let r = remaining.range(of: timePattern, options: .regularExpression) {
                 let before = String(remaining[remaining.startIndex..<r.lowerBound])
                 if !before.isEmpty { result = result + Text(before).foregroundColor(.black) }
                 result = result + Text(String(remaining[r])).foregroundColor(.accentRed).fontWeight(.bold)
@@ -291,9 +286,7 @@ struct RecipeDetailView: View {
             }
             .padding(.horizontal, 20)
 
-            Text("Shared by RecipeSlate ❤️")
-                .font(.calloutText).foregroundColor(.textTertiary)
-                .frame(maxWidth: .infinity).padding(.vertical, 16)
+            Text("").frame(height: 16)
         }
         .padding(.bottom, 20)
     }
