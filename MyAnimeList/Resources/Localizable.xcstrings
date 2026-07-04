@@ -196,9 +196,6 @@
     "New Recipe" : {
 
     },
-    "No recipes yet" : {
-
-    },
     "No results" : {
 
     },
@@ -254,9 +251,6 @@
     "Tags" : {
 
     },
-    "Tap + to add your first recipe" : {
-
-    },
     "This will delete all %lld recipes and their photos. This cannot be undone." : {
 
     },
@@ -278,6 +272,9 @@
     "添加食材" : {
 
     },
+    "点击 + 添加你的第一个菜谱" : {
+
+    },
     "烹饪" : {
 
     },
@@ -288,6 +285,9 @@
 
     },
     "还没有开始烹饪" : {
+
+    },
+    "还没有菜谱" : {
 
     },
     "采购" : {

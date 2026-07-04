@@ -43,7 +43,7 @@ struct CookModeView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .principal) {
-                    (Text("\(store.remainingSteps)").font(.title2.weight(.bold)).foregroundColor(.black)
+                    (Text("\(store.remainingSteps)").font(.title2.weight(.bold)).foregroundColor(.textPrimary)
                     + Text(" steps").font(.bodyText.weight(.bold)).foregroundColor(.textSecondary))
                         .contentTransition(.numericText())
                 }
@@ -147,13 +147,13 @@ struct CookModeView: View {
 
             if let r = earliestRange, let color = earliestColor {
                 let before = String(remaining[remaining.startIndex..<r.lowerBound])
-                if !before.isEmpty { result = result + Text(before).foregroundColor(.black) }
+                if !before.isEmpty { result = result + Text(before).foregroundColor(.textPrimary) }
                 result = result + Text(String(remaining[r])).foregroundColor(color).fontWeight(.bold)
                 remaining = String(remaining[r.upperBound...])
                 continue
             }
 
-            result = result + Text(String(remaining.first!)).foregroundColor(.black)
+            result = result + Text(String(remaining.first!)).foregroundColor(.textPrimary)
             remaining = String(remaining.dropFirst())
         }
         return result

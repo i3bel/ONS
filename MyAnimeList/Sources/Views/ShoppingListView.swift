@@ -8,60 +8,56 @@ struct ShoppingListView: View {
 
     var body: some View {
         NavigationStack {
-            List {
+            Group {
                 if store.shoppingItems.isEmpty {
-                    VStack(spacing: 12) {
-                        Image(systemName: "cart").font(.system(size: 40)).foregroundColor(.textTertiary)
-                        Text("采购清单为空").font(.title3.weight(.semibold))
-                        Text("从食谱详情添加或点击 + 手动添加").font(.calloutText).foregroundColor(.textSecondary)
-                    }
-                    .frame(maxWidth: .infinity).padding(.vertical, 60)
-                    .listRowBackground(Color.clear).listRowSeparator(.hidden)
+                    emptyState
                 } else {
-                    ForEach(store.shoppingItems) { item in
-                        HStack(spacing: 10) {
-                            // Checkbox
-                            Button(action: { toggle(item.id) }) {
-                                Image(systemName: completed.contains(item.id) ? "checkmark.circle.fill" : "circle")
-                                    .font(.title3).foregroundColor(completed.contains(item.id) ? .accentGreen : .textSecondary)
+                    List {
+                        ForEach(store.shoppingItems) { item in
+                            HStack(spacing: 10) {
+                                // Checkbox
+                                Button(action: { toggle(item.id) }) {
+                                    Image(systemName: completed.contains(item.id) ? "checkmark.circle.fill" : "circle")
+                                        .font(.title3).foregroundColor(completed.contains(item.id) ? .accentGreen : .textSecondary)
+                                }
+                                .buttonStyle(.plain)
+
+                                // Item info
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(item.name)
+                                        .font(.bodyText)
+                                        .strikethrough(completed.contains(item.id))
+                                        .foregroundColor(completed.contains(item.id) ? .textSecondary : .textPrimary)
+
+                                    ingredientSubtitle(item: item, completed: completed.contains(item.id))
+                                }
+
+                                Spacer()
+
+                                // Delete
+                                Button(action: { store.removeShoppingItem(item.id) }) {
+                                    Image(systemName: "xmark.circle.fill").font(.title3).foregroundColor(.accentRed)
+                                }
+                                .buttonStyle(.plain)
                             }
-                            .buttonStyle(.plain)
-
-                            // Item info
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(item.name)
-                                    .font(.bodyText)
-                                    .strikethrough(completed.contains(item.id))
-                                    .foregroundColor(completed.contains(item.id) ? .textSecondary : .black)
-
-                                ingredientSubtitle(item: item, completed: completed.contains(item.id))
-                            }
-
-                            Spacer()
-
-                            // Delete
-                            Button(action: { store.removeShoppingItem(item.id) }) {
-                                Image(systemName: "xmark.circle.fill").font(.title3).foregroundColor(.accentRed)
-                            }
-                            .buttonStyle(.plain)
+                            .padding(12)
+                            .background(Color.cardBg, in: RoundedRectangle(cornerRadius: 12))
+                            .opacity(completed.contains(item.id) ? 0.5 : 1)
+                            .listRowInsets(.init(top: 4, leading: 16, bottom: 4, trailing: 16))
+                            .listRowBackground(Color.clear)
+                            .listRowSeparator(.hidden)
                         }
-                        .padding(12)
-                        .background(Color.cardBg, in: RoundedRectangle(cornerRadius: 12))
-                        .opacity(completed.contains(item.id) ? 0.5 : 1)
-                        .listRowInsets(.init(top: 4, leading: 16, bottom: 4, trailing: 16))
-                        .listRowBackground(Color.clear)
-                        .listRowSeparator(.hidden)
                     }
+                    .listStyle(.plain)
+                    .background(Color.bgSecondary)
                 }
             }
-            .listStyle(.plain)
-            .background(Color.bgSecondary)
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .principal) {
                     (Text("\(store.shoppingItems.count - completed.count)")
-                        .font(.title2.weight(.bold)).foregroundColor(.black)
+                        .font(.title2.weight(.bold)).foregroundColor(.textPrimary)
                     + Text(" left")
                         .font(.bodyText.weight(.bold)).foregroundColor(.textSecondary))
                     .contentTransition(.numericText())
@@ -79,6 +75,17 @@ struct ShoppingListView: View {
                 ingredientEditorSheet
             }
         }
+    }
+
+    // MARK: - Empty State
+
+    private var emptyState: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "cart").font(.system(size: 40)).foregroundColor(.textTertiary)
+            Text("采购清单为空").font(.title3.weight(.semibold))
+            Text("从食谱详情添加或点击 + 手动添加").font(.calloutText).foregroundColor(.textSecondary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private func toggle(_ id: String) {

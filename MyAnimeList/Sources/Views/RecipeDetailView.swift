@@ -195,7 +195,7 @@ struct RecipeDetailView: View {
                 .foregroundColor(.brandBlue) +
             Text("  \(name)")
                 .font(.bodyText)
-                .foregroundColor(.black)
+                .foregroundColor(.textPrimary)
             Spacer()
         }
         .padding(.vertical, 6)
@@ -261,13 +261,13 @@ struct RecipeDetailView: View {
 
             if let r = earliestRange, let color = earliestColor {
                 let before = String(remaining[remaining.startIndex..<r.lowerBound])
-                if !before.isEmpty { result = result + Text(before).foregroundColor(.black) }
+                if !before.isEmpty { result = result + Text(before).foregroundColor(.textPrimary) }
                 result = result + Text(String(remaining[r])).foregroundColor(color).fontWeight(.bold)
                 remaining = String(remaining[r.upperBound...])
                 continue
             }
 
-            result = result + Text(String(remaining.first!)).foregroundColor(.black)
+            result = result + Text(String(remaining.first!)).foregroundColor(.textPrimary)
             remaining = String(remaining.dropFirst())
         }
         return result
@@ -347,7 +347,7 @@ private struct AddToGroceriesSheet: View {
                 .toolbar {
                     ToolbarItem(placement: .topBarLeading) {
                         Button("Cancel") { dismiss() }
-                            .font(.bodyText.weight(.medium)).foregroundColor(.black)
+                            .font(.bodyText.weight(.medium)).foregroundColor(.textPrimary)
                             .padding(.horizontal, 16).padding(.vertical, 8)
                             .background(Color.cardBg).clipShape(Capsule())
                     }

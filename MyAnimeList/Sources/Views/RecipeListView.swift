@@ -10,16 +10,12 @@ struct RecipeListView: View {
 
     var body: some View {
         NavigationStack {
-            List {
+            Group {
                 if store.recipes.isEmpty {
-                    VStack(spacing: 12) {
-                        Image(systemName: "book.closed").font(.system(size: 40)).foregroundColor(.textTertiary)
-                        Text("No recipes yet").font(.title3.weight(.semibold))
-                        Text("Tap + to add your first recipe").font(.calloutText).foregroundColor(.textSecondary)
-                    }
-                    .frame(maxWidth: .infinity).padding(.vertical, 60)
-                    .listRowBackground(Color.clear).listRowSeparator(.hidden)
-                } else if selectMode {
+                    emptyState
+                } else {
+                    List {
+                        if selectMode {
                     selectAllRow
                     ForEach(store.sortedRecipes) { recipe in
                         RecipeRow(recipe: recipe, store: store, selectMode: true, isSelected: selected.contains(recipe.id)) {
@@ -45,11 +41,13 @@ struct RecipeListView: View {
             }
             .listStyle(.plain)
             .background(Color.bgSecondary)
+                }
+            }
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .principal) {
-                    Text("\(store.recipes.count)").font(.title2.weight(.bold)).foregroundColor(.black)
+                    Text("\(store.recipes.count)").font(.title2.weight(.bold)).foregroundColor(.textPrimary)
                     + Text(" Recipes").font(.bodyText.weight(.bold)).foregroundColor(.textSecondary)
                 }
                 ToolbarItem(placement: .topBarTrailing) {
@@ -86,6 +84,15 @@ struct RecipeListView: View {
             }
             .animation(.spring, value: showActionBar)
         }
+    }
+
+    private var emptyState: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "book.closed").font(.system(size: 40)).foregroundColor(.textTertiary)
+            Text("还没有菜谱").font(.title3.weight(.semibold))
+            Text("点击 + 添加你的第一个菜谱").font(.calloutText).foregroundColor(.textSecondary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private var selectAllRow: some View {
@@ -136,7 +143,7 @@ private struct RecipeRow: View {
                 .frame(width: 100, height: 100).clipShape(RoundedRectangle(cornerRadius: 14))
 
                 VStack(alignment: .leading, spacing: 6) {
-                    Text(recipe.name).font(.bodyText.weight(.semibold)).lineLimit(1).foregroundColor(.black)
+                    Text(recipe.name).font(.bodyText.weight(.semibold)).lineLimit(1).foregroundColor(.textPrimary)
 
                     HStack(spacing: 8) {
                         HStack(spacing: 4) {

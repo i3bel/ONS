@@ -270,6 +270,7 @@ final class RecipeStore {
         cookingSteps = recipe.steps
         completedStepIds = []
         cookingRecipeName = recipe.name
+        clearShoppingList()   // clear shopping list → Tab3 shows "0 left"
     }
 
     func toggleStep(_ id: String) {

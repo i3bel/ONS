@@ -107,7 +107,7 @@ struct RecipeSearchView: View {
             .frame(width: 60, height: 60).clipShape(RoundedRectangle(cornerRadius: 10))
 
             VStack(alignment: .leading, spacing: 4) {
-                Text(recipe.name).font(.bodyText.weight(.semibold)).lineLimit(1).foregroundColor(.black)
+                Text(recipe.name).font(.bodyText.weight(.semibold)).lineLimit(1).foregroundColor(.textPrimary)
                 Text("\(recipe.ingredients.count) ingredients · \(recipe.servings) servings")
                     .font(.captionText).foregroundColor(.textSecondary)
             }

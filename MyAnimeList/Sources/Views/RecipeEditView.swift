@@ -131,7 +131,7 @@ struct RecipeEditView: View {
             VStack(spacing: 0) {
                 // Servings
                 HStack {
-                    Text("Servings").font(.bodyText).foregroundColor(.black)
+                    Text("Servings").font(.bodyText).foregroundColor(.textPrimary)
                     Spacer()
                     Button(action: { showServingsPicker = true }) {
                         Text("\(servings)").font(.bodyText.weight(.semibold)).foregroundColor(.brandBlue)
@@ -143,7 +143,7 @@ struct RecipeEditView: View {
 
                 // Prep
                 HStack {
-                    Text("Prep").font(.bodyText).foregroundColor(.black)
+                    Text("Prep").font(.bodyText).foregroundColor(.textPrimary)
                     Spacer()
                     Button(action: { showPrepPicker = true }) {
                         Text("\(prepH)h \(prepM)m").font(.bodyText.weight(.semibold)).foregroundColor(.brandBlue)
@@ -155,7 +155,7 @@ struct RecipeEditView: View {
 
                 // Cook
                 HStack {
-                    Text("Cook").font(.bodyText).foregroundColor(.black)
+                    Text("Cook").font(.bodyText).foregroundColor(.textPrimary)
                     Spacer()
                     Button(action: { showCookPicker = true }) {
                         Text("\(cookH)h \(cookM)m").font(.bodyText.weight(.semibold)).foregroundColor(.brandBlue)
