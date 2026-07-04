@@ -2,7 +2,6 @@ import SwiftUI
 
 struct RecipeListView: View {
     @Environment(RecipeStore.self) private var store
-    @State private var search = ""
     @State private var showSortSheet = false
     @State private var selectMode = false
     @State private var selected = Set<String>()
@@ -10,82 +9,64 @@ struct RecipeListView: View {
     @State private var showNewRecipe = false
     @State private var showDetail: Recipe?
 
-    private var filtered: [Recipe] {
-        let q = search.trimmingCharacters(in: .whitespaces).lowercased()
-        let sorted = store.sortedRecipes
-        return q.isEmpty ? sorted : sorted.filter { $0.name.lowercased().contains(q) || $0.ingredients.contains(where: { $0.name.lowercased().contains(q) }) }
-    }
-
     var body: some View {
         NavigationStack {
-            ZStack(alignment: .bottomTrailing) {
-                List {
-                    if filtered.isEmpty && !search.isEmpty {
-                        VStack(spacing: 8) {
-                            Image(systemName: "magnifyingglass").font(.title2).foregroundColor(.textSecondary)
-                            Text("No results").font(.bodyText).foregroundColor(.textSecondary)
+            List {
+                if store.recipes.isEmpty {
+                    VStack(spacing: 12) {
+                        Image(systemName: "book.closed").font(.system(size: 40)).foregroundColor(.textTertiary)
+                        Text("No recipes yet").font(.title3.weight(.semibold))
+                        Text("Tap + to add your first recipe").font(.calloutText).foregroundColor(.textSecondary)
+                    }
+                    .frame(maxWidth: .infinity).padding(.vertical, 60)
+                    .listRowBackground(Color.clear).listRowSeparator(.hidden)
+                } else if selectMode {
+                    selectAllRow
+                    ForEach(store.sortedRecipes) { recipe in
+                        RecipeRow(recipe: recipe, store: store, selectMode: true, isSelected: selected.contains(recipe.id)) {
+                            if selected.contains($0.id) { selected.remove($0.id) }
+                            else { selected.insert($0.id) }
+                            showActionBar = !selected.isEmpty
                         }
-                        .frame(maxWidth: .infinity).padding(.vertical, 40)
-                        .listRowBackground(Color.clear).listRowSeparator(.hidden)
-                    } else if filtered.isEmpty {
-                        VStack(spacing: 12) {
-                            Image(systemName: "book.closed").font(.system(size: 40)).foregroundColor(.textTertiary)
-                            Text("No recipes yet").font(.title3.weight(.semibold))
-                            Text("Tap + to add your first recipe").font(.calloutText).foregroundColor(.textSecondary)
-                        }
-                        .frame(maxWidth: .infinity).padding(.vertical, 60)
-                        .listRowBackground(Color.clear).listRowSeparator(.hidden)
-                    } else if selectMode {
-                        selectAllRow
-                        ForEach(filtered) { recipe in
-                            RecipeRow(recipe: recipe, store: store, selectMode: true, isSelected: selected.contains(recipe.id)) {
-                                if selected.contains($0.id) { selected.remove($0.id) }
-                                else { selected.insert($0.id) }
-                                showActionBar = !selected.isEmpty
-                            }
-                            .listRowInsets(.init(top: 8, leading: 16, bottom: 8, trailing: 16))
+                        .listRowInsets(.init(top: 6, leading: 16, bottom: 6, trailing: 16))
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                    }
+                } else {
+                    ForEach(store.sortedRecipes) { recipe in
+                        RecipeRow(recipe: recipe, store: store, selectMode: false, isSelected: false) { showDetail = $0 }
+                            .listRowInsets(.init(top: 6, leading: 16, bottom: 6, trailing: 16))
                             .listRowBackground(Color.clear)
-                        }
-                    } else {
-                        ForEach(filtered) { recipe in
-                            RecipeRow(recipe: recipe, store: store, selectMode: false, isSelected: false) { showDetail = $0 }
-                                .listRowInsets(.init(top: 8, leading: 16, bottom: 8, trailing: 16))
-                                .listRowBackground(Color.clear)
-                                .swipeActions(edge: .leading, allowsFullSwipe: true) {
-                                    Button(action: {}) { Label("Make", systemImage: "play.fill") }.tint(.accentGreen)
-                                }
-                                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                                    Button(role: .destructive) { store.delete(recipe) } label: { Label("Delete", systemImage: "trash") }
-                                }
-                        }
+                            .listRowSeparator(.hidden)
+                            .swipeActions(edge: .leading, allowsFullSwipe: true) {
+                                Button(action: {}) { Label("Make", systemImage: "play.fill") }.tint(.accentGreen)
+                            }
                     }
-                }
-                .listStyle(.plain)
-                .background(Color.bgSecondary)
-
-                // FAB
-                if !selectMode {
-                    Button(action: { showNewRecipe = true }) {
-                        Image(systemName: "plus").font(.title2.weight(.semibold)).foregroundColor(.white)
-                            .frame(width: 56, height: 56).background(Color.brandBlue).clipShape(Circle())
-                            .shadow(color: .black.opacity(0.12), radius: 8, y: 4)
-                    }
-                    .padding(.trailing, 16).padding(.bottom, 16)
                 }
             }
-            .navigationTitle("All Recipes")
-            .navigationBarTitleDisplayMode(.large)
-            .searchable(text: $search, prompt: "Recipes, Ingredients and More")
-                .searchPresentationToolbarBehavior(.avoidHidingContent)
+            .listStyle(.plain)
+            .background(Color.bgSecondary)
+            .navigationTitle("")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text("\(store.recipes.count)").font(.title2.weight(.bold)).foregroundColor(.black)
+                    + Text(" Recipes").font(.bodyText.weight(.bold)).foregroundColor(.textSecondary)
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     if selectMode {
                         Button("Cancel") { selectMode = false; selected.removeAll(); showActionBar = false }
                             .font(.bodyText).foregroundColor(.brandBlue)
                     } else {
-                        Button(action: { showSortSheet = true }) {
-                            Image(systemName: "ellipsis").font(.title2).foregroundColor(.black)
+                        HStack(spacing: 12) {
+                            Button(action: { showSortSheet = true }) {
+                                Image(systemName: "ellipsis").font(.title2).foregroundColor(.black)
+                            }
+                            Button(action: { showNewRecipe = true }) {
+                                Image(systemName: "plus").font(.title2.weight(.semibold)).foregroundColor(.brandBlue)
+                            }
                         }
+                        .padding(.horizontal, 10)
                     }
                 }
             }
@@ -122,23 +103,24 @@ struct RecipeListView: View {
 
     private var selectAllRow: some View {
         Button(action: {
-            if selected.count == filtered.count { selected.removeAll() }
-            else { selected = Set(filtered.map(\.id)) }
+            if selected.count == store.sortedRecipes.count { selected.removeAll() }
+            else { selected = Set(store.sortedRecipes.map(\.id)) }
             showActionBar = !selected.isEmpty
         }) {
             HStack {
-                Image(systemName: selected.count == filtered.count ? "checkmark.circle.fill" : "circle")
+                Image(systemName: selected.count == store.sortedRecipes.count ? "checkmark.circle.fill" : "circle")
                     .font(.title3).foregroundColor(.brandBlue)
-                Text(selected.count == filtered.count ? "Deselect All" : "Select All")
+                Text(selected.count == store.sortedRecipes.count ? "Deselect All" : "Select All")
                     .font(.bodyText).foregroundColor(.brandBlue)
             }
         }
-        .listRowInsets(.init(top: 8, leading: 16, bottom: 4, trailing: 16))
+        .listRowInsets(.init(top: 6, leading: 16, bottom: 6, trailing: 16))
         .listRowBackground(Color.clear)
+        .listRowSeparator(.hidden)
     }
 }
 
-// MARK: - Recipe Row (spec: 80x80 image + pill tags)
+// MARK: - Recipe Row
 
 private struct RecipeRow: View {
     var recipe: Recipe
@@ -155,7 +137,6 @@ private struct RecipeRow: View {
                         .font(.title3).foregroundColor(isSelected ? .brandBlue : .textSecondary)
                 }
 
-                // Thumbnail 80x80
                 ZStack {
                     if let url = store.photoURL(for: recipe), let img = UIImage(contentsOfFile: url.path) {
                         Image(uiImage: img).resizable().scaledToFill()
@@ -171,7 +152,6 @@ private struct RecipeRow: View {
                     Text(recipe.name).font(.bodyText.weight(.semibold)).lineLimit(1).foregroundColor(.black)
 
                     HStack(spacing: 8) {
-                        // Servings pill
                         HStack(spacing: 4) {
                             Text("👥").font(.caption)
                             Text("\(recipe.servings)").font(.calloutText).foregroundColor(.textSecondary)
@@ -191,8 +171,8 @@ private struct RecipeRow: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .padding(0)
-            .background(Color.bgPrimary)
+            .padding(14)
+            .background(Color.cardBg, in: RoundedRectangle(cornerRadius: 14))
         }
         .buttonStyle(.plain)
     }

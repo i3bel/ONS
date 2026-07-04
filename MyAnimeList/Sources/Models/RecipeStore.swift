@@ -186,6 +186,7 @@ struct CookingStep: Identifiable, Codable, Equatable {
 final class RecipeStore {
     var recipes: [Recipe] = []
     var sortOrder: SortOrder = .name
+    var shoppingItems: [Ingredient] = []
 
     enum SortOrder: String, Codable { case name, prepTime }
 
@@ -224,17 +225,37 @@ final class RecipeStore {
         return fileURL.deletingLastPathComponent().appendingPathComponent(fn)
     }
 
+    func addShoppingItems(_ items: [Ingredient]) {
+        shoppingItems.append(contentsOf: items)
+        save()
+    }
+
+    func addShoppingItem(_ item: Ingredient) {
+        shoppingItems.append(item)
+        save()
+    }
+
+    func removeShoppingItem(_ id: String) {
+        shoppingItems.removeAll { $0.id == id }
+        save()
+    }
+
+    func clearShoppingList() {
+        shoppingItems.removeAll()
+        save()
+    }
+
     private func load() {
         isLoading = true; defer { isLoading = false }
         guard let data = try? Data(contentsOf: fileURL),
               let snap = try? JSONDecoder.recipeStore.decode(Snapshot.self, from: data) else { return }
-        recipes = snap.recipes; sortOrder = snap.sortOrder
+        recipes = snap.recipes; sortOrder = snap.sortOrder; shoppingItems = snap.shoppingItems
     }
 
     func save() {
         guard !isLoading else { return }
         try? FileManager.default.createDirectory(at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true)
-        let snap = Snapshot(recipes: recipes, sortOrder: sortOrder)
+        let snap = Snapshot(recipes: recipes, sortOrder: sortOrder, shoppingItems: shoppingItems)
         if let data = try? JSONEncoder.recipeStore.encode(snap) { try? data.write(to: fileURL, options: .atomic) }
     }
 }
@@ -242,6 +263,7 @@ final class RecipeStore {
 private struct Snapshot: Codable {
     var recipes: [Recipe]
     var sortOrder: RecipeStore.SortOrder
+    var shoppingItems: [Ingredient] = []
 }
 
 extension JSONEncoder { static var recipeStore: JSONEncoder { let e = JSONEncoder(); e.dateEncodingStrategy = .iso8601; e.outputFormatting = [.prettyPrinted, .sortedKeys]; return e } }

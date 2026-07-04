@@ -1,94 +1,122 @@
 import SwiftUI
-import EventKit
 
 struct ShoppingListView: View {
     @Environment(RecipeStore.self) private var store
     @State private var completed = Set<String>()
-    @State private var showAlert = false
-    @State private var alertMsg = ""
-
-    private var mergedItems: [(String, Double, String, String)] {
-        var dict: [String: (Double, String, String)] = [:] // name_unit: (total, unit, sources)
-        for r in store.recipes {
-            for ing in r.ingredients {
-                let key = "\(ing.name.lowercased())_\(ing.unit)"
-                if var existing = dict[key] {
-                    existing.0 += ing.amount
-                    dict[key] = existing
-                } else {
-                    dict[key] = (ing.amount, ing.unit, r.name)
-                }
-            }
-        }
-        return dict.map { (name: String($0.key.split(separator: "_")[0]), amount: $0.value.0, unit: $0.value.1, source: $0.value.2) }
-            .sorted { $0.name < $1.name }
-    }
+    @State private var showIngredientEditor = false
+    @State private var ingredientEditorText = ""
 
     var body: some View {
         NavigationStack {
             List {
-                if mergedItems.isEmpty {
-                    ContentUnavailableView("没有食材", systemImage: "cart", description: Text("食谱中的食材会自动出现在这里"))
-                        .listRowBackground(Color.clear)
-                }
-                ForEach(mergedItems, id: \.0) { (name, amount, unit, _) in
-                    HStack(spacing: 10) {
-                        Button(action: { toggle(name) }) {
-                            Image(systemName: completed.contains(name) ? "checkmark.circle.fill" : "circle")
-                                .font(.title3).foregroundColor(completed.contains(name) ? .green : .secondary)
-                        }
-                        .buttonStyle(.plain)
-
-                        Text(name).font(.body).strikethrough(completed.contains(name))
-                        Spacer()
-                        Text(formatAmount(amount)).font(.body.weight(.semibold)).foregroundColor(.orange)
-                        Text(unit).font(.footnote).foregroundColor(Color.textSecondary)
+                if store.shoppingItems.isEmpty {
+                    VStack(spacing: 12) {
+                        Image(systemName: "cart").font(.system(size: 40)).foregroundColor(.textTertiary)
+                        Text("采购清单为空").font(.title3.weight(.semibold))
+                        Text("从食谱详情添加或点击 + 手动添加").font(.calloutText).foregroundColor(.textSecondary)
                     }
-                    .opacity(completed.contains(name) ? 0.5 : 1)
+                    .frame(maxWidth: .infinity).padding(.vertical, 60)
+                    .listRowBackground(Color.clear).listRowSeparator(.hidden)
+                } else {
+                    ForEach(store.shoppingItems) { item in
+                        HStack(spacing: 10) {
+                            // Checkbox
+                            Button(action: { toggle(item.id) }) {
+                                Image(systemName: completed.contains(item.id) ? "checkmark.circle.fill" : "circle")
+                                    .font(.title3).foregroundColor(completed.contains(item.id) ? .accentGreen : .textSecondary)
+                            }
+                            .buttonStyle(.plain)
+
+                            // Item info
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(item.name)
+                                    .font(.bodyText)
+                                    .strikethrough(completed.contains(item.id))
+                                    .foregroundColor(completed.contains(item.id) ? .textSecondary : .black)
+                                Text(item.displayString)
+                                    .font(.captionText).foregroundColor(.textTertiary)
+                            }
+
+                            Spacer()
+
+                            // Delete
+                            Button(action: { store.removeShoppingItem(item.id) }) {
+                                Image(systemName: "xmark.circle.fill").font(.title3).foregroundColor(.accentRed)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                        .padding(12)
+                        .background(Color.cardBg, in: RoundedRectangle(cornerRadius: 12))
+                        .opacity(completed.contains(item.id) ? 0.5 : 1)
+                        .listRowInsets(.init(top: 4, leading: 16, bottom: 4, trailing: 16))
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                    }
                 }
             }
             .listStyle(.plain)
+            .background(Color.bgSecondary)
             .navigationTitle("采购清单")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button(action: syncToReminders) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "square.and.arrow.up")
-                            Text("同步").font(.footnote)
-                        }
+                    Button(action: {
+                        ingredientEditorText = ""
+                        showIngredientEditor = true
+                    }) {
+                        Image(systemName: "plus").font(.title2.weight(.semibold)).foregroundColor(.brandBlue)
                     }
                 }
             }
-            .alert(alertMsg, isPresented: $showAlert) { Button("好的") {} }
-        }
-    }
-
-    private func toggle(_ name: String) {
-        let impact = UIImpactFeedbackGenerator(style: .medium)
-        impact.impactOccurred()
-        withAnimation { if completed.contains(name) { completed.remove(name) } else { completed.insert(name) } }
-    }
-
-    private func syncToReminders() {
-        Task {
-            let ek = EKEventStore()
-            do {
-                try await ek.requestFullAccessToReminders()
-                let cal = ek.defaultCalendarForNewReminders()
-                for (name, amount, unit, _) in mergedItems where !completed.contains(name) {
-                    let r = EKReminder(eventStore: ek)
-                    r.title = name; r.notes = "\(formatAmount(amount)) \(unit)"
-                    r.calendar = cal; try ek.save(r, commit: true)
-                }
-                await MainActor.run { alertMsg = "已同步到提醒事项"; showAlert = true }
-            } catch {
-                await MainActor.run { alertMsg = "同步失败：\(error.localizedDescription)"; showAlert = true }
+            .sheet(isPresented: $showIngredientEditor) {
+                ingredientEditorSheet
             }
         }
     }
 
-    private func formatAmount(_ a: Double) -> String {
-        a == floor(a) ? String(format: "%.0f", a) : String(format: "%.1f", a)
+    private func toggle(_ id: String) {
+        let impact = UIImpactFeedbackGenerator(style: .medium)
+        impact.impactOccurred()
+        withAnimation { if completed.contains(id) { completed.remove(id) } else { completed.insert(id) } }
+    }
+
+    // MARK: - Ingredient Editor Sheet
+
+    private var ingredientEditorSheet: some View {
+        NavigationStack {
+            VStack(spacing: 0) {
+                TextField("例如：一勺糖", text: $ingredientEditorText)
+                    .font(.bodyText)
+                    .textFieldStyle(.plain)
+                    .padding(16)
+                    .background(Color.cardBg, in: RoundedRectangle(cornerRadius: 12))
+                    .padding(20)
+                Spacer()
+            }
+            .background(Color.pageBg)
+            .navigationTitle("添加食材")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Done") { showIngredientEditor = false }
+                        .font(.bodyText.weight(.medium)).foregroundColor(.brandBlue)
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button(action: commitIngredient) {
+                        Image(systemName: "plus").font(.title2.weight(.semibold)).foregroundColor(.brandBlue)
+                    }
+                    .disabled(ingredientEditorText.trimmingCharacters(in: .whitespaces).isEmpty)
+                }
+            }
+        }
+        .presentationDetents([.height(200)])
+    }
+
+    private func commitIngredient() {
+        let text = ingredientEditorText.trimmingCharacters(in: .whitespaces)
+        guard !text.isEmpty else { return }
+        let parsed = Ingredient.parseChinese(text)
+        store.addShoppingItem(parsed)
+        ingredientEditorText = ""
     }
 }

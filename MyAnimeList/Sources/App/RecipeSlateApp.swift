@@ -1,5 +1,4 @@
 import SwiftUI
-import Observation
 
 @main
 struct RecipeSlateApp: App {
@@ -19,6 +18,7 @@ struct ContentView: View {
 
     var body: some View {
         TabView(selection: $tab) {
+
             Tab("食谱", systemImage: "book", value: 0) {
                 RecipeListView()
             }
@@ -27,6 +27,9 @@ struct ContentView: View {
             }
             Tab("采购", systemImage: "cart", value: 2) {
                 ShoppingListView()
+            }
+            Tab("Search", systemImage: "magnifyingglass", value: 3, role: .search) {
+                RecipeSearchView()
             }
         }
         .tabBarMinimizeBehavior(.onScrollDown)

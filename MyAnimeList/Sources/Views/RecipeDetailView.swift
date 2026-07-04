@@ -304,6 +304,7 @@ struct RecipeDetailView: View {
 // MARK: - Add to Groceries Sheet (spec)
 
 private struct AddToGroceriesSheet: View {
+    @Environment(RecipeStore.self) private var store
     @Environment(\.dismiss) private var dismiss
     var recipe: Recipe
     @State private var selected = Set<String>()
@@ -363,6 +364,8 @@ private struct AddToGroceriesSheet: View {
                     .background(Color.brandBlueLight).clipShape(Capsule())
 
                     Button("Add \(selected.count) Items") {
+                        let items = recipe.ingredients.filter { selected.contains($0.id) }
+                        store.addShoppingItems(items)
                         dismiss()
                     }
                     .font(.bodyText.weight(.semibold)).foregroundColor(.white)
