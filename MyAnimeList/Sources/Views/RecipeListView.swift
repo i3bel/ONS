@@ -3,7 +3,7 @@ import SwiftUI
 struct RecipeListView: View {
     @Environment(RecipeStore.self) private var store
     @State private var search = ""
-    @State private var showSort = false
+    @State private var showSortSheet = false
     @State private var selectMode = false
     @State private var selected = Set<String>()
     @State private var showActionBar = false
@@ -13,119 +13,129 @@ struct RecipeListView: View {
     private var filtered: [Recipe] {
         let q = search.trimmingCharacters(in: .whitespaces).lowercased()
         let sorted = store.sortedRecipes
-        return q.isEmpty ? sorted : sorted.filter { $0.name.lowercased().contains(q) }
+        return q.isEmpty ? sorted : sorted.filter { $0.name.lowercased().contains(q) || $0.ingredients.contains(where: { $0.name.lowercased().contains(q) }) }
     }
 
     var body: some View {
         NavigationStack {
-            List {
-                if filtered.isEmpty {
-                    VStack(spacing: 12) {
-                        Image(systemName: "book.closed").font(.system(size: 40)).foregroundStyle(.secondary.opacity(0.4))
-                        Text("还没有食谱").font(.title3.weight(.semibold))
-                        Text("点右上角 + 新建").font(.subheadline).foregroundStyle(.secondary)
-                    }
-                    .frame(maxWidth: .infinity).padding(.vertical, 60)
-                    .listRowBackground(Color.clear).listRowSeparator(.hidden)
-                } else {
-                    ForEach(filtered) { recipe in
-                        RecipeRow(recipe: recipe, store: store, selectMode: selectMode, isSelected: selected.contains(recipe.id)) { tapped in
-                            if selectMode {
-                                if selected.contains(tapped.id) { selected.remove(tapped.id) }
-                                else { selected.insert(tapped.id) }
-                                showActionBar = !selected.isEmpty
-                            } else {
-                                showDetail = tapped
-                            }
+            ZStack(alignment: .bottomTrailing) {
+                List {
+                    if filtered.isEmpty && !search.isEmpty {
+                        VStack(spacing: 8) {
+                            Image(systemName: "magnifyingglass").font(.title2).foregroundColor(.textSecondary)
+                            Text("No results").font(.bodyText).foregroundColor(.textSecondary)
                         }
-                        .listRowInsets(.init(top: 4, leading: 16, bottom: 4, trailing: 16))
-                        .listRowSeparator(.hidden)
-                        .listRowBackground(Color.clear)
-                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                            Button(role: .destructive) { store.delete(recipe) } label: { Label("删除", systemImage: "trash") }
+                        .frame(maxWidth: .infinity).padding(.vertical, 40)
+                        .listRowBackground(Color.clear).listRowSeparator(.hidden)
+                    } else if filtered.isEmpty {
+                        VStack(spacing: 12) {
+                            Image(systemName: "book.closed").font(.system(size: 40)).foregroundColor(.textTertiary)
+                            Text("No recipes yet").font(.title3.weight(.semibold))
+                            Text("Tap + to add your first recipe").font(.calloutText).foregroundColor(.textSecondary)
+                        }
+                        .frame(maxWidth: .infinity).padding(.vertical, 60)
+                        .listRowBackground(Color.clear).listRowSeparator(.hidden)
+                    } else if selectMode {
+                        selectAllRow
+                        ForEach(filtered) { recipe in
+                            RecipeRow(recipe: recipe, store: store, selectMode: true, isSelected: selected.contains(recipe.id)) {
+                                if selected.contains($0.id) { selected.remove($0.id) }
+                                else { selected.insert($0.id) }
+                                showActionBar = !selected.isEmpty
+                            }
+                            .listRowInsets(.init(top: 4, leading: 16, bottom: 4, trailing: 16))
+                            .listRowBackground(Color.clear)
+                        }
+                    } else {
+                        ForEach(filtered) { recipe in
+                            RecipeRow(recipe: recipe, store: store, selectMode: false, isSelected: false) { showDetail = $0 }
+                                .listRowInsets(.init(top: 4, leading: 16, bottom: 4, trailing: 16))
+                                .listRowBackground(Color.clear)
+                                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                    Button(role: .destructive) { store.delete(recipe) } label: { Label("Delete", systemImage: "trash") }
+                                }
+                        }
+                    }
+                }
+                .listStyle(.plain)
+                .background(Color.bgSecondary)
+
+                // FAB
+                if !selectMode {
+                    Button(action: { showNewRecipe = true }) {
+                        Image(systemName: "plus").font(.title2.weight(.semibold)).foregroundColor(.white)
+                            .frame(width: 56, height: 56).background(Color.brandBlue).clipShape(Circle())
+                            .shadow(color: .black.opacity(0.12), radius: 8, y: 4)
+                    }
+                    .padding(.trailing, 16).padding(.bottom, 16)
+                }
+            }
+            .navigationTitle("All Recipes")
+            .navigationBarTitleDisplayMode(.large)
+            .searchable(text: $search, prompt: "Recipes, Ingredients and More")
+                .searchPresentationToolbarBehavior(.avoidHidingContent)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    if selectMode {
+                        Button("Cancel") { selectMode = false; selected.removeAll(); showActionBar = false }
+                            .font(.bodyText).foregroundColor(.brandBlue)
+                    } else {
+                        Button(action: { showSortSheet = true }) {
+                            Image(systemName: "ellipsis").font(.title2).foregroundColor(.black)
                         }
                     }
                 }
             }
-            .listStyle(.plain)
-            .background(Color(.systemGroupedBackground))
-            .navigationTitle("\(filtered.count) recipe")
-            .navigationBarTitleDisplayMode(.inline)
-            .searchable(text: $search, prompt: "搜索食谱")
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Text("\(filtered.count) recipe")
-                        .font(.headline.weight(.semibold))
-                        .foregroundStyle(.secondary)
-                }
-                ToolbarItem(placement: .topBarTrailing) {
-                    HStack(spacing: 2) {
-                        sortButton
-                        if !selectMode {
-                            Button(action: { showNewRecipe = true }) {
-                                Image(systemName: "plus").font(.title2.weight(.semibold)).frame(width: 20, height: 20).padding(10)
-                            }
-                            .buttonStyle(.glass).buttonBorderShape(.circle)
-                        }
-                        if selectMode {
-                            Button("取消") { selectMode = false; selected.removeAll(); showActionBar = false }
-                        } else {
-                            Button(action: { selectMode = true; showActionBar = false }) {
-                                Image(systemName: "ellipsis").font(.title2).frame(width: 20, height: 20).padding(10)
-                            }
-                            .buttonStyle(.glass).buttonBorderShape(.circle)
-                        }
-                    }
-                }
+            .confirmationDialog("", isPresented: $showSortSheet) {
+                Button("Sort by Name") { store.sortOrder = .name; store.save() }
+                Button("Sort by Cook Time") { store.sortOrder = .prepTime; store.save() }
+                Button("Select Recipes") { selectMode = true }
+                Button("Cancel", role: .cancel) {}
             }
             .sheet(isPresented: $showNewRecipe) { RecipeEditView() }
             .sheet(item: $showDetail) { RecipeDetailView(recipe: $0) }
             .overlay(alignment: .bottom) {
                 if showActionBar {
-                    actionBar
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                    HStack(spacing: 20) {
+                        Button(role: .destructive) {
+                            let toDelete = store.recipes.filter { selected.contains($0.id) }
+                            store.delete(toDelete); selected.removeAll(); showActionBar = false; selectMode = false
+                        } label: { Label("Delete (\(selected.count))", systemImage: "trash") }
+                        .font(.bodyText.weight(.semibold)).foregroundColor(.accentRed)
+                        Button("Add Tags") {
+                            showActionBar = false; selectMode = false
+                        }.font(.bodyText.weight(.semibold)).foregroundColor(.brandBlue)
+                    }
+                    .padding(.horizontal, 24).padding(.vertical, 14)
+                    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 28))
+                    .shadow(color: .black.opacity(0.08), radius: 12, y: 4)
+                    .padding(.bottom, 8)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
             .animation(.spring, value: showActionBar)
         }
     }
 
-    private var sortButton: some View {
-        Menu {
-            Picker("排序", selection: Binding(
-                get: { store.sortOrder },
-                set: { store.sortOrder = $0; store.save() }
-            )) {
-                Text("按名称").tag(RecipeStore.SortOrder.name)
-                Text("按制作时间").tag(RecipeStore.SortOrder.prepTime)
-            }
-        } label: {
-            Image(systemName: "arrow.up.arrow.down").font(.caption).padding(8)
-        }
-    }
-
-    private var actionBar: some View {
-        HStack(spacing: 24) {
-            Button(role: .destructive) {
-                let toDelete = store.recipes.filter { selected.contains($0.id) }
-                store.delete(toDelete)
-                selected.removeAll(); showActionBar = false; selectMode = false
-            } label: {
-                Label("删除 (\(selected.count))", systemImage: "trash")
-            }
-            Button("添加标签") {
-                // Tag batch operation placeholder
-                showActionBar = false; selectMode = false
+    private var selectAllRow: some View {
+        Button(action: {
+            if selected.count == filtered.count { selected.removeAll() }
+            else { selected = Set(filtered.map(\.id)) }
+            showActionBar = !selected.isEmpty
+        }) {
+            HStack {
+                Image(systemName: selected.count == filtered.count ? "checkmark.circle.fill" : "circle")
+                    .font(.title3).foregroundColor(.brandBlue)
+                Text(selected.count == filtered.count ? "Deselect All" : "Select All")
+                    .font(.bodyText).foregroundColor(.brandBlue)
             }
         }
-        .padding(.horizontal, 20).padding(.vertical, 12)
-        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 28))
-        .shadow(color: .black.opacity(0.1), radius: 12, y: 4)
-        .padding(.bottom, 8)
+        .listRowInsets(.init(top: 8, leading: 16, bottom: 4, trailing: 16))
+        .listRowBackground(Color.clear)
     }
 }
 
-// MARK: - Recipe Row
+// MARK: - Recipe Row (spec: 80x80 image + pill tags)
 
 private struct RecipeRow: View {
     var recipe: Recipe
@@ -137,43 +147,49 @@ private struct RecipeRow: View {
     var body: some View {
         Button(action: { onTap(recipe) }) {
             HStack(spacing: 14) {
-                // Select circle
                 if selectMode {
                     Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                        .font(.title3).foregroundStyle(isSelected ? .orange : .secondary)
+                        .font(.title3).foregroundColor(isSelected ? .brandBlue : .textSecondary)
                 }
 
-                // Thumbnail
+                // Thumbnail 80x80
                 ZStack {
                     if let url = store.photoURL(for: recipe), let img = UIImage(contentsOfFile: url.path) {
                         Image(uiImage: img).resizable().scaledToFill()
                     } else {
-                        RoundedRectangle(cornerRadius: 16).fill(LinearGradient(colors: [.orange.opacity(0.3), .red.opacity(0.2)], startPoint: .topLeading, endPoint: .bottomTrailing))
-                        Image(systemName: "fork.knife").font(.title2).foregroundStyle(.orange)
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(LinearGradient(colors: [.brandBlue.opacity(0.2), .brandBlue.opacity(0.1)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                        Image(systemName: "fork.knife").font(.title2).foregroundColor(.brandBlue)
                     }
                 }
-                .frame(width: 64, height: 64).clipShape(RoundedRectangle(cornerRadius: 16))
+                .frame(width: 80, height: 80).clipShape(RoundedRectangle(cornerRadius: 12))
 
-                // Info
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(recipe.name).font(.body.weight(.semibold)).lineLimit(1)
-                    HStack(spacing: 6) {
-                        Label("\(recipe.servings)人份", systemImage: "person.2").font(.caption)
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(recipe.name).font(.bodyText.weight(.semibold)).lineLimit(1).foregroundColor(.black)
+
+                    HStack(spacing: 8) {
+                        // Servings pill
+                        HStack(spacing: 4) {
+                            Text("👥").font(.caption)
+                            Text("\(recipe.servings)").font(.calloutText).foregroundColor(.textSecondary)
+                        }
+                        .padding(.horizontal, 10).padding(.vertical, 4)
+                        .background(Color.bgSecondary).clipShape(Capsule())
+
                         if recipe.totalTime > 0 {
-                            Label(timeStr(recipe.totalTime), systemImage: "clock").font(.caption)
+                            HStack(spacing: 4) {
+                                Text("⏱").font(.caption)
+                                Text(timeStr(recipe.totalTime)).font(.calloutText).foregroundColor(.textSecondary)
+                            }
+                            .padding(.horizontal, 10).padding(.vertical, 4)
+                            .background(Color.bgSecondary).clipShape(Capsule())
                         }
                     }
-                    .foregroundStyle(.secondary)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-
-                // Chevron (only in non-select mode)
-                if !selectMode {
-                    Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
-                }
             }
-            .padding(10)
-            .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 20))
+            .padding(0)
+            .background(Color.bgPrimary)
         }
         .buttonStyle(.plain)
     }
@@ -181,6 +197,6 @@ private struct RecipeRow: View {
     private func timeStr(_ t: TimeInterval) -> String {
         let m = Int(t / 60)
         if m >= 60 { return "\(m/60)h \(m%60)m" }
-        return "\(m)分钟"
+        return "\(m)min"
     }
 }

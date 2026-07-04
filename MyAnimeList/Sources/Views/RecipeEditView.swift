@@ -41,8 +41,21 @@ struct RecipeEditView: View {
             .navigationTitle(isNew ? "New Recipe" : "Edit Recipe")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) { Button("Cancel") { dismiss() } }
-                ToolbarItem(placement: .topBarTrailing) { Button("Update") { save() }.fontWeight(.bold).disabled(name.isEmpty) }
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Cancel") { dismiss() }
+                        .font(.bodyText.weight(.medium)).foregroundColor(.black)
+                        .padding(.horizontal, 16).padding(.vertical, 8)
+                        .background(Color.cardBg).clipShape(Capsule())
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Update") { save() }
+                        .font(.bodyText.weight(.semibold))
+                        .foregroundColor(name.isEmpty ? Color.disabledText : .white)
+                        .padding(.horizontal, 20).padding(.vertical, 10)
+                        .background(name.isEmpty ? Color.disabledBg : Color.brandBlue)
+                        .clipShape(Capsule())
+                        .disabled(name.isEmpty)
+                }
             }
             .onAppear(perform: loadExisting)
             .photosPicker(isPresented: $showPhotoPicker, selection: $photoItem, matching: .images)
@@ -59,7 +72,7 @@ struct RecipeEditView: View {
 
     private var nameField: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Name").font(.headline).foregroundStyle(.secondary)
+            Text("Name").font(.headline).foregroundColor(Color.textSecondary)
             TextField("Recipe Name", text: $name)
                 .font(.title2.weight(.semibold))
                 .textFieldStyle(.plain)
@@ -73,7 +86,7 @@ struct RecipeEditView: View {
 
     private var infoFields: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Info").font(.headline).foregroundStyle(.secondary)
+            Text("Info").font(.headline).foregroundColor(Color.textSecondary)
             VStack(spacing: 10) {
                 HStack {
                     Text("Servings").frame(width: 80, alignment: .leading)
@@ -101,21 +114,21 @@ struct RecipeEditView: View {
     private var ingredientsSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text("Ingredients").font(.headline).foregroundStyle(.secondary)
+                Text("Ingredients").font(.headline).foregroundColor(Color.textSecondary)
                 Spacer()
-                Text("\(ingredients.count)").font(.caption).foregroundStyle(.tertiary)
+                Text("\(ingredients.count)").font(.caption).foregroundColor(Color.textTertiary)
             }
 
             ForEach(Array(ingredients.enumerated()), id: \.element.id) { i, ing in
                 HStack(spacing: 8) {
                     Button(action: { ingredients.remove(at: i) }) {
-                        Image(systemName: "minus.circle.fill").foregroundStyle(.red).font(.title3)
+                        Image(systemName: "minus.circle.fill").foregroundColor(.red).font(.title3)
                     }
                     .buttonStyle(.plain)
 
                     Text(ing.displayString).font(.subheadline).frame(maxWidth: .infinity, alignment: .leading)
 
-                    Image(systemName: "line.3.horizontal").foregroundStyle(.tertiary).font(.caption)
+                    Image(systemName: "line.3.horizontal").foregroundColor(Color.textTertiary).font(.caption)
                 }
                 .padding(10)
                 .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 10))
@@ -146,21 +159,21 @@ struct RecipeEditView: View {
     private var stepsSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text("Method").font(.headline).foregroundStyle(.secondary)
+                Text("Method").font(.headline).foregroundColor(Color.textSecondary)
                 Spacer()
-                Text("\(steps.count)").font(.caption).foregroundStyle(.tertiary)
+                Text("\(steps.count)").font(.caption).foregroundColor(Color.textTertiary)
             }
 
             ForEach(Array(steps.enumerated()), id: \.element.id) { i, step in
                 HStack(alignment: .top, spacing: 8) {
                     Button(action: { steps.remove(at: i) }) {
-                        Image(systemName: "minus.circle.fill").foregroundStyle(.red).font(.title3)
+                        Image(systemName: "minus.circle.fill").foregroundColor(.red).font(.title3)
                     }
                     .buttonStyle(.plain)
 
                     ZStack {
                         Circle().fill(Color.blue).frame(width: 22, height: 22)
-                        Text("\(i + 1)").font(.caption.weight(.bold)).foregroundStyle(.white)
+                        Text("\(i + 1)").font(.caption.weight(.bold)).foregroundColor(.white)
                     }
                     .padding(.top, 2)
 
@@ -168,7 +181,7 @@ struct RecipeEditView: View {
                         .font(.subheadline)
                         .frame(maxWidth: .infinity, alignment: .leading)
 
-                    Image(systemName: "line.3.horizontal").foregroundStyle(.tertiary).font(.caption).padding(.top, 4)
+                    Image(systemName: "line.3.horizontal").foregroundColor(Color.textTertiary).font(.caption).padding(.top, 4)
                 }
                 .padding(10)
                 .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 10))
@@ -197,7 +210,7 @@ struct RecipeEditView: View {
 
     private var photosSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Photos").font(.headline).foregroundStyle(.secondary)
+            Text("Photos").font(.headline).foregroundColor(Color.textSecondary)
 
             if let data = photoData, let img = UIImage(data: data) {
                 Image(uiImage: img).resizable().scaledToFill()

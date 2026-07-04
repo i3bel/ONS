@@ -4,10 +4,16 @@
     "" : {
 
     },
+    "#baking" : {
+
+    },
+    "#dessert" : {
+
+    },
     "%lld" : {
 
     },
-    "%lld recipe" : {
+    "%lld servings" : {
 
     },
     "%lld 人份" : {
@@ -16,16 +22,25 @@
     "%lld 分钟" : {
 
     },
-    "%lld人份" : {
+    "⏱" : {
+
+    },
+    "👥" : {
 
     },
     "Add" : {
 
     },
-    "Add %lld items" : {
+    "Add %lld Items" : {
+
+    },
+    "Add Tags" : {
 
     },
     "Add to Groceries" : {
+
+    },
+    "All Recipes" : {
 
     },
     "Camera" : {
@@ -35,6 +50,15 @@
 
     },
     "Cook" : {
+
+    },
+    "Delete" : {
+
+    },
+    "Delete \"%@\"?" : {
+
+    },
+    "Delete (%lld)" : {
 
     },
     "Delete Recipe" : {
@@ -64,6 +88,12 @@
     "New Recipe" : {
 
     },
+    "No recipes yet" : {
+
+    },
+    "No results" : {
+
+    },
     "Photo Library" : {
 
     },
@@ -73,7 +103,20 @@
     "Prep" : {
 
     },
+    "Prep %@ · Cook %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Prep %1$@ · Cook %2$@"
+          }
+        }
+      }
+    },
     "Recipe Name" : {
+
+    },
+    "Recipes, Ingredients and More" : {
 
     },
     "Remove" : {
@@ -85,16 +128,34 @@
     "Select All" : {
 
     },
+    "Select Recipes" : {
+
+    },
     "Servings" : {
+
+    },
+    "Servings:" : {
+
+    },
+    "Shared by RecipeSlate ❤️" : {
+
+    },
+    "Sort by Cook Time" : {
+
+    },
+    "Sort by Name" : {
 
     },
     "Start" : {
 
     },
-    "Update" : {
+    "Tags" : {
 
     },
-    "份量:" : {
+    "Tap + to add your first recipe" : {
+
+    },
+    "Update" : {
 
     },
     "例如：一勺糖" : {
@@ -106,49 +167,16 @@
     "先在食谱页添加食谱" : {
 
     },
-    "删除" : {
-
-    },
-    "删除 (%lld)" : {
-
-    },
-    "删除食谱" : {
-
-    },
-    "取消" : {
-
-    },
     "同步" : {
 
     },
     "好的" : {
 
     },
-    "按制作时间" : {
-
-    },
-    "按名称" : {
-
-    },
-    "排序" : {
-
-    },
-    "搜索食谱" : {
-
-    },
     "没有食材" : {
 
     },
-    "添加标签" : {
-
-    },
-    "点右上角 + 新建" : {
-
-    },
     "烹饪" : {
-
-    },
-    "确定删除「%@」？" : {
 
     },
     "还没有食谱" : {

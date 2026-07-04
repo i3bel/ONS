@@ -35,14 +35,14 @@ struct ShoppingListView: View {
                     HStack(spacing: 10) {
                         Button(action: { toggle(name) }) {
                             Image(systemName: completed.contains(name) ? "checkmark.circle.fill" : "circle")
-                                .font(.title3).foregroundStyle(completed.contains(name) ? .green : .secondary)
+                                .font(.title3).foregroundColor(completed.contains(name) ? .green : .secondary)
                         }
                         .buttonStyle(.plain)
 
                         Text(name).font(.body).strikethrough(completed.contains(name))
                         Spacer()
-                        Text(formatAmount(amount)).font(.body.weight(.semibold)).foregroundStyle(.orange)
-                        Text(unit).font(.footnote).foregroundStyle(.secondary)
+                        Text(formatAmount(amount)).font(.body.weight(.semibold)).foregroundColor(.orange)
+                        Text(unit).font(.footnote).foregroundColor(Color.textSecondary)
                     }
                     .opacity(completed.contains(name) ? 0.5 : 1)
                 }
