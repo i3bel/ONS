@@ -226,13 +226,44 @@ final class RecipeStore {
     }
 
     func addShoppingItems(_ items: [Ingredient]) {
-        shoppingItems.append(contentsOf: items)
+        for item in items {
+            mergeOrAdd(item)
+        }
         save()
     }
 
     func addShoppingItem(_ item: Ingredient) {
-        shoppingItems.append(item)
+        mergeOrAdd(item)
         save()
+    }
+
+    /// Merge duplicate ingredients by name+unit before adding.
+    /// - Exact amounts (e.g. "3 个" + "3 个") → sum amounts → "6 个"
+    /// - Fuzzy quantifiers (适量/少许/少量/若干) → keep the first occurrence
+    private func mergeOrAdd(_ item: Ingredient) {
+        let fuzzy = ["适量", "少许", "少量", "若干"]
+
+        // Same name + same unit → merge amounts
+        if let idx = shoppingItems.firstIndex(where: { $0.name == item.name && $0.unit == item.unit }) {
+            if fuzzy.contains(item.unit) { return }  // fuzzy quantifiers: keep existing
+            let existing = shoppingItems[idx]
+            shoppingItems[idx] = Ingredient(
+                id: existing.id,
+                name: existing.name,
+                amount: existing.amount + item.amount,
+                unit: existing.unit
+            )
+            return
+        }
+
+        // Same name, different unit, both fuzzy → keep existing
+        if let idx = shoppingItems.firstIndex(where: { $0.name == item.name }),
+           fuzzy.contains(item.unit) && fuzzy.contains(shoppingItems[idx].unit) {
+            return
+        }
+
+        // No match → append as new
+        shoppingItems.append(item)
     }
 
     func removeShoppingItem(_ id: String) {
@@ -270,7 +301,6 @@ final class RecipeStore {
         cookingSteps = recipe.steps
         completedStepIds = []
         cookingRecipeName = recipe.name
-        clearShoppingList()   // clear shopping list → Tab3 shows "0 left"
     }
 
     func toggleStep(_ id: String) {

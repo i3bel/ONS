@@ -6,6 +6,10 @@ struct ShoppingListView: View {
     @State private var showIngredientEditor = false
     @State private var ingredientEditorText = ""
 
+    private var leftCount: Int {
+        max(0, store.shoppingItems.count - completed.intersection(Set(store.shoppingItems.map(\.id))).count)
+    }
+
     var body: some View {
         NavigationStack {
             Group {
@@ -56,7 +60,7 @@ struct ShoppingListView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .principal) {
-                    (Text("\(store.shoppingItems.count - completed.count)")
+                    (Text("\(leftCount)")
                         .font(.title2.weight(.bold)).foregroundColor(.textPrimary)
                     + Text(" left")
                         .font(.bodyText.weight(.bold)).foregroundColor(.textSecondary))
@@ -70,6 +74,12 @@ struct ShoppingListView: View {
                         Image(systemName: "plus").font(.title2.weight(.semibold)).foregroundColor(.brandBlue)
                     }
                 }
+            }
+            .onChange(of: store.shoppingItems.isEmpty) { _, empty in
+                if empty { completed.removeAll() }
+            }
+            .onChange(of: store.shoppingItems) { _, items in
+                completed = completed.intersection(Set(items.map(\.id)))
             }
             .sheet(isPresented: $showIngredientEditor) {
                 ingredientEditorSheet
