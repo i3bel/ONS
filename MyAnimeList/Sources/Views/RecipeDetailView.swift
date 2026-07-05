@@ -73,14 +73,14 @@ struct RecipeDetailView: View {
         ZStack(alignment: .bottomLeading) {
             if let url = store.photoURL(for: recipe), let img = UIImage(contentsOfFile: url.path) {
                 Image(uiImage: img).resizable().scaledToFill()
-                    .frame(height: 340).clipped()
+                    .frame(width: UIScreen.main.bounds.width, height: 340).clipped()
             } else {
                 Rectangle()
                     .fill(LinearGradient(
                         colors: [.accentColor.opacity(0.3), .accentColor.opacity(0.08)],
                         startPoint: .topLeading, endPoint: .bottomTrailing
                     ))
-                    .frame(height: 340)
+                    .frame(width: UIScreen.main.bounds.width, height: 340)
             }
 
             // Softer gradient overlay
@@ -88,7 +88,7 @@ struct RecipeDetailView: View {
                 colors: [.black.opacity(0.45), .clear],
                 startPoint: .bottom, endPoint: .center
             )
-            .frame(height: 340)
+            .frame(width: UIScreen.main.bounds.width, height: 340)
 
             VStack(alignment: .leading, spacing: 6) {
                 Text(recipe.name)
@@ -99,6 +99,8 @@ struct RecipeDetailView: View {
             .padding(.horizontal, Spacing.large)
             .padding(.bottom, Spacing.large)
         }
+        .frame(width: UIScreen.main.bounds.width)
+        .clipped()
     }
 
     // MARK: Action Buttons

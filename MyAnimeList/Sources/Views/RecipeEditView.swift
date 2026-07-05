@@ -19,6 +19,7 @@ struct RecipeEditView: View {
     @State private var steps: [CookingStep] = []
     @State private var tags: [String] = []
     @State private var photoData: Data? = nil
+    @State private var photoDeleted = false
 
     @State private var showPhotoPicker = false
     @State private var showCamera = false
@@ -348,7 +349,7 @@ struct RecipeEditView: View {
             VStack(spacing: 0) {
                 if let data = photoData, let img = UIImage(data: data) {
                     Image(uiImage: img).resizable().scaledToFill()
-                        .frame(height: 180).clipped()
+                        .frame(width: UIScreen.main.bounds.width - 40, height: 180).clipped()
                         .clipShape(RoundedRectangle(cornerRadius: CornerRadius.standard))
                         .padding(12)
                 }
@@ -390,7 +391,7 @@ struct RecipeEditView: View {
     @ViewBuilder
     private var photoDeleteButton: some View {
         if photoData != nil {
-            Button(action: { photoData = nil }) {
+            Button(action: { photoData = nil; photoDeleted = true }) {
                 HStack(spacing: 6) {
                     Image(systemName: "trash.circle.fill")
                         .font(.title3)
@@ -413,8 +414,9 @@ struct RecipeEditView: View {
 
     private func save() {
         let rid = existingRecipe?.id ?? UUID().uuidString
-        var photoFn = existingRecipe?.imageFileName
-        if let d = photoData { photoFn = store.savePhoto(data: d, for: rid) }
+        let photoFn: String? = if photoDeleted { nil }
+            else if let d = photoData { store.savePhoto(data: d, for: rid) }
+            else { existingRecipe?.imageFileName }
         let r = Recipe(
             id: rid, name: name, servings: max(1, servings),
             prepTime: TimeInterval(prepH * 3600 + prepM * 60),
