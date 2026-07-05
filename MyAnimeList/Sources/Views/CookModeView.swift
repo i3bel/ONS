@@ -246,13 +246,7 @@ struct CookModeView: View {
                     text: "Done",
                     textColor: .white,
                     systemImageName: "stop.circle"
-                ),
-                secondaryButton: AlarmButton(
-                    text: "Repeat",
-                    textColor: .orange,
-                    systemImageName: "repeat.circle"
-                ),
-                secondaryButtonBehavior: .countdown
+                )
             )
 
             let countdownContent = AlarmPresentation.Countdown(
@@ -289,8 +283,7 @@ struct CookModeView: View {
             let config = AlarmManager.AlarmConfiguration<CookingAlarmMetadata>(
                 countdownDuration: .init(preAlert: duration, postAlert: nil),
                 attributes: attributes,
-                stopIntent: StopTimerIntent(alarmID: id.uuidString),
-                secondaryIntent: PauseTimerIntent(alarmID: id.uuidString)
+                stopIntent: StopTimerIntent(alarmID: id.uuidString)
             )
 
             do {
