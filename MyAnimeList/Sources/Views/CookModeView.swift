@@ -6,6 +6,7 @@ struct CookModeView: View {
     @Environment(RecipeStore.self) private var store
     @Environment(CookingController.self) private var cooking
     @State private var timerSelectionMode = false
+    private let feedback = UIImpactFeedbackGenerator(style: .medium)
 
     var body: some View {
         NavigationStack {
@@ -118,6 +119,7 @@ struct CookModeView: View {
     }
 
     private func handleStepToggle(_ stepId: String) {
+        feedback.impactOccurred()
         if !cooking.completedStepIds.contains(stepId) && cooking.completedStepIds.isEmpty {
             store.clearShoppingList()
         }

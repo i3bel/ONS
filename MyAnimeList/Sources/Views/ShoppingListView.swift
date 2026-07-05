@@ -73,6 +73,7 @@ struct ShoppingListView: View {
                     onDelete: { store.removeShoppingItem(item.id) }
                 )
                 .listRowInsets(.init(top: 2, leading: Spacing.large, bottom: 2, trailing: Spacing.large))
+                .listRowBackground(Color.clear)
                 .listRowSeparator(.hidden)
             }
         }
