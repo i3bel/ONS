@@ -174,28 +174,16 @@ struct CookModeView: View {
     private func parseTimeToSeconds(_ text: String) -> TimeInterval? {
         let trimmed = text.trimmingCharacters(in: .whitespaces)
 
+        // 1. Special idioms
         switch trimmed {
         case "一刻", "一刻钟": return 15 * 60
         case "一会", "一会儿": return 5 * 60
         case "半天": return 12 * 3600
         case "片刻": return 2 * 60
+        case "半个月": return 15 * 86400
+        case "一个半月": return 45 * 86400
+        case "半年": return 183 * 86400
         default: break
-        }
-
-        let parsers: [(pattern: String, multiplier: Double)] = [
-            (#"(\d+)\s*(天|day)"#, 86400),
-            (#"(\d+)\s*(小时|h)"#, 3600),
-            (#"(\d+)\s*(分钟|分|m(?!i))"#, 60),
-            (#"(\d+)\s*(秒|s(?!\w))"#, 1),
-            (#"(\d+)\s*(min(?:ute)?s?|mins)"#, 60),
-        ]
-
-        for (pattern, multiplier) in parsers {
-            if let r = trimmed.range(of: pattern, options: .regularExpression) {
-                let s = String(trimmed[r])
-                let digits = s.prefix(while: \.isNumber)
-                if let n = Double(digits) { return n * multiplier }
-            }
         }
 
         let chineseMap: [Character: Double] = [
@@ -203,16 +191,55 @@ struct CookModeView: View {
             "五": 5, "六": 6, "七": 7, "八": 8, "九": 9,
             "十": 10, "半": 0.5, "几": 5
         ]
-        let chineseTimePattern = #"[一二两三四五六七八九十半几]+\s*(分钟|小时|天)"#
-        if trimmed.range(of: chineseTimePattern, options: .regularExpression) != nil {
+
+        // 2. Digit-based parsers (with decimal support)
+        let parsers: [(pattern: String, multiplier: Double)] = [
+            (#"(\d+(?:\.\d+)?)\s*(年|year)"#, 365 * 86400),
+            (#"(\d+(?:\.\d+)?)\s*(周|week)"#, 7 * 86400),
+            (#"(\d+(?:\.\d+)?)\s*(天|day)"#, 86400),
+            (#"(\d+(?:\.\d+)?)\s*(小时|h)"#, 3600),
+            (#"(\d+(?:\.\d+)?)\s*(分钟|分|m(?!i))"#, 60),
+            (#"(\d+(?:\.\d+)?)\s*(秒|s(?!\w))"#, 1),
+            (#"(\d+(?:\.\d+)?)\s*(min(?:ute)?s?|mins)"#, 60),
+        ]
+
+        for (pattern, multiplier) in parsers {
+            if let r = trimmed.range(of: pattern, options: .regularExpression) {
+                let s = String(trimmed[r])
+                let digits = s.prefix(while: { $0.isNumber || $0 == "." })
+                if let n = Double(digits) { return n * multiplier }
+            }
+        }
+
+        // 3. Chinese "X半" patterns: "一天半", "一年半", "两天半"
+        let halfPattern = #"[一两二三四五六七八九十]\s*(年|天|小时|分钟)\s*半"#
+        if let r = trimmed.range(of: halfPattern, options: .regularExpression) {
+            let s = String(trimmed[r])
             for (char, val) in chineseMap {
-                if trimmed.hasPrefix(String(char)) {
-                    if trimmed.contains("小时") { return val * 3600 }
-                    if trimmed.contains("分钟") { return val * 60 }
-                    if trimmed.contains("天") { return val * 86400 }
+                if s.hasPrefix(String(char)) {
+                    let total = val + 0.5
+                    if s.contains("年") { return total * 365 * 86400 }
+                    if s.contains("天") { return total * 86400 }
+                    if s.contains("小时") { return total * 3600 }
+                    if s.contains("分钟") { return total * 60 }
                 }
             }
         }
+
+        // 4. Pure Chinese digit patterns: "两天", "三小时"
+        let chineseTimePattern = #"[一二两三四五六七八九十半几]+\s*(分钟|小时|天|年|周)"#
+        if trimmed.range(of: chineseTimePattern, options: .regularExpression) != nil {
+            for (char, val) in chineseMap {
+                if trimmed.hasPrefix(String(char)) {
+                    if trimmed.contains("年") { return val * 365 * 86400 }
+                    if trimmed.contains("周") { return val * 7 * 86400 }
+                    if trimmed.contains("天") { return val * 86400 }
+                    if trimmed.contains("小时") { return val * 3600 }
+                    if trimmed.contains("分钟") { return val * 60 }
+                }
+            }
+        }
+
         return nil
     }
 

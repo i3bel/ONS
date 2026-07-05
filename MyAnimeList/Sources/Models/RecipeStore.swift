@@ -179,7 +179,7 @@ struct CookingStep: Identifiable, Codable, Equatable {
 
 enum RecipeTextPatterns {
     /// Matches time expressions: "20分钟", "30 min", "2小时", "一刻", etc.
-    static let time = #"(?:\d+\s*(?:min(?:ute)?s?|mins|秒|hour(?:s)?|分钟|小时|分|天|周|个月|年))|(?:[一两二三四五六七八九十半几数]+\s*(?:分钟|小时|天|周|个月|年))|一刻|一会|一会儿|片刻|半天|半个月|半年|半日|数日"#
+    static let time = #"(?:\d+(?:\.\d+)?\s*(?:min(?:ute)?s?|mins|秒|hour(?:s)?|分钟|小时|分|天|周|个月|年))|(?:[一两二三四五六七八九十]+\s*(?:天|小时|分钟|年)\s*半)|(?:[一两二三四五六七八九十半几数]+\s*(?:分钟|小时|天|周|个月|年))|一刻|一会|一会儿|片刻|半天|半个月|一个半月|半年|半日|数日"#
 
     /// Matches temperature: "180°C", "350°F", "200度"
     static let temperature = #"\d+\s*(°[FC]|度)"#
