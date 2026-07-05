@@ -30,6 +30,7 @@ struct RecipeDetailView: View {
         .background(Color.pageBg)
         .ignoresSafeArea(edges: .top)
         .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(true)
         .toolbarBackground(.hidden, for: .navigationBar)
         .toolbar { toolbarContent }
         .sheet(isPresented: $showGroceries) { AddToGroceriesSheet(recipe: recipe) }

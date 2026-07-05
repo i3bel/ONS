@@ -86,6 +86,7 @@ struct RecipeSearchView: View {
                     searchResultRow(recipe)
                 }
                 .listRowInsets(.init(top: 6, leading: 16, bottom: 6, trailing: 16))
+                .listRowBackground(Color.clear)
                 .listRowSeparator(.hidden)
             }
         }
