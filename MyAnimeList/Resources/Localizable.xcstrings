@@ -59,19 +59,6 @@
     "%lld 份" : {
 
     },
-    "%lldh %lldm" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$lldh %2$lldm"
-          }
-        }
-      }
-    },
-    "⏱" : {
-
-    },
     "👥" : {
 
     },
@@ -82,15 +69,6 @@
 
     },
     "Add Photo" : {
-
-    },
-    "Add Step" : {
-
-    },
-    "Add Tag" : {
-
-    },
-    "Add Tags" : {
 
     },
     "Add to Groceries" : {
@@ -112,9 +90,6 @@
 
     },
     "Clear Everything" : {
-
-    },
-    "Cook" : {
 
     },
     "Delete" : {
@@ -205,19 +180,6 @@
     "Photos" : {
 
     },
-    "Prep" : {
-
-    },
-    "Prep %@ · Cook %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Prep %1$@ · Cook %2$@"
-          }
-        }
-      }
-    },
     "Recipe Name" : {
 
     },
@@ -240,9 +202,6 @@
 
     },
     "Select File" : {
-
-    },
-    "Servings" : {
 
     },
     "Start" : {

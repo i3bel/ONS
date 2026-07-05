@@ -44,7 +44,7 @@ extension Color {
         : UIColor(red: 0.78, green: 0.78, blue: 0.8, alpha: 1)
     })
 
-    // MARK: - Brand (keep same brightness for contrast on both backgrounds)
+    // MARK: - Brand
 
     static let brandBlue = Color(uiColor: UIColor { $0.userInterfaceStyle == .dark
         ? UIColor(red: 0.04, green: 0.52, blue: 1, alpha: 1)      // #0A84FF
@@ -52,8 +52,8 @@ extension Color {
     })
 
     static let brandedLightBlue = Color(uiColor: UIColor { $0.userInterfaceStyle == .dark
-        ? UIColor(red: 0.1, green: 0.23, blue: 0.36, alpha: 1)    // darker blue bg
-        : UIColor(red: 0.89, green: 0.95, blue: 1, alpha: 1)      // #E3F2FD
+        ? UIColor(red: 0.1, green: 0.23, blue: 0.36, alpha: 1)
+        : UIColor(red: 0.89, green: 0.95, blue: 1, alpha: 1)
     })
 
     static let accentGreen = Color(uiColor: UIColor { $0.userInterfaceStyle == .dark
@@ -71,7 +71,7 @@ extension Color {
         : UIColor(red: 1, green: 0.42, blue: 0.21, alpha: 1)      // #FF6B35
     })
 
-    // MARK: - Aliases & composites
+    // MARK: - Disabled
 
     static let disabledBg = Color(uiColor: UIColor { $0.userInterfaceStyle == .dark
         ? UIColor(red: 0.22, green: 0.22, blue: 0.23, alpha: 1)
@@ -82,14 +82,6 @@ extension Color {
         ? UIColor(red: 0.39, green: 0.39, blue: 0.4, alpha: 1)
         : UIColor(red: 0.78, green: 0.78, blue: 0.8, alpha: 1)
     })
-
-    // Backward compat aliases
-    static let bgSecondary = Color.pageBg
-    static let bgPrimary = Color.cardBg
-    static let tagBg = Color.brandedLightBlue
-    static let tagText = Color.brandBlue
-    static let pillBg = Color.pageBg
-    static let brandBlueLight = Color.brandedLightBlue
 }
 
 // MARK: - Fonts

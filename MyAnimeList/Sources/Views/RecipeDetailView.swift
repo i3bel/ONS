@@ -1,10 +1,10 @@
 import SwiftUI
-import PhotosUI
 
-// MARK: - Recipe Detail (spec: read-only, colored text, tags)
+// MARK: - Recipe Detail (read-only, colored text, tags)
 
 struct RecipeDetailView: View {
     @Environment(RecipeStore.self) private var store
+    @Environment(CookingController.self) private var cooking
     @Environment(\.dismiss) private var dismiss
     @State var recipe: Recipe
 
@@ -27,25 +27,11 @@ struct RecipeDetailView: View {
                 tagsSection
             }
         }
-        .background(Color.bgSecondary)
+        .background(Color.pageBg)
         .ignoresSafeArea(edges: .top)
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(.hidden, for: .navigationBar)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button(action: { dismiss() }) {
-                    Image(systemName: "chevron.left").font(.bodyText.weight(.semibold)).foregroundColor(.white)
-                }
-            }
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Menu {
-                    Button("Edit Recipe", systemImage: "pencil") { showEdit = true }
-                    Button("Delete Recipe", systemImage: "trash", role: .destructive) { showDelete = true }
-                } label: {
-                    Image(systemName: "ellipsis").font(.title2).foregroundColor(.white)
-                }
-            }
-        }
+        .toolbar { toolbarContent }
         .sheet(isPresented: $showGroceries) { AddToGroceriesSheet(recipe: recipe) }
         .sheet(isPresented: $showEdit) { RecipeEditView(existingRecipe: recipe) }
         .onChange(of: showEdit) { _, isPresented in
@@ -59,6 +45,24 @@ struct RecipeDetailView: View {
         } message: { Text("Delete \"\(recipe.name)\"?") }
     }
 
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        ToolbarItem(placement: .navigationBarLeading) {
+            Button(action: { dismiss() }) {
+                Image(systemName: "chevron.left")
+                    .font(.bodyText.weight(.semibold)).foregroundColor(.white)
+            }
+        }
+        ToolbarItem(placement: .navigationBarTrailing) {
+            Menu {
+                Button("Edit Recipe", systemImage: "pencil") { showEdit = true }
+                Button("Delete Recipe", systemImage: "trash", role: .destructive) { showDelete = true }
+            } label: {
+                Image(systemName: "ellipsis").font(.title2).foregroundColor(.white)
+            }
+        }
+    }
+
     // MARK: Hero
 
     private var heroSection: some View {
@@ -66,9 +70,15 @@ struct RecipeDetailView: View {
             if let url = store.photoURL(for: recipe), let img = UIImage(contentsOfFile: url.path) {
                 Image(uiImage: img).resizable().scaledToFill().frame(height: 360).clipped()
             } else {
-                LinearGradient(colors: [.brandBlue.opacity(0.3), .brandBlue.opacity(0.1)], startPoint: .topLeading, endPoint: .bottomTrailing).frame(height: 360)
+                LinearGradient(
+                    colors: [.brandBlue.opacity(0.3), .brandBlue.opacity(0.1)],
+                    startPoint: .topLeading, endPoint: .bottomTrailing
+                ).frame(height: 360)
             }
-            LinearGradient(colors: [.black.opacity(0.5), .clear], startPoint: .bottom, endPoint: .center).frame(height: 360)
+            LinearGradient(
+                colors: [.black.opacity(0.5), .clear],
+                startPoint: .bottom, endPoint: .center
+            ).frame(height: 360)
 
             VStack(alignment: .leading, spacing: 8) {
                 Text(recipe.name).font(.title1).foregroundColor(.white)
@@ -81,19 +91,22 @@ struct RecipeDetailView: View {
 
     private var actionButtons: some View {
         HStack(spacing: 12) {
-            // Start (green per spec)
-            Button(action: { store.startCooking(recipe: recipe); dismiss() }) {
+            Button(action: {
+                cooking.startCooking(steps: recipe.steps, recipeName: recipe.name)
+                dismiss()
+            }) {
                 Label("Start", systemImage: "play.fill")
                     .font(.bodyText.weight(.semibold)).foregroundColor(.white)
-                    .frame(maxWidth: .infinity).frame(height: 56).background(Color.accentGreen).clipShape(Capsule())
+                    .frame(maxWidth: .infinity).frame(height: 56)
+                    .background(Color.accentGreen).clipShape(Capsule())
             }
 
             Spacer()
 
-            // Basket
             Button(action: { showGroceries = true }) {
                 Image(systemName: "basket").font(.title2).foregroundColor(.brandBlue)
-                    .frame(width: 56, height: 56).background(Circle().fill(Color.cardBg).stroke(Color.dividerColor, lineWidth: 1))
+                    .frame(width: 56, height: 56)
+                    .background(Circle().fill(Color.cardBg).stroke(Color.dividerColor, lineWidth: 1))
             }
         }
         .padding(.horizontal, 20).padding(.vertical, 16)
@@ -103,81 +116,40 @@ struct RecipeDetailView: View {
 
     private var infoBar: some View {
         HStack(spacing: 16) {
-            HStack(spacing: 6) {
-                Text("👥").font(.title3)
-                Text("\(displayServings)").font(.calloutText).foregroundColor(.textSecondary)
-            }
-            .padding(.horizontal, 12).padding(.vertical, 6).background(Color.cardBg).clipShape(RoundedRectangle(cornerRadius: 12)).overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.dividerColor, lineWidth: 1))
-
+            pillLabel("👥 \(displayServings)")
             if recipe.totalTime > 0 {
-                HStack(spacing: 6) {
-                    Text("⏱").font(.title3)
-                    Text("Prep \(timeStr(recipe.prepTime)) · Cook \(timeStr(recipe.cookTime))").font(.calloutText).foregroundColor(.textSecondary)
-                }
-                .padding(.horizontal, 12).padding(.vertical, 6).background(Color.cardBg).clipShape(RoundedRectangle(cornerRadius: 12)).overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.dividerColor, lineWidth: 1))
+                pillLabel("⏱ Prep \(timeStr(recipe.prepTime)) · Cook \(timeStr(recipe.cookTime))")
             }
         }
         .padding(.horizontal, 20).padding(.bottom, 16)
+    }
+
+    private func pillLabel(_ text: String) -> some View {
+        Text(text).font(.calloutText).foregroundColor(.textSecondary)
+            .padding(.horizontal, 12).padding(.vertical, 6)
+            .background(Color.cardBg).clipShape(RoundedRectangle(cornerRadius: 12))
+            .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.dividerColor, lineWidth: 1))
     }
 
     // MARK: Ingredients
 
     private var ingredientsSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            // Title and Scale outside the rounded rect
             HStack {
                 Text("Ingredients").font(.title2)
                 Spacer()
-                if showScale {
-                    Button(action: {
-                        withAnimation {
-                            // Commit the scale: scale ingredient amounts + update servings
-                            var updated = recipe
-                            let scale = Double(displayServings) / Double(recipe.servings)
-                            let fuzzy = ["适量", "少许", "少量", "若干"]
-                            updated.ingredients = updated.ingredients.map { ing in
-                                guard !fuzzy.contains(ing.unit) else { return ing }
-                                var scaled = ing
-                                scaled.amount = ing.amount * scale
-                                return scaled
-                            }
-                            updated.servings = displayServings
-                            store.update(updated)
-                            recipe = updated
-                            showScale = false
-                            scaleServings = nil
-                        }
-                    }) {
-                        Text("\(displayServings) servings").font(.calloutText).foregroundColor(.brandBlue)
-                            .padding(.horizontal, 12).padding(.vertical, 6).background(Color.brandBlueLight).clipShape(Capsule())
-                    }
-                } else {
-                    Button(action: { withAnimation { showScale = true; scaleServings = recipe.servings } }) {
-                        Text("Scale").font(.calloutText).foregroundColor(.brandBlue)
-                            .padding(.horizontal, 12).padding(.vertical, 6).background(Color.brandBlueLight).clipShape(Capsule())
-                    }
-                }
+                scaleButton
             }
             .padding(.horizontal, 20)
 
-            // Scale slider (video-timeline style)
-            if showScale {
-                HStack(spacing: 12) {
-                    Slider(value: Binding(get: { Double(displayServings) }, set: { scaleServings = Int($0) }), in: 1...20, step: 1)
-                        .tint(.brandBlue)
-                    Text("\(displayServings) 份").font(.bodyText.weight(.semibold)).foregroundColor(.brandBlue)
-                        .frame(width: 60, alignment: .trailing)
-                }
-                .padding(.horizontal, 20).padding(.vertical, 4)
-            }
+            if showScale { scaleSlider }
 
-            // All ingredients in ONE rounded rect, left-aligned with blue quantifiers
             VStack(alignment: .leading, spacing: 4) {
                 ForEach(Array(recipe.ingredients.enumerated()), id: \.element.id) { i, ing in
                     let amountUnit = showScale
                         ? recipe.scaledAmount(for: ing, targetServings: displayServings)
                         : ing.amountWithUnit
-                    ingredientDisplayLine(name: ing.name, amountUnit: amountUnit)
+                    ingredientLine(name: ing.name, amountUnit: amountUnit)
                 }
             }
             .padding(16)
@@ -187,21 +159,63 @@ struct RecipeDetailView: View {
         .padding(.vertical, 8)
     }
 
-    private func ingredientDisplayLine(name: String, amountUnit: String) -> some View {
+    @ViewBuilder
+    private var scaleButton: some View {
+        if showScale {
+            Button(action: commitScale) {
+                Text("\(displayServings) servings").font(.calloutText).foregroundColor(.brandBlue)
+                    .padding(.horizontal, 12).padding(.vertical, 6)
+                    .background(Color.brandedLightBlue).clipShape(Capsule())
+            }
+        } else {
+            Button(action: { withAnimation { showScale = true; scaleServings = recipe.servings } }) {
+                Text("Scale").font(.calloutText).foregroundColor(.brandBlue)
+                    .padding(.horizontal, 12).padding(.vertical, 6)
+                    .background(Color.brandedLightBlue).clipShape(Capsule())
+            }
+        }
+    }
+
+    private var scaleSlider: some View {
+        HStack(spacing: 12) {
+            Slider(
+                value: Binding(get: { Double(displayServings) }, set: { scaleServings = Int($0) }),
+                in: 1...20, step: 1
+            )
+            .tint(.brandBlue)
+            Text("\(displayServings) 份").font(.bodyText.weight(.semibold)).foregroundColor(.brandBlue)
+                .frame(width: 60, alignment: .trailing)
+        }
+        .padding(.horizontal, 20).padding(.vertical, 4)
+    }
+
+    private func commitScale() {
+        withAnimation {
+            var updated = recipe
+            let scale = Double(displayServings) / Double(recipe.servings)
+            updated.ingredients = updated.ingredients.map { ing in
+                guard !Ingredient.fuzzyQuantifiers.contains(ing.unit) else { return ing }
+                var scaled = ing
+                scaled.amount = ing.amount * scale
+                return scaled
+            }
+            updated.servings = displayServings
+            store.update(updated)
+            recipe = updated
+            showScale = false
+            scaleServings = nil
+        }
+    }
+
+    private func ingredientLine(name: String, amountUnit: String) -> some View {
         HStack {
-            // Left-aligned: quantifier blue, rest black
-            Text(amountUnit)
-                .font(.bodyText.weight(.semibold))
-                .foregroundColor(.brandBlue) +
-            Text("  \(name)")
-                .font(.bodyText)
-                .foregroundColor(.textPrimary)
+            Text(amountUnit).font(.bodyText.weight(.semibold)).foregroundColor(.brandBlue)
+            + Text("  \(name)").font(.bodyText).foregroundColor(.textPrimary)
             Spacer()
         }
         .padding(.vertical, 6)
         .padding(.horizontal, 4)
     }
-
 
     // MARK: Method
 
@@ -217,60 +231,27 @@ struct RecipeDetailView: View {
                         Text("\(i + 1)").font(.calloutText.weight(.bold)).foregroundColor(.white)
                     }
 
-                    coloredText(step.description)
+                    recipeColoredText(step.description)
                         .font(.bodyText).lineSpacing(6)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .padding(12)
-                .background(Color.bgPrimary, in: RoundedRectangle(cornerRadius: 14))
+                .background(Color.cardBg, in: RoundedRectangle(cornerRadius: 14))
                 .padding(.horizontal, 16)
             }
         }
         .padding(.bottom, 20)
     }
 
-    private func coloredText(_ text: String) -> Text {
-        var result = Text("")
-        var remaining = text
-        let sortedIng = recipe.ingredients.sorted { $0.name.count > $1.name.count }
-        let timePattern = #"(?:\d+\s*(?:min(?:ute)?s?|mins|秒|hour(?:s)?|分钟|小时|分|天|周|个月|年))|(?:[一两二三四五六七八九十半几数]+\s*(?:分钟|小时|天|周|个月|年))|一刻|一会|一会儿|片刻|半天|半个月|半年|半日|数日"#
-        let tempPattern = #"\d+\s*(°[FC]|度)"#
-
-        while !remaining.isEmpty {
-            // Find the earliest match among all three pattern types
-            var earliestStart = remaining.endIndex
-            var earliestRange: Range<String.Index>?
-            var earliestColor: Color?
-
-            // Ingredients → blue
-            for ing in sortedIng {
-                if let r = remaining.range(of: ing.name, options: .caseInsensitive), r.lowerBound < earliestStart {
-                    earliestStart = r.lowerBound; earliestRange = r; earliestColor = .brandBlue
-                }
-            }
-
-            // Time → red
-            if let r = remaining.range(of: timePattern, options: .regularExpression), r.lowerBound < earliestStart {
-                earliestStart = r.lowerBound; earliestRange = r; earliestColor = .accentRed
-            }
-
-            // Temperature → orange
-            if let r = remaining.range(of: tempPattern, options: .regularExpression), r.lowerBound < earliestStart {
-                earliestStart = r.lowerBound; earliestRange = r; earliestColor = .accentOrange
-            }
-
-            if let r = earliestRange, let color = earliestColor {
-                let before = String(remaining[remaining.startIndex..<r.lowerBound])
-                if !before.isEmpty { result = result + Text(before).foregroundColor(.textPrimary) }
-                result = result + Text(String(remaining[r])).foregroundColor(color).fontWeight(.bold)
-                remaining = String(remaining[r.upperBound...])
-                continue
-            }
-
-            result = result + Text(String(remaining.first!)).foregroundColor(.textPrimary)
-            remaining = String(remaining.dropFirst())
-        }
-        return result
+    /// Renders step text with ingredient names (blue), times (red), temperatures (orange).
+    private func recipeColoredText(_ text: String) -> Text {
+        let ingredientsSorted = recipe.ingredients.sorted { $0.name.count > $1.name.count }
+        let rules: [HighlightRule] = [
+            .init(strings: ingredientsSorted.map(\.name), color: .brandBlue),
+            .init(pattern: RecipeTextPatterns.time, color: .accentRed),
+            .init(pattern: RecipeTextPatterns.temperature, color: .accentOrange),
+        ]
+        return highlightText(text, rules: rules)
     }
 
     // MARK: Tags
@@ -283,9 +264,9 @@ struct RecipeDetailView: View {
             if !recipe.tags.isEmpty {
                 TagFlowLayout(spacing: 8) {
                     ForEach(recipe.tags, id: \.self) { tag in
-                        Text("#\(tag)").font(.calloutText).foregroundColor(.tagText)
+                        Text("#\(tag)").font(.calloutText).foregroundColor(.brandBlue)
                             .padding(.horizontal, 16).padding(.vertical, 6)
-                            .background(Color.tagBg).clipShape(Capsule())
+                            .background(Color.brandedLightBlue).clipShape(Capsule())
                     }
                 }
                 .padding(.horizontal, 20)
@@ -301,7 +282,7 @@ struct RecipeDetailView: View {
     }
 }
 
-// MARK: - Add to Groceries Sheet (spec)
+// MARK: - Add to Groceries Sheet
 
 private struct AddToGroceriesSheet: View {
     @Environment(RecipeStore.self) private var store
@@ -314,34 +295,10 @@ private struct AddToGroceriesSheet: View {
             VStack(spacing: 0) {
                 List {
                     ForEach(recipe.ingredients) { ing in
-                        HStack(spacing: 12) {
-                            Button(action: {
-                                if selected.contains(ing.id) { selected.remove(ing.id) }
-                                else { selected.insert(ing.id) }
-                            }) {
-                                Image(systemName: selected.contains(ing.id) ? "checkmark.circle.fill" : "circle")
-                                    .font(.title2).foregroundColor(selected.contains(ing.id) ? .brandBlue : .textSecondary)
-                            }
-                            .buttonStyle(.plain)
-
-                            Text(ing.displayString)
-                                .font(.bodyText)
-                            + Text("")
-
-                            Spacer()
-
-                            Button(action: { selected.remove(ing.id) }) {
-                                Image(systemName: "xmark.circle.fill").font(.title3).foregroundColor(.accentRed)
-                            }
-                            .buttonStyle(.plain)
-                        }
-                        .padding(16)
-                        .background(Color.bgPrimary, in: RoundedRectangle(cornerRadius: 12))
-                        .listRowInsets(.init(top: 4, leading: 16, bottom: 4, trailing: 16))
-                        .listRowSeparator(.hidden).listRowBackground(Color.clear)
+                        ingredientRow(ing)
                     }
                 }
-                .listStyle(.plain).background(Color.bgSecondary)
+                .listStyle(.plain).background(Color.pageBg)
                 .navigationTitle("Add to Groceries")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
@@ -353,30 +310,102 @@ private struct AddToGroceriesSheet: View {
                     }
                 }
 
-                // Bottom bar
-                HStack(spacing: 12) {
-                    Button(selected.count == recipe.ingredients.count ? "Deselect All" : "Select All") {
-                        if selected.count == recipe.ingredients.count { selected.removeAll() }
-                        else { selected = Set(recipe.ingredients.map(\.id)) }
-                    }
-                    .font(.bodyText.weight(.semibold)).foregroundColor(.brandBlue)
-                    .frame(maxWidth: .infinity).frame(height: 48)
-                    .background(Color.brandBlueLight).clipShape(Capsule())
-
-                    Button("Add \(selected.count) Items") {
-                        let items = recipe.ingredients.filter { selected.contains($0.id) }
-                        store.addShoppingItems(items)
-                        dismiss()
-                    }
-                    .font(.bodyText.weight(.semibold)).foregroundColor(.white)
-                    .frame(maxWidth: .infinity).frame(height: 48)
-                    .background(Color.brandBlue).clipShape(Capsule())
-                    .disabled(selected.isEmpty)
-                }
-                .background(.regularMaterial)
+                bottomBar
             }
         }
     }
+
+    private func ingredientRow(_ ing: Ingredient) -> some View {
+        HStack(spacing: 12) {
+            Button(action: { selected.formUnion([ing.id]) }) {
+                Image(systemName: selected.contains(ing.id) ? "checkmark.circle.fill" : "circle")
+                    .font(.title2).foregroundColor(selected.contains(ing.id) ? .brandBlue : .textSecondary)
+            }
+            .buttonStyle(.plain)
+
+            Text(ing.displayString).font(.bodyText)
+
+            Spacer()
+
+            Button(action: { selected.remove(ing.id) }) {
+                Image(systemName: "xmark.circle.fill").font(.title3).foregroundColor(.accentRed)
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(16)
+        .background(Color.cardBg, in: RoundedRectangle(cornerRadius: 12))
+        .listRowInsets(.init(top: 4, leading: 16, bottom: 4, trailing: 16))
+        .listRowSeparator(.hidden).listRowBackground(Color.clear)
+    }
+
+    private var bottomBar: some View {
+        HStack(spacing: 12) {
+            Button(selected.count == recipe.ingredients.count ? "Deselect All" : "Select All") {
+                if selected.count == recipe.ingredients.count { selected.removeAll() }
+                else { selected = Set(recipe.ingredients.map(\.id)) }
+            }
+            .font(.bodyText.weight(.semibold)).foregroundColor(.brandBlue)
+            .frame(maxWidth: .infinity).frame(height: 48)
+            .background(Color.brandedLightBlue).clipShape(Capsule())
+
+            Button("Add \(selected.count) Items") {
+                let items = recipe.ingredients.filter { selected.contains($0.id) }
+                store.addShoppingItems(items)
+                dismiss()
+            }
+            .font(.bodyText.weight(.semibold)).foregroundColor(.white)
+            .frame(maxWidth: .infinity).frame(height: 48)
+            .background(Color.brandBlue).clipShape(Capsule())
+            .disabled(selected.isEmpty)
+        }
+        .background(.regularMaterial)
+    }
+}
+
+// MARK: - Highlight Engine (shared across RecipeDetailView and CookModeView)
+
+struct HighlightRule {
+    var pattern: String?
+    var strings: [String]?
+    var color: Color
+}
+
+func highlightText(_ text: String, rules: [HighlightRule]) -> Text {
+    var result = Text("")
+    var remaining = text
+
+    while !remaining.isEmpty {
+        var earliestStart = remaining.endIndex
+        var earliestRange: Range<String.Index>?
+        var earliestColor: Color?
+
+        for rule in rules {
+            if let strings = rule.strings {
+                for s in strings {
+                    if let r = remaining.range(of: s, options: .caseInsensitive), r.lowerBound < earliestStart {
+                        earliestStart = r.lowerBound; earliestRange = r; earliestColor = rule.color
+                    }
+                }
+            }
+            if let pattern = rule.pattern {
+                if let r = remaining.range(of: pattern, options: .regularExpression), r.lowerBound < earliestStart {
+                    earliestStart = r.lowerBound; earliestRange = r; earliestColor = rule.color
+                }
+            }
+        }
+
+        if let r = earliestRange, let color = earliestColor {
+            let before = String(remaining[remaining.startIndex..<r.lowerBound])
+            if !before.isEmpty { result = result + Text(before).foregroundColor(.textPrimary) }
+            result = result + Text(String(remaining[r])).foregroundColor(color).fontWeight(.bold)
+            remaining = String(remaining[r.upperBound...])
+            continue
+        }
+
+        result = result + Text(String(remaining.first!)).foregroundColor(.textPrimary)
+        remaining = String(remaining.dropFirst())
+    }
+    return result
 }
 
 // MARK: - Tag Flow Layout

@@ -19,6 +19,7 @@ struct RecipeEditView: View {
     @State private var steps: [CookingStep] = []
     @State private var tags: [String] = []
     @State private var photoData: Data? = nil
+
     @State private var showPhotoPicker = false
     @State private var showCamera = false
     @State private var showFilePicker = false
@@ -26,7 +27,7 @@ struct RecipeEditView: View {
     @State private var photoItem: PhotosPickerItem? = nil
     @State private var newIngredientText = ""
 
-    // Ingredient editor sheet
+    // Ingredient editor
     @State private var showIngredientEditor = false
     @State private var editingIngredientIndex: Int?
     @State private var ingredientEditorText = ""
@@ -36,7 +37,7 @@ struct RecipeEditView: View {
     @State private var draggedStep: CookingStep?
     @State private var draggedTag: String?
 
-    // Focus management for new rows
+    // Focus management
     @FocusState private var focusedStepId: String?
     @FocusState private var focusedTagIndex: Int?
 
@@ -63,38 +64,20 @@ struct RecipeEditView: View {
             .background(Color.pageBg)
             .navigationTitle(isNew ? "New Recipe" : "Edit Recipe")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button(action: { dismiss() }) {
-                        Image(systemName: "xmark.circle.fill").font(.title2).foregroundColor(.textSecondary)
-                    }
-                }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Update") { save() }
-                        .font(.bodyText.weight(.semibold)).foregroundColor(.white)
-                        .padding(.horizontal, 24).padding(.vertical, 10)
-                        .background(name.isEmpty ? Color.disabledBg : Color.accentRed).clipShape(Capsule())
-                        .disabled(name.isEmpty)
-                }
-            }
+            .toolbar { toolbarContent }
             .onAppear(perform: loadExisting)
             .photosPicker(isPresented: $showPhotoPicker, selection: $photoItem, matching: .images)
             .onChange(of: photoItem) { _, item in
                 Task { if let d = try? await item?.loadTransferable(type: Data.self) { photoData = d } }
             }
             .sheet(isPresented: $showCamera) {
-                UIImagePicker(source: .camera) { img in photoData = img.jpegData(compressionQuality: 0.8); showCamera = false }
+                UIImagePicker(source: .camera) { img in
+                    photoData = img.jpegData(compressionQuality: 0.8)
+                    showCamera = false
+                }
             }
             .fileImporter(isPresented: $showFilePicker, allowedContentTypes: [.image], allowsMultipleSelection: false) { result in
-                switch result {
-                case .success(let urls):
-                    guard let url = urls.first else { return }
-                    guard url.startAccessingSecurityScopedResource() else { return }
-                    defer { url.stopAccessingSecurityScopedResource() }
-                    if let data = try? Data(contentsOf: url) { photoData = data }
-                case .failure:
-                    break
-                }
+                handleFileImport(result)
             }
             .sheet(isPresented: $showServingsPicker) {
                 NumberPickerView(title: "Servings", value: $servings, range: 1...30)
@@ -111,6 +94,24 @@ struct RecipeEditView: View {
         }
     }
 
+    // MARK: Toolbar
+
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        ToolbarItem(placement: .topBarLeading) {
+            Button(action: { dismiss() }) {
+                Image(systemName: "xmark.circle.fill").font(.title2).foregroundColor(.textSecondary)
+            }
+        }
+        ToolbarItem(placement: .topBarTrailing) {
+            Button("Update") { save() }
+                .font(.bodyText.weight(.semibold)).foregroundColor(.white)
+                .padding(.horizontal, 24).padding(.vertical, 10)
+                .background(name.isEmpty ? Color.disabledBg : Color.accentRed).clipShape(Capsule())
+                .disabled(name.isEmpty)
+        }
+    }
+
     // MARK: Name
 
     private var nameField: some View {
@@ -123,113 +124,65 @@ struct RecipeEditView: View {
         .padding(.horizontal, 20)
     }
 
-    // MARK: Info (left-right aligned + picker wheels)
+    // MARK: Info
 
     private var infoSection: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text("Info").font(.captionText).foregroundColor(.textSecondary)
             VStack(spacing: 0) {
-                // Servings
-                HStack {
-                    Text("Servings").font(.bodyText).foregroundColor(.textPrimary)
-                    Spacer()
-                    Button(action: { showServingsPicker = true }) {
-                        Text("\(servings)").font(.bodyText.weight(.semibold)).foregroundColor(.brandBlue)
-                        Image(systemName: "chevron.down").font(.caption).foregroundColor(.brandBlue)
-                    }
-                }
-                .padding(16)
+                infoRow("Servings", value: "\(servings)") { showServingsPicker = true }
                 Divider().padding(.leading, 16)
-
-                // Prep
-                HStack {
-                    Text("Prep").font(.bodyText).foregroundColor(.textPrimary)
-                    Spacer()
-                    Button(action: { showPrepPicker = true }) {
-                        Text("\(prepH)h \(prepM)m").font(.bodyText.weight(.semibold)).foregroundColor(.brandBlue)
-                        Image(systemName: "chevron.down").font(.caption).foregroundColor(.brandBlue)
-                    }
-                }
-                .padding(16)
+                infoRow("Prep", value: "\(prepH)h \(prepM)m") { showPrepPicker = true }
                 Divider().padding(.leading, 16)
-
-                // Cook
-                HStack {
-                    Text("Cook").font(.bodyText).foregroundColor(.textPrimary)
-                    Spacer()
-                    Button(action: { showCookPicker = true }) {
-                        Text("\(cookH)h \(cookM)m").font(.bodyText.weight(.semibold)).foregroundColor(.brandBlue)
-                        Image(systemName: "chevron.down").font(.caption).foregroundColor(.brandBlue)
-                    }
-                }
-                .padding(16)
+                infoRow("Cook", value: "\(cookH)h \(cookM)m") { showCookPicker = true }
             }
             .background(Color.cardBg, in: RoundedRectangle(cornerRadius: 16))
         }
         .padding(.horizontal, 20)
     }
 
+    private func infoRow(_ label: String, value: String, action: @escaping () -> Void) -> some View {
+        HStack {
+            Text(label).font(.bodyText).foregroundColor(.textPrimary)
+            Spacer()
+            Button(action: action) {
+                Text(value).font(.bodyText.weight(.semibold)).foregroundColor(.brandBlue)
+                Image(systemName: "chevron.down").font(.caption).foregroundColor(.brandBlue)
+            }
+        }
+        .padding(16)
+    }
+
     // MARK: Ingredients
 
     private var ingredientsSection: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack {
-                Text("Ingredients").font(.captionText).foregroundColor(.textSecondary)
-                Spacer()
-                Text("\(ingredients.count)").font(.caption).foregroundColor(.textTertiary)
-            }
-
-            // Rounded rect container
-            VStack(spacing: 0) {
-                if !ingredients.isEmpty {
-                    ForEach(Array(ingredients.enumerated()), id: \.element.id) { i, ing in
-                        ingredientRow(i: i, ing: ing)
-                            .onDrag {
-                                draggedIngredient = ing
-                                return NSItemProvider(object: ing.id as NSString)
-                            }
-                            .onDrop(of: [.text], delegate: IngredientDropDelegate(
-                                targetId: ing.id,
-                                ingredients: $ingredients,
-                                draggedIngredient: $draggedIngredient
-                            ))
-                        if i < ingredients.count - 1 {
-                            Divider().padding(.leading, 44)
-                        }
+        editableSection(title: "Ingredients", count: ingredients.count) {
+            ForEach(Array(ingredients.enumerated()), id: \.element.id) { i, ing in
+                ingredientRow(i: i, ing: ing)
+                    .onDrag {
+                        draggedIngredient = ing
+                        return NSItemProvider(object: ing.id as NSString)
                     }
-                }
-
-                // Add ingredient button at the bottom inside the rounded rect
-                Button(action: {
-                    editingIngredientIndex = nil
-                    ingredientEditorText = ""
-                    showIngredientEditor = true
-                }) {
-                    HStack(spacing: 6) {
-                        Image(systemName: "plus.circle.fill").font(.title3).foregroundColor(.brandBlue)
-                        Text("Add Ingredient").font(.bodyText.weight(.medium)).foregroundColor(.brandBlue)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(12)
-                    .background(Color.brandBlueLight, in: RoundedRectangle(cornerRadius: 10))
-                }
-                .padding(12)
-                .buttonStyle(.plain)
+                    .onDrop(of: [.text], delegate: ReorderDropDelegate<Ingredient>(
+                        targetItem: ing, items: $ingredients, draggedItem: $draggedIngredient
+                    ))
+                if i < ingredients.count - 1 { Divider().padding(.leading, 44) }
             }
-            .background(Color.cardBg, in: RoundedRectangle(cornerRadius: 14))
+            addButton(title: "Add Ingredient") {
+                editingIngredientIndex = nil
+                ingredientEditorText = ""
+                showIngredientEditor = true
+            }
         }
-        .padding(.horizontal, 20)
     }
 
     private func ingredientRow(i: Int, ing: Ingredient) -> some View {
         HStack(spacing: 8) {
-            // Delete button
             Button(action: { ingredients.remove(at: i) }) {
                 Image(systemName: "minus.circle.fill").font(.title3).foregroundColor(.accentRed)
             }
             .buttonStyle(.plain)
 
-            // Tappable text → opens editor
             Text(ing.displayString)
                 .font(.bodyText)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -239,166 +192,129 @@ struct RecipeEditView: View {
                     showIngredientEditor = true
                 }
 
-            // Drag handle
             Image(systemName: "line.3.horizontal")
                 .font(.title3).foregroundColor(.textTertiary)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
+        .padding(.horizontal, 12).padding(.vertical, 10)
     }
 
     // MARK: Steps
 
     private var stepsSection: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack {
-                Text("Method").font(.captionText).foregroundColor(.textSecondary)
-                Spacer()
-                Text("\(steps.count)").font(.caption).foregroundColor(.textTertiary)
-            }
-
-            // Rounded rect container
-            VStack(spacing: 0) {
-                if !steps.isEmpty {
-                    ForEach(Array(steps.enumerated()), id: \.element.id) { i, step in
-                        stepRow(i: i, step: step)
-                            .onDrag {
-                                draggedStep = step
-                                return NSItemProvider(object: step.id as NSString)
-                            }
-                            .onDrop(of: [.text], delegate: StepDropDelegate(
-                                targetId: step.id,
-                                steps: $steps,
-                                draggedStep: $draggedStep
-                            ))
-                        if i < steps.count - 1 {
-                            Divider().padding(.leading, 44)
-                        }
+        editableSection(title: "Method", count: steps.count) {
+            ForEach(Array(steps.enumerated()), id: \.element.id) { i, step in
+                stepRow(i: i, step: step)
+                    .onDrag {
+                        draggedStep = step
+                        return NSItemProvider(object: step.id as NSString)
                     }
-                }
-
-                // Add step button at the bottom inside the rounded rect
-                Button(action: {
-                    let newStep = CookingStep(order: steps.count + 1, description: "")
-                    steps.append(newStep)
-                    focusedStepId = newStep.id
-                }) {
-                    HStack(spacing: 6) {
-                        Image(systemName: "plus.circle.fill").font(.title3).foregroundColor(.brandBlue)
-                        Text("Add Step").font(.bodyText.weight(.medium)).foregroundColor(.brandBlue)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(12)
-                    .background(Color.brandBlueLight, in: RoundedRectangle(cornerRadius: 10))
-                }
-                .padding(12)
-                .buttonStyle(.plain)
+                    .onDrop(of: [.text], delegate: ReorderDropDelegate<CookingStep>(
+                        targetItem: step, items: $steps, draggedItem: $draggedStep
+                    ))
+                if i < steps.count - 1 { Divider().padding(.leading, 44) }
             }
-            .background(Color.cardBg, in: RoundedRectangle(cornerRadius: 14))
+            addButton(title: "Add Step") {
+                let newStep = CookingStep(order: steps.count + 1, description: "")
+                steps.append(newStep)
+                focusedStepId = newStep.id
+            }
         }
-        .padding(.horizontal, 20)
     }
 
     private func stepRow(i: Int, step: CookingStep) -> some View {
         HStack(spacing: 8) {
-            // Delete button
             Button(action: { steps.remove(at: i) }) {
                 Image(systemName: "minus.circle.fill").font(.title3).foregroundColor(.accentRed)
             }
             .buttonStyle(.plain)
 
-            // Step number
             ZStack {
                 Circle().fill(Color.brandBlue).frame(width: 22, height: 22)
                 Text("\(i + 1)").font(.caption.weight(.bold)).foregroundColor(.white)
             }
 
-            // Inline editable text field (multi-line)
             TextField("输入步骤内容", text: $steps[i].description, axis: .vertical)
                 .font(.bodyText)
                 .lineLimit(1...10)
                 .focused($focusedStepId, equals: step.id)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-            // Drag handle
             Image(systemName: "line.3.horizontal")
                 .font(.title3).foregroundColor(.textTertiary)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
+        .padding(.horizontal, 12).padding(.vertical, 10)
     }
 
     // MARK: Tags
 
     private var tagsSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Tags").font(.captionText).foregroundColor(.textSecondary)
-
-            // Rounded rect container
-            VStack(spacing: 0) {
-                if !tags.isEmpty {
-                    ForEach(tags.indices, id: \.self) { i in
-                        tagRow(i: i)
-                            .onDrag {
-                                draggedTag = tags[i]
-                                return NSItemProvider(object: tags[i] as NSString)
-                            }
-                            .onDrop(of: [.text], delegate: TagDropDelegate(
-                                targetId: tags[i],
-                                tags: $tags,
-                                draggedTag: $draggedTag
-                            ))
-                        if i < tags.count - 1 {
-                            Divider().padding(.leading, 44)
-                        }
+        editableSection(title: "Tags", count: tags.count) {
+            ForEach(tags.indices, id: \.self) { i in
+                tagRow(i: i)
+                    .onDrag {
+                        draggedTag = tags[i]
+                        return NSItemProvider(object: tags[i] as NSString)
                     }
-                }
-
-                // Add tag button at the bottom inside the rounded rect
-                Button(action: {
-                    tags.append("")
-                    focusedTagIndex = tags.count - 1
-                }) {
-                    HStack(spacing: 6) {
-                        Image(systemName: "plus.circle.fill").font(.title3).foregroundColor(.brandBlue)
-                        Text("Add Tag").font(.bodyText.weight(.medium)).foregroundColor(.brandBlue)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(12)
-                    .background(Color.brandBlueLight, in: RoundedRectangle(cornerRadius: 10))
-                }
-                .padding(12)
-                .buttonStyle(.plain)
+                    .onDrop(of: [.text], delegate: ReorderDropDelegate<String>(
+                        targetItem: tags[i], items: $tags, draggedItem: $draggedTag
+                    ))
+                if i < tags.count - 1 { Divider().padding(.leading, 44) }
             }
-            .background(Color.cardBg, in: RoundedRectangle(cornerRadius: 14))
+            addButton(title: "Add Tag") {
+                tags.append("")
+                focusedTagIndex = tags.count - 1
+            }
         }
-        .padding(.horizontal, 20)
     }
 
     private func tagRow(i: Int) -> some View {
         HStack(spacing: 8) {
-            // Delete button
             Button(action: { tags.remove(at: i) }) {
                 Image(systemName: "minus.circle.fill").font(.title3).foregroundColor(.accentRed)
             }
             .buttonStyle(.plain)
 
-            // # prefix
-            Text("#").font(.bodyText).foregroundColor(.tagText)
+            Text("#").font(.bodyText).foregroundColor(.brandBlue)
 
-            // Inline editable text field
             TextField("输入标签", text: $tags[i])
                 .font(.bodyText)
-                .foregroundColor(.tagText)
+                .foregroundColor(.brandBlue)
                 .focused($focusedTagIndex, equals: i)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-            // Drag handle
             Image(systemName: "line.3.horizontal")
                 .font(.title3).foregroundColor(.textTertiary)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
+        .padding(.horizontal, 12).padding(.vertical, 10)
+    }
+
+    // MARK: Editable Section Template
+
+    private func editableSection<Content: View>(title: String, count: Int, @ViewBuilder content: @escaping () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Text(title).font(.captionText).foregroundColor(.textSecondary)
+                Spacer()
+                Text("\(count)").font(.caption).foregroundColor(.textTertiary)
+            }
+            VStack(spacing: 0) { content() }
+                .background(Color.cardBg, in: RoundedRectangle(cornerRadius: 14))
+        }
+        .padding(.horizontal, 20)
+    }
+
+    private func addButton(title: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 6) {
+                Image(systemName: "plus.circle.fill").font(.title3).foregroundColor(.brandBlue)
+                Text(title).font(.bodyText.weight(.medium)).foregroundColor(.brandBlue)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(12)
+            .background(Color.brandedLightBlue, in: RoundedRectangle(cornerRadius: 10))
+        }
+        .padding(12)
+        .buttonStyle(.plain)
     }
 
     // MARK: Photos
@@ -407,58 +323,62 @@ struct RecipeEditView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Photos").font(.captionText).foregroundColor(.textSecondary)
 
-            // Rounded rect container
             VStack(spacing: 0) {
-                // Image preview if exists
                 if let data = photoData, let img = UIImage(data: data) {
                     Image(uiImage: img).resizable().scaledToFill().frame(height: 160).clipped()
                         .clipShape(RoundedRectangle(cornerRadius: 14))
                         .padding(12)
                 }
 
-                // Add Photo button
-                Button(action: { showAddPhotoMenu = true }) {
-                    HStack(spacing: 6) {
-                        Image(systemName: "plus.circle.fill").font(.title3).foregroundColor(.brandBlue)
-                        Text("Add Photo").font(.bodyText.weight(.medium)).foregroundColor(.brandBlue)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(12)
-                    .background(Color.brandBlueLight, in: RoundedRectangle(cornerRadius: 10))
-                }
-                .padding(.horizontal, 12)
-                .padding(.top, photoData != nil ? 0 : 12)
-                .padding(.bottom, photoData != nil ? 8 : 6)
-                .buttonStyle(.plain)
-                .confirmationDialog("Add Photo", isPresented: $showAddPhotoMenu) {
-                    Button("Photo Library") { photoItem = nil; showPhotoPicker = true }
-                    Button("Camera") { showCamera = true }
-                    Button("Files") { showFilePicker = true }
-                    Button("Cancel", role: .cancel) {}
-                }
-
-                // Delete Photo button (only when photo exists)
-                if photoData != nil {
-                    Button(action: { photoData = nil }) {
-                        HStack(spacing: 6) {
-                            Image(systemName: "trash.circle.fill").font(.title3).foregroundColor(.accentRed)
-                            Text("Delete Photo").font(.bodyText.weight(.medium)).foregroundColor(.accentRed)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(12)
-                        .background(Color.accentRed.opacity(0.08), in: RoundedRectangle(cornerRadius: 10))
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.bottom, 12)
-                    .buttonStyle(.plain)
-                }
+                photoAddButton
+                photoDeleteButton
             }
             .background(Color.cardBg, in: RoundedRectangle(cornerRadius: 14))
         }
         .padding(.horizontal, 20)
     }
 
-    // MARK: Save
+    private var photoAddButton: some View {
+        Button(action: { showAddPhotoMenu = true }) {
+            HStack(spacing: 6) {
+                Image(systemName: "plus.circle.fill").font(.title3).foregroundColor(.brandBlue)
+                Text("Add Photo").font(.bodyText.weight(.medium)).foregroundColor(.brandBlue)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(12)
+            .background(Color.brandedLightBlue, in: RoundedRectangle(cornerRadius: 10))
+        }
+        .padding(.horizontal, 12)
+        .padding(.top, photoData != nil ? 0 : 12)
+        .padding(.bottom, photoData != nil ? 8 : 6)
+        .buttonStyle(.plain)
+        .confirmationDialog("Add Photo", isPresented: $showAddPhotoMenu) {
+            Button("Photo Library") { photoItem = nil; showPhotoPicker = true }
+            Button("Camera") { showCamera = true }
+            Button("Files") { showFilePicker = true }
+            Button("Cancel", role: .cancel) {}
+        }
+    }
+
+    @ViewBuilder
+    private var photoDeleteButton: some View {
+        if photoData != nil {
+            Button(action: { photoData = nil }) {
+                HStack(spacing: 6) {
+                    Image(systemName: "trash.circle.fill").font(.title3).foregroundColor(.accentRed)
+                    Text("Delete Photo").font(.bodyText.weight(.medium)).foregroundColor(.accentRed)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(12)
+                .background(Color.accentRed.opacity(0.08), in: RoundedRectangle(cornerRadius: 10))
+            }
+            .padding(.horizontal, 12)
+            .padding(.bottom, 12)
+            .buttonStyle(.plain)
+        }
+    }
+
+    // MARK: Save & Load
 
     private func save() {
         let rid = existingRecipe?.id ?? UUID().uuidString
@@ -466,9 +386,14 @@ struct RecipeEditView: View {
         if let d = photoData { photoFn = store.savePhoto(data: d, for: rid) }
         let r = Recipe(
             id: rid, name: name, servings: max(1, servings),
-            prepTime: TimeInterval(prepH * 3600 + prepM * 60), cookTime: TimeInterval(cookH * 3600 + cookM * 60),
-            ingredients: ingredients, steps: steps.enumerated().map { i, s in CookingStep(id: s.id, order: i + 1, description: s.description) },
-            photoFilename: photoFn, tags: tags, createdAt: existingRecipe?.createdAt ?? .now
+            prepTime: TimeInterval(prepH * 3600 + prepM * 60),
+            cookTime: TimeInterval(cookH * 3600 + cookM * 60),
+            ingredients: ingredients,
+            steps: steps.enumerated().map { i, s in
+                CookingStep(id: s.id, order: i + 1, description: s.description)
+            },
+            photoFilename: photoFn, tags: tags,
+            createdAt: existingRecipe?.createdAt ?? .now
         )
         if isNew { store.add(r) } else { store.update(r) }
         dismiss()
@@ -480,7 +405,18 @@ struct RecipeEditView: View {
         let p = Int(r.prepTime); prepH = p / 3600; prepM = (p % 3600) / 60
         let c = Int(r.cookTime); cookH = c / 3600; cookM = (c % 3600) / 60
         ingredients = r.ingredients; steps = r.steps; tags = r.tags
-        if let fn = r.photoFilename, let url = store.photoURL(for: r), let d = try? Data(contentsOf: url) { photoData = d }
+        if let fn = r.photoFilename, let url = store.photoURL(for: r), let d = try? Data(contentsOf: url) {
+            photoData = d
+        }
+    }
+
+    // MARK: File Import
+
+    private func handleFileImport(_ result: Result<[URL], Error>) {
+        guard case .success(let urls) = result, let url = urls.first else { return }
+        guard url.startAccessingSecurityScopedResource() else { return }
+        defer { url.stopAccessingSecurityScopedResource() }
+        if let data = try? Data(contentsOf: url) { photoData = data }
     }
 
     // MARK: Ingredient Editor Sheet
@@ -528,81 +464,27 @@ struct RecipeEditView: View {
             ingredientEditorText = ""
         }
     }
-
-    // MARK: Step Editor Sheet
-
 }
 
-// MARK: - Drag Reorder Delegates
+// MARK: - Generic Reorder Drop Delegate
 
-private struct IngredientDropDelegate: DropDelegate {
-    let targetId: String
-    @Binding var ingredients: [Ingredient]
-    @Binding var draggedIngredient: Ingredient?
+private struct ReorderDropDelegate<Item: Equatable>: DropDelegate {
+    let targetItem: Item
+    @Binding var items: [Item]
+    @Binding var draggedItem: Item?
 
     func dropEntered(info: DropInfo) {
-        guard let draggedIngredient,
-              draggedIngredient.id != targetId,
-              let fromIdx = ingredients.firstIndex(where: { $0.id == draggedIngredient.id }),
-              let toIdx = ingredients.firstIndex(where: { $0.id == targetId }) else { return }
+        guard let draggedItem,
+              draggedItem != targetItem,
+              let fromIdx = items.firstIndex(of: draggedItem),
+              let toIdx = items.firstIndex(of: targetItem) else { return }
         withAnimation(.interactiveSpring) {
-            ingredients.move(fromOffsets: IndexSet(integer: fromIdx), toOffset: toIdx > fromIdx ? toIdx + 1 : toIdx)
+            items.move(fromOffsets: IndexSet(integer: fromIdx), toOffset: toIdx > fromIdx ? toIdx + 1 : toIdx)
         }
     }
 
     func performDrop(info: DropInfo) -> Bool {
-        draggedIngredient = nil
-        return true
-    }
-
-    func dropUpdated(info: DropInfo) -> DropProposal? {
-        DropProposal(operation: .move)
-    }
-}
-
-private struct StepDropDelegate: DropDelegate {
-    let targetId: String
-    @Binding var steps: [CookingStep]
-    @Binding var draggedStep: CookingStep?
-
-    func dropEntered(info: DropInfo) {
-        guard let draggedStep,
-              draggedStep.id != targetId,
-              let fromIdx = steps.firstIndex(where: { $0.id == draggedStep.id }),
-              let toIdx = steps.firstIndex(where: { $0.id == targetId }) else { return }
-        withAnimation(.interactiveSpring) {
-            steps.move(fromOffsets: IndexSet(integer: fromIdx), toOffset: toIdx > fromIdx ? toIdx + 1 : toIdx)
-        }
-    }
-
-    func performDrop(info: DropInfo) -> Bool {
-        draggedStep = nil
-        return true
-    }
-
-    func dropUpdated(info: DropInfo) -> DropProposal? {
-        DropProposal(operation: .move)
-    }
-}
-
-private struct TagDropDelegate: DropDelegate {
-    let targetId: String
-    @Binding var tags: [String]
-    @Binding var draggedTag: String?
-
-    func dropEntered(info: DropInfo) {
-        guard let draggedTag,
-              draggedTag != targetId,
-              let fromIdx = tags.firstIndex(of: draggedTag),
-              let toIdx = tags.firstIndex(of: targetId),
-              tags.indices.contains(fromIdx), tags.indices.contains(toIdx) else { return }
-        withAnimation(.interactiveSpring) {
-            tags.move(fromOffsets: IndexSet(integer: fromIdx), toOffset: toIdx > fromIdx ? toIdx + 1 : toIdx)
-        }
-    }
-
-    func performDrop(info: DropInfo) -> Bool {
-        draggedTag = nil
+        draggedItem = nil
         return true
     }
 
@@ -632,7 +514,7 @@ private struct NumberPickerView: View {
     }
 }
 
-// MARK: - Time Picker Wheel (hours + minutes)
+// MARK: - Time Picker Wheel
 
 private struct TimePickerView: View {
     var title: String
@@ -643,8 +525,14 @@ private struct TimePickerView: View {
     var body: some View {
         NavigationStack {
             HStack(spacing: 0) {
-                Picker("h", selection: $hours) { ForEach(0...23, id: \.self) { Text("\($0) h").tag($0) } }.pickerStyle(.wheel)
-                Picker("m", selection: $minutes) { ForEach(0...59, id: \.self) { Text("\($0) m").tag($0) } }.pickerStyle(.wheel)
+                Picker("h", selection: $hours) {
+                    ForEach(0...23, id: \.self) { Text("\($0) h").tag($0) }
+                }
+                .pickerStyle(.wheel)
+                Picker("m", selection: $minutes) {
+                    ForEach(0...59, id: \.self) { Text("\($0) m").tag($0) }
+                }
+                .pickerStyle(.wheel)
             }
             .navigationTitle(title).navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("Done") { dismiss() } } }
@@ -652,4 +540,3 @@ private struct TimePickerView: View {
         .presentationDetents([.height(250)])
     }
 }
-

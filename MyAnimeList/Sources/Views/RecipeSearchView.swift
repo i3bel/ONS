@@ -1,7 +1,7 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
-// MARK: - Search Tab (iOS 26 system Search Tab with role: .search)
+// MARK: - Search Tab
 
 struct RecipeSearchView: View {
     @Environment(RecipeStore.self) private var store
@@ -17,9 +17,7 @@ struct RecipeSearchView: View {
         case error(String)
     }
 
-    private var isCommand: Bool {
-        searchText.hasPrefix("/")
-    }
+    private var isCommand: Bool { searchText.hasPrefix("/") }
 
     private var results: [Recipe] {
         let q = searchText.trimmingCharacters(in: .whitespaces).lowercased()
@@ -34,26 +32,21 @@ struct RecipeSearchView: View {
     var body: some View {
         NavigationStack {
             Group {
-                if searchText.isEmpty {
-                    emptyState
-                } else if isCommand {
-                    commandView
-                } else if results.isEmpty {
-                    noResultsState
-                } else {
-                    searchResultsList
-                }
+                if searchText.isEmpty { emptyState }
+                else if isCommand { commandView }
+                else if results.isEmpty { noResultsState }
+                else { searchResultsList }
             }
-            .background(Color.bgSecondary)
-            .fileImporter(isPresented: $showFileImporter, allowedContentTypes: [.json], allowsMultipleSelection: false) { result in
-                handleImport(result)
+            .background(Color.pageBg)
+            .fileImporter(isPresented: $showFileImporter, allowedContentTypes: [.json], allowsMultipleSelection: false) {
+                handleImport($0)
             }
             .fileExporter(isPresented: $showFileExporter, document: exportDocument, contentType: .json, defaultFilename: "recipes") { _ in }
         }
         .searchable(text: $searchText, placement: .automatic, prompt: "Recipes, Ingredients and More")
     }
 
-    // MARK: - Empty State
+    // MARK: Empty State
 
     private var emptyState: some View {
         VStack(spacing: 12) {
@@ -66,8 +59,6 @@ struct RecipeSearchView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    // MARK: - No Results
-
     private var noResultsState: some View {
         VStack(spacing: 8) {
             Image(systemName: "magnifyingglass").font(.title2).foregroundColor(.textSecondary)
@@ -76,7 +67,7 @@ struct RecipeSearchView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    // MARK: - Search Results
+    // MARK: Search Results
 
     private var searchResultsList: some View {
         List {
@@ -100,7 +91,9 @@ struct RecipeSearchView: View {
                     Image(uiImage: img).resizable().scaledToFill()
                 } else {
                     RoundedRectangle(cornerRadius: 10)
-                        .fill(LinearGradient(colors: [.brandBlue.opacity(0.2), .brandBlue.opacity(0.1)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                        .fill(LinearGradient(
+                            colors: [.brandBlue.opacity(0.2), .brandBlue.opacity(0.1)],
+                            startPoint: .topLeading, endPoint: .bottomTrailing))
                     Image(systemName: "fork.knife").font(.callout).foregroundColor(.brandBlue)
                 }
             }
@@ -114,23 +107,19 @@ struct RecipeSearchView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(0)
-        .background(Color.bgPrimary)
+        .background(Color.cardBg)
     }
 
-    // MARK: - Command View
+    // MARK: Commands
 
     private var commandView: some View {
         let cmd = searchText.trimmingCharacters(in: .whitespaces).lowercased()
-
         return VStack(spacing: 20) {
-            if cmd == "/import" {
-                importCommandView
-            } else if cmd == "/export" {
-                exportCommandView
-            } else if cmd == "/clear" {
-                clearCommandView
-            } else {
-                unknownCommandView
+            switch cmd {
+            case "/import": importCommandView
+            case "/export": exportCommandView
+            case "/clear": clearCommandView
+            default: unknownCommandView
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -142,13 +131,14 @@ struct RecipeSearchView: View {
         }
     }
 
-    // MARK: - /import
+    // MARK: /import
 
     private var importCommandView: some View {
         VStack(spacing: 16) {
             Image(systemName: "square.and.arrow.down").font(.system(size: 44)).foregroundColor(.brandBlue)
             Text("Import Recipes").font(.title2.weight(.semibold))
-            Text("Select a JSON file containing one or more recipes to import.").multilineTextAlignment(.center)
+            Text("Select a JSON file containing one or more recipes to import.")
+                .multilineTextAlignment(.center)
                 .font(.calloutText).foregroundColor(.textSecondary).padding(.horizontal, 40)
 
             Button(action: { showFileImporter = true }) {
@@ -162,22 +152,26 @@ struct RecipeSearchView: View {
             }
             .buttonStyle(.plain)
 
-            // Import result message
-            if let msg = importMessage {
-                Group {
-                    switch msg {
-                    case .success(let count):
-                        Label("Imported \(count) recipe\(count > 1 ? "s" : "")", systemImage: "checkmark.circle.fill")
-                            .foregroundColor(.accentGreen)
-                    case .error(let text):
-                        Label(text, systemImage: "xmark.circle.fill")
-                            .foregroundColor(.accentRed)
-                    }
+            importResultMessage
+        }
+    }
+
+    @ViewBuilder
+    private var importResultMessage: some View {
+        if let msg = importMessage {
+            Group {
+                switch msg {
+                case .success(let count):
+                    Label("Imported \(count) recipe\(count > 1 ? "s" : "")", systemImage: "checkmark.circle.fill")
+                        .foregroundColor(.accentGreen)
+                case .error(let text):
+                    Label(text, systemImage: "xmark.circle.fill")
+                        .foregroundColor(.accentRed)
                 }
-                .font(.bodyText.weight(.medium))
-                .padding(12)
-                .background(Color.pageBg.opacity(0.5), in: RoundedRectangle(cornerRadius: 10))
             }
+            .font(.bodyText.weight(.medium))
+            .padding(12)
+            .background(Color.pageBg.opacity(0.5), in: RoundedRectangle(cornerRadius: 10))
         }
     }
 
@@ -186,8 +180,7 @@ struct RecipeSearchView: View {
         case .success(let urls):
             guard let url = urls.first else { return }
             guard url.startAccessingSecurityScopedResource() else {
-                importMessage = .error("Cannot access file")
-                return
+                importMessage = .error("Cannot access file"); return
             }
             defer { url.stopAccessingSecurityScopedResource() }
 
@@ -195,11 +188,8 @@ struct RecipeSearchView: View {
                 let data = try Data(contentsOf: url)
                 let decoder = JSONDecoder()
 
-                // Try simplified export format first, fall back to full Recipe format
                 if let recipes = try? decoder.decode([ExportRecipe].self, from: data) {
-                    for ex in recipes {
-                        store.add(ExportRecipe.toRecipe(ex))
-                    }
+                    for ex in recipes { store.add(ExportRecipe.toRecipe(ex)) }
                     importMessage = .success(recipes.count)
                 } else if let recipes = try? decoder.decode([Recipe].self, from: data) {
                     for recipe in recipes { store.add(recipe) }
@@ -215,7 +205,7 @@ struct RecipeSearchView: View {
         }
     }
 
-    // MARK: - /export
+    // MARK: /export
 
     private var exportCommandView: some View {
         VStack(spacing: 16) {
@@ -250,7 +240,7 @@ struct RecipeSearchView: View {
         }
     }
 
-    // MARK: - /clear
+    // MARK: /clear
 
     private var clearCommandView: some View {
         VStack(spacing: 16) {
@@ -273,8 +263,6 @@ struct RecipeSearchView: View {
         }
     }
 
-    // MARK: - Unknown Command
-
     private var unknownCommandView: some View {
         VStack(spacing: 8) {
             Image(systemName: "questionmark.circle").font(.system(size: 36)).foregroundColor(.textTertiary)
@@ -285,7 +273,7 @@ struct RecipeSearchView: View {
     }
 }
 
-// MARK: - File Document (for fileExporter)
+// MARK: - File Document
 
 struct RecipeFileDocument: FileDocument {
     static var readableContentTypes: [UTType] { [.json] }
@@ -301,10 +289,8 @@ struct RecipeFileDocument: FileDocument {
     }
 }
 
-// MARK: - Export / Import Recipe Format (human-friendly JSON)
+// MARK: - Export / Import Recipe Format
 
-/// Simplified recipe format — easy to hand-edit in a text editor.
-/// No IDs, no timestamps, no photo data. Time uses human-readable strings like "10m", "1h 30m".
 struct ExportRecipe: Codable {
     var order: Int
     var name: String
@@ -315,7 +301,6 @@ struct ExportRecipe: Codable {
     var steps: [String]
     var tags: [String]
 
-    /// Convert a Recipe to the simplified export format.
     static func from(_ recipe: Recipe, order: Int) -> ExportRecipe {
         ExportRecipe(
             order: order,
@@ -331,7 +316,6 @@ struct ExportRecipe: Codable {
         )
     }
 
-    /// Convert an ExportRecipe back to a full Recipe (import).
     static func toRecipe(_ ex: ExportRecipe) -> Recipe {
         Recipe(
             name: ex.name,
@@ -356,14 +340,12 @@ struct ExportRecipe: Codable {
     private static func parseTime(_ s: String) -> TimeInterval {
         var total: Int = 0
         let str = s.trimmingCharacters(in: .whitespaces)
-        // Match "Xh" hours
         if let r = str.range(of: #"(\d+)\s*h"#, options: .regularExpression) {
-            let digits = str[r].filter { $0.isNumber }
+            let digits = str[r].filter(\.isNumber)
             if let n = Int(digits) { total += n * 3600 }
         }
-        // Match "Xm" minutes
         if let r = str.range(of: #"(\d+)\s*m"#, options: .regularExpression) {
-            let digits = str[r].filter { $0.isNumber }
+            let digits = str[r].filter(\.isNumber)
             if let n = Int(digits) { total += n * 60 }
         }
         return TimeInterval(total)

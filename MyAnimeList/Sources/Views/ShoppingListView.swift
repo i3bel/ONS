@@ -6,8 +6,11 @@ struct ShoppingListView: View {
     @State private var showIngredientEditor = false
     @State private var ingredientEditorText = ""
 
+    private let feedback = UIImpactFeedbackGenerator(style: .medium)
+
     private var leftCount: Int {
-        max(0, store.shoppingItems.count - completed.intersection(Set(store.shoppingItems.map(\.id))).count)
+        let allIds = Set(store.shoppingItems.map(\.id))
+        return max(0, store.shoppingItems.count - completed.intersection(allIds).count)
     }
 
     var body: some View {
@@ -16,65 +19,12 @@ struct ShoppingListView: View {
                 if store.shoppingItems.isEmpty {
                     emptyState
                 } else {
-                    List {
-                        ForEach(store.shoppingItems) { item in
-                            HStack(spacing: 10) {
-                                // Checkbox
-                                Button(action: { toggle(item.id) }) {
-                                    Image(systemName: completed.contains(item.id) ? "checkmark.circle.fill" : "circle")
-                                        .font(.title3).foregroundColor(completed.contains(item.id) ? .accentGreen : .textSecondary)
-                                }
-                                .buttonStyle(.plain)
-
-                                // Item info
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(item.name)
-                                        .font(.bodyText)
-                                        .strikethrough(completed.contains(item.id))
-                                        .foregroundColor(completed.contains(item.id) ? .textSecondary : .textPrimary)
-
-                                    ingredientSubtitle(item: item, completed: completed.contains(item.id))
-                                }
-
-                                Spacer()
-
-                                // Delete
-                                Button(action: { store.removeShoppingItem(item.id) }) {
-                                    Image(systemName: "xmark.circle.fill").font(.title3).foregroundColor(.accentRed)
-                                }
-                                .buttonStyle(.plain)
-                            }
-                            .padding(12)
-                            .background(Color.cardBg, in: RoundedRectangle(cornerRadius: 12))
-                            .opacity(completed.contains(item.id) ? 0.5 : 1)
-                            .listRowInsets(.init(top: 4, leading: 16, bottom: 4, trailing: 16))
-                            .listRowBackground(Color.clear)
-                            .listRowSeparator(.hidden)
-                        }
-                    }
-                    .listStyle(.plain)
-                    .background(Color.bgSecondary)
+                    shoppingList
                 }
             }
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .principal) {
-                    (Text("\(leftCount)")
-                        .font(.title2.weight(.bold)).foregroundColor(.textPrimary)
-                    + Text(" Left")
-                        .font(.bodyText.weight(.bold)).foregroundColor(.textSecondary))
-                    .contentTransition(.numericText())
-                }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button(action: {
-                        ingredientEditorText = ""
-                        showIngredientEditor = true
-                    }) {
-                        Image(systemName: "plus").font(.title2.weight(.semibold)).foregroundColor(.brandBlue)
-                    }
-                }
-            }
+            .toolbar { toolbarContent }
             .onChange(of: store.shoppingItems.isEmpty) { _, empty in
                 if empty { completed.removeAll() }
             }
@@ -87,7 +37,48 @@ struct ShoppingListView: View {
         }
     }
 
-    // MARK: - Empty State
+    // MARK: Toolbar
+
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        ToolbarItem(placement: .principal) {
+            (Text("\(leftCount)")
+                .font(.title2.weight(.bold)).foregroundColor(.textPrimary)
+            + Text(" Left")
+                .font(.bodyText.weight(.bold)).foregroundColor(.textSecondary))
+            .contentTransition(.numericText())
+        }
+        ToolbarItem(placement: .topBarTrailing) {
+            Button(action: {
+                ingredientEditorText = ""
+                showIngredientEditor = true
+            }) {
+                Image(systemName: "plus").font(.title2.weight(.semibold)).foregroundColor(.brandBlue)
+            }
+        }
+    }
+
+    // MARK: List
+
+    private var shoppingList: some View {
+        List {
+            ForEach(store.shoppingItems) { item in
+                ShoppingItemRow(
+                    item: item,
+                    isCompleted: completed.contains(item.id),
+                    onToggle: { toggle(item.id) },
+                    onDelete: { store.removeShoppingItem(item.id) }
+                )
+                .listRowInsets(.init(top: 4, leading: 16, bottom: 4, trailing: 16))
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
+            }
+        }
+        .listStyle(.plain)
+        .background(Color.pageBg)
+    }
+
+    // MARK: Empty State
 
     private var emptyState: some View {
         VStack(spacing: 12) {
@@ -99,12 +90,13 @@ struct ShoppingListView: View {
     }
 
     private func toggle(_ id: String) {
-        let impact = UIImpactFeedbackGenerator(style: .medium)
-        impact.impactOccurred()
-        withAnimation { if completed.contains(id) { completed.remove(id) } else { completed.insert(id) } }
+        feedback.impactOccurred()
+        withAnimation {
+            if completed.contains(id) { completed.remove(id) } else { completed.insert(id) }
+        }
     }
 
-    // MARK: - Ingredient Editor Sheet
+    // MARK: Ingredient Editor Sheet
 
     private var ingredientEditorSheet: some View {
         NavigationStack {
@@ -139,14 +131,51 @@ struct ShoppingListView: View {
     private func commitIngredient() {
         let text = ingredientEditorText.trimmingCharacters(in: .whitespaces)
         guard !text.isEmpty else { return }
-        let parsed = Ingredient.parseChinese(text)
-        store.addShoppingItem(parsed)
+        store.addShoppingItem(Ingredient.parseChinese(text))
         ingredientEditorText = ""
     }
+}
 
-    private func ingredientSubtitle(item: Ingredient, completed: Bool) -> some View {
-        let amt = Text(item.amountWithUnit).font(.captionText.weight(.semibold)).foregroundColor(.brandBlue)
-        let name = Text("  \(item.name)").font(.captionText).foregroundColor(.textTertiary)
-        return (amt + name).strikethrough(completed)
+// MARK: - Shopping Item Row
+
+private struct ShoppingItemRow: View {
+    var item: Ingredient
+    var isCompleted: Bool
+    var onToggle: () -> Void
+    var onDelete: () -> Void
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Button(action: onToggle) {
+                Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle")
+                    .font(.title3).foregroundColor(isCompleted ? .accentGreen : .textSecondary)
+            }
+            .buttonStyle(.plain)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(item.name)
+                    .font(.bodyText)
+                    .strikethrough(isCompleted)
+                    .foregroundColor(isCompleted ? .textSecondary : .textPrimary)
+
+                ingredientSubtitle
+            }
+
+            Spacer()
+
+            Button(action: onDelete) {
+                Image(systemName: "xmark.circle.fill").font(.title3).foregroundColor(.accentRed)
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(12)
+        .background(Color.cardBg, in: RoundedRectangle(cornerRadius: 12))
+        .opacity(isCompleted ? 0.5 : 1)
+    }
+
+    private var ingredientSubtitle: some View {
+        Text(item.amountWithUnit).font(.captionText.weight(.semibold)).foregroundColor(.brandBlue)
+        + Text("  \(item.name)").font(.captionText).foregroundColor(.textTertiary)
+            .strikethrough(isCompleted)
     }
 }

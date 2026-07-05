@@ -1,6 +1,5 @@
 import Foundation
 import Observation
-import UniformTypeIdentifiers
 
 // MARK: - Recipe Model
 
@@ -18,7 +17,10 @@ struct Recipe: Identifiable, Codable, Equatable {
 
     var totalTime: TimeInterval { prepTime + cookTime }
 
-    init(id: String = UUID().uuidString, name: String, servings: Int = 2, prepTime: TimeInterval = 0, cookTime: TimeInterval = 0, ingredients: [Ingredient] = [], steps: [CookingStep] = [], photoFilename: String? = nil, tags: [String] = [], createdAt: Date = .now) {
+    init(id: String = UUID().uuidString, name: String, servings: Int = 2,
+         prepTime: TimeInterval = 0, cookTime: TimeInterval = 0,
+         ingredients: [Ingredient] = [], steps: [CookingStep] = [],
+         photoFilename: String? = nil, tags: [String] = [], createdAt: Date = .now) {
         self.id = id
         self.name = name
         self.servings = servings
@@ -33,8 +35,7 @@ struct Recipe: Identifiable, Codable, Equatable {
 
     /// Scale an ingredient by target servings (returns "amount unit" without ingredient name)
     func scaledAmount(for ingredient: Ingredient, targetServings: Int) -> String {
-        let fuzzy = ["适量", "少许", "少量", "若干"]
-        if fuzzy.contains(ingredient.unit) {
+        if Ingredient.fuzzyQuantifiers.contains(ingredient.unit) {
             return ingredient.unit
         }
         guard servings > 0 else { return ingredient.amountWithUnit }
@@ -55,26 +56,28 @@ struct Ingredient: Identifiable, Codable, Equatable {
     var amount: Double
     var unit: String
 
+    /// Quantifiers like "适量" that negate numeric scaling.
+    static let fuzzyQuantifiers = ["适量", "少许", "少量", "若干"]
+
+    /// Precomputed list of known Chinese/English units for parsing.
+    static let knownUnits = [
+        "杯", "碗", "勺", "汤匙", "茶匙", "个", "根", "片", "只", "粒",
+        "颗", "瓣", "块", "条", "束", "包", "盒", "瓶", "罐",
+        "克", "毫升", "斤", "两", "公斤", "升", "头", "把",
+        "ml", "g", "kg", "cup", "tbsp", "tsp", "oz", "lb", "pinch"
+    ]
+
     /// "1.5 勺" — amount + unit without ingredient name
     var amountWithUnit: String {
-        let fuzzy = ["适量", "少许", "少量", "若干"]
-        if fuzzy.contains(unit) {
-            return unit
-        }
-        if amount == floor(amount) {
-            return "\(Int(amount)) \(unit)"
-        }
+        if Self.fuzzyQuantifiers.contains(unit) { return unit }
+        if amount == floor(amount) { return "\(Int(amount)) \(unit)" }
         return String(format: "%.1f %@", amount, unit)
     }
 
+    /// "1.5 勺 糖" — full display string
     var displayString: String {
-        let fuzzy = ["适量", "少许", "少量", "若干"]
-        if fuzzy.contains(unit) {
-            return "\(unit) \(name)"
-        }
-        if amount == floor(amount) {
-            return "\(Int(amount)) \(unit) \(name)"
-        }
+        if Self.fuzzyQuantifiers.contains(unit) { return "\(unit) \(name)" }
+        if amount == floor(amount) { return "\(Int(amount)) \(unit) \(name)" }
         return String(format: "%.1f %@ %@", amount, unit, name)
     }
 
@@ -85,6 +88,8 @@ struct Ingredient: Identifiable, Codable, Equatable {
         self.unit = unit
     }
 
+    // MARK: - Chinese Text Parser
+
     /// Parse Chinese text like "一勺糖" → Ingredient(name:"糖", amount:1, unit:"勺")
     static func parseChinese(_ text: String) -> Ingredient {
         let trimmed = text.trimmingCharacters(in: .whitespaces)
@@ -92,14 +97,9 @@ struct Ingredient: Identifiable, Codable, Equatable {
             "零": 0, "一": 1, "二": 2, "三": 3, "四": 4, "五": 5,
             "六": 6, "七": 7, "八": 8, "九": 9, "十": 10
         ]
-        let knownUnits = ["杯", "碗", "勺", "汤匙", "茶匙", "个", "根", "片", "只", "粒",
-                          "颗", "瓣", "块", "条", "束", "包", "盒", "瓶", "罐",
-                          "克", "毫升", "斤", "两", "公斤", "升", "头", "把",
-                          "ml", "g", "kg", "cup", "tbsp", "tsp", "oz", "lb", "pinch"]
-        let fuzzyQuantifiers = ["适量", "少许", "少量", "若干"]
 
-        // Check fuzzy quantifiers first
-        for q in fuzzyQuantifiers {
+        // Fuzzy quantifiers first
+        for q in Self.fuzzyQuantifiers {
             if trimmed.hasPrefix(q) {
                 let name = String(trimmed.dropFirst(q.count)).trimmingCharacters(in: .whitespaces)
                 return Ingredient(name: name.isEmpty ? trimmed : name, amount: 0, unit: q)
@@ -110,18 +110,13 @@ struct Ingredient: Identifiable, Codable, Equatable {
         var unit = ""
         var name = trimmed
 
-        // Handle "两" (special: means 2, not 2)
         if trimmed.hasPrefix("两") {
             amount = 2
             name = String(trimmed.dropFirst())
-        }
-        // Handle "半" at start (means 0.5)
-        else if trimmed.hasPrefix("半") {
+        } else if trimmed.hasPrefix("半") {
             amount = 0.5
             name = String(trimmed.dropFirst())
-        }
-        else {
-            // Extract amount from Chinese digits at start
+        } else {
             for (char, val) in chineseDigits {
                 if trimmed.hasPrefix(String(char)) {
                     amount = val
@@ -131,7 +126,7 @@ struct Ingredient: Identifiable, Codable, Equatable {
             }
         }
 
-        // Try Arabic digits at start (including decimal)
+        // Arabic digits at start
         if let firstDigit = trimmed.first, firstDigit.isNumber || firstDigit == "." {
             let digits = trimmed.prefix(while: { $0.isNumber || $0 == "." })
             if let parsed = Double(digits) {
@@ -140,7 +135,7 @@ struct Ingredient: Identifiable, Codable, Equatable {
             }
         }
 
-        // Handle "X勺半" pattern (e.g. "一勺半" = 1.5勺)
+        // "X勺半" pattern (e.g. "一勺半" = 1.5勺)
         for u in ["勺", "杯", "碗", "汤匙", "茶匙", "个", "头", "把"] {
             if name.hasPrefix(u) && name.dropFirst(u.count).hasPrefix("半") {
                 unit = u
@@ -153,7 +148,7 @@ struct Ingredient: Identifiable, Codable, Equatable {
         // Extract unit
         if unit.isEmpty {
             name = name.trimmingCharacters(in: .whitespaces)
-            for u in knownUnits {
+            for u in Self.knownUnits {
                 if name.hasPrefix(u) {
                     unit = u
                     name = String(name.dropFirst(u.count)).trimmingCharacters(in: .whitespaces)
@@ -180,6 +175,16 @@ struct CookingStep: Identifiable, Codable, Equatable {
     }
 }
 
+// MARK: - Shared Recipe Text Patterns
+
+enum RecipeTextPatterns {
+    /// Matches time expressions: "20分钟", "30 min", "2小时", "一刻", etc.
+    static let time = #"(?:\d+\s*(?:min(?:ute)?s?|mins|秒|hour(?:s)?|分钟|小时|分|天|周|个月|年))|(?:[一两二三四五六七八九十半几数]+\s*(?:分钟|小时|天|周|个月|年))|一刻|一会|一会儿|片刻|半天|半个月|半年|半日|数日"#
+
+    /// Matches temperature: "180°C", "350°F", "200度"
+    static let temperature = #"\d+\s*(°[FC]|度)"#
+}
+
 // MARK: - Recipe Store
 
 @Observable
@@ -202,15 +207,27 @@ final class RecipeStore {
 
     var sortedRecipes: [Recipe] {
         switch sortOrder {
-        case .name: return recipes.sorted { $0.name.localizedCompare($1.name) == .orderedAscending }
-        case .prepTime: return recipes.sorted { $0.totalTime < $1.totalTime }
+        case .name:
+            return recipes.sorted { $0.name.localizedCompare($1.name) == .orderedAscending }
+        case .prepTime:
+            return recipes.sorted { $0.totalTime < $1.totalTime }
         }
     }
 
+    // MARK: - CRUD
+
     func add(_ recipe: Recipe) { recipes.append(recipe); save() }
-    func update(_ recipe: Recipe) { guard let i = recipes.firstIndex(where: { $0.id == recipe.id }) else { return }; recipes[i] = recipe; save() }
+    func update(_ recipe: Recipe) {
+        guard let i = recipes.firstIndex(where: { $0.id == recipe.id }) else { return }
+        recipes[i] = recipe; save()
+    }
     func delete(_ recipe: Recipe) { recipes.removeAll { $0.id == recipe.id }; save() }
-    func delete(_ recipes: [Recipe]) { let ids = Set(recipes.map(\.id)); self.recipes.removeAll { ids.contains($0.id) }; save() }
+    func delete(_ recipes: [Recipe]) {
+        let ids = Set(recipes.map(\.id))
+        self.recipes.removeAll { ids.contains($0.id) }; save()
+    }
+
+    // MARK: - Photos
 
     func savePhoto(data: Data, for recipeID: String) -> String? {
         let dir = fileURL.deletingLastPathComponent()
@@ -225,45 +242,16 @@ final class RecipeStore {
         return fileURL.deletingLastPathComponent().appendingPathComponent(fn)
     }
 
+    // MARK: - Shopping List
+
     func addShoppingItems(_ items: [Ingredient]) {
-        for item in items {
-            mergeOrAdd(item)
-        }
+        for item in items { mergeOrAdd(item) }
         save()
     }
 
     func addShoppingItem(_ item: Ingredient) {
         mergeOrAdd(item)
         save()
-    }
-
-    /// Merge duplicate ingredients by name+unit before adding.
-    /// - Exact amounts (e.g. "3 个" + "3 个") → sum amounts → "6 个"
-    /// - Fuzzy quantifiers (适量/少许/少量/若干) → keep the first occurrence
-    private func mergeOrAdd(_ item: Ingredient) {
-        let fuzzy = ["适量", "少许", "少量", "若干"]
-
-        // Same name + same unit → merge amounts
-        if let idx = shoppingItems.firstIndex(where: { $0.name == item.name && $0.unit == item.unit }) {
-            if fuzzy.contains(item.unit) { return }  // fuzzy quantifiers: keep existing
-            let existing = shoppingItems[idx]
-            shoppingItems[idx] = Ingredient(
-                id: existing.id,
-                name: existing.name,
-                amount: existing.amount + item.amount,
-                unit: existing.unit
-            )
-            return
-        }
-
-        // Same name, different unit, both fuzzy → keep existing
-        if let idx = shoppingItems.firstIndex(where: { $0.name == item.name }),
-           fuzzy.contains(item.unit) && fuzzy.contains(shoppingItems[idx].unit) {
-            return
-        }
-
-        // No match → append as new
-        shoppingItems.append(item)
     }
 
     func removeShoppingItem(_ id: String) {
@@ -276,12 +264,36 @@ final class RecipeStore {
         save()
     }
 
+    /// Merge duplicate ingredients by name+unit before adding.
+    private func mergeOrAdd(_ item: Ingredient) {
+        // Same name + same unit → merge amounts
+        if let idx = shoppingItems.firstIndex(where: { $0.name == item.name && $0.unit == item.unit }) {
+            if Ingredient.fuzzyQuantifiers.contains(item.unit) { return }
+            let existing = shoppingItems[idx]
+            shoppingItems[idx] = Ingredient(
+                id: existing.id,
+                name: existing.name,
+                amount: existing.amount + item.amount,
+                unit: existing.unit
+            )
+            return
+        }
+
+        // Same name, both fuzzy → keep existing
+        if let idx = shoppingItems.firstIndex(where: { $0.name == item.name }),
+           Ingredient.fuzzyQuantifiers.contains(item.unit),
+           Ingredient.fuzzyQuantifiers.contains(shoppingItems[idx].unit) {
+            return
+        }
+
+        shoppingItems.append(item)
+    }
+
     // MARK: - Clear All
 
     func clearAll() {
         recipes.removeAll()
         shoppingItems.removeAll()
-        // Delete all cached photo files
         let dir = fileURL.deletingLastPathComponent()
         if let files = try? FileManager.default.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil) {
             for f in files where f.lastPathComponent.hasPrefix("photo_") {
@@ -291,39 +303,7 @@ final class RecipeStore {
         save()
     }
 
-    // MARK: - Cooking State
-
-    var cookingSteps: [CookingStep] = []
-    var completedStepIds: Set<String> = []
-    var cookingRecipeName: String = ""
-
-    func startCooking(recipe: Recipe) {
-        cookingSteps = recipe.steps
-        completedStepIds = []
-        cookingRecipeName = recipe.name
-    }
-
-    func toggleStep(_ id: String) {
-        if completedStepIds.contains(id) {
-            completedStepIds.remove(id)
-        } else {
-            completedStepIds.insert(id)
-            // First step completed → clear shopping list
-            if completedStepIds.count == 1 {
-                clearShoppingList()
-            }
-            // Last step completed → clear cooking
-            if completedStepIds.count == cookingSteps.count {
-                cookingSteps = []
-                completedStepIds = []
-                cookingRecipeName = ""
-            }
-        }
-    }
-
-    var remainingSteps: Int {
-        cookingSteps.count - completedStepIds.count
-    }
+    // MARK: - Persistence
 
     private func load() {
         isLoading = true; defer { isLoading = false }
@@ -336,9 +316,13 @@ final class RecipeStore {
         guard !isLoading else { return }
         try? FileManager.default.createDirectory(at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true)
         let snap = Snapshot(recipes: recipes, sortOrder: sortOrder, shoppingItems: shoppingItems)
-        if let data = try? JSONEncoder.recipeStore.encode(snap) { try? data.write(to: fileURL, options: .atomic) }
+        if let data = try? JSONEncoder.recipeStore.encode(snap) {
+            try? data.write(to: fileURL, options: .atomic)
+        }
     }
 }
+
+// MARK: - Persistence Helpers
 
 private struct Snapshot: Codable {
     var recipes: [Recipe]
@@ -346,5 +330,19 @@ private struct Snapshot: Codable {
     var shoppingItems: [Ingredient] = []
 }
 
-extension JSONEncoder { static var recipeStore: JSONEncoder { let e = JSONEncoder(); e.dateEncodingStrategy = .iso8601; e.outputFormatting = [.prettyPrinted, .sortedKeys]; return e } }
-extension JSONDecoder { static var recipeStore: JSONDecoder { let d = JSONDecoder(); d.dateDecodingStrategy = .iso8601; return d } }
+extension JSONEncoder {
+    static var recipeStore: JSONEncoder {
+        let e = JSONEncoder()
+        e.dateEncodingStrategy = .iso8601
+        e.outputFormatting = [.prettyPrinted, .sortedKeys]
+        return e
+    }
+}
+
+extension JSONDecoder {
+    static var recipeStore: JSONDecoder {
+        let d = JSONDecoder()
+        d.dateDecodingStrategy = .iso8601
+        return d
+    }
+}

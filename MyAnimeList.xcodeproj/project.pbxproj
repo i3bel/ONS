@@ -10,6 +10,10 @@
 		E83BA2D12FF90C9900592A1B /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E83BA2D02FF90C9900592A1B /* WidgetKit.framework */; };
 		E83BA2D32FF90C9900592A1B /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E83BA2D22FF90C9900592A1B /* SwiftUI.framework */; };
 		E83BA2E22FF90C9A00592A1B /* CookingTimerWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = E83BA2CE2FF90C9900592A1B /* CookingTimerWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		E89C62532FF9ECA800049D08 /* RecipeSlateShared in Frameworks */ = {isa = PBXBuildFile; productRef = F7790AB7E3964EC28DDD32E7 /* RecipeSlateShared */; };
+		E89C62542FF9ECA800049D08 /* RecipeSlateShared in Frameworks */ = {isa = PBXBuildFile; productRef = F7790AB7E3964EC28DDD32E7 /* RecipeSlateShared */; };
+		E89C62552FF9ECA800049D08 /* RecipeSlateShared in Frameworks */ = {isa = PBXBuildFile; productRef = F7790AB7E3964EC28DDD32E7 /* RecipeSlateShared */; };
+		E89C62562FF9ECA800049D08 /* RecipeSlateShared in Frameworks */ = {isa = PBXBuildFile; productRef = F7790AB7E3964EC28DDD32E7 /* RecipeSlateShared */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -74,7 +78,6 @@
 			);
 			target = E83BA2CD2FF90C9900592A1B /* CookingTimerWidgetExtension */;
 		};
-
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -101,6 +104,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E89C62532FF9ECA800049D08 /* RecipeSlateShared in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -108,6 +112,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E89C62552FF9ECA800049D08 /* RecipeSlateShared in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -115,6 +120,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E89C62562FF9ECA800049D08 /* RecipeSlateShared in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -122,6 +128,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E89C62542FF9ECA800049D08 /* RecipeSlateShared in Frameworks */,
 				E83BA2D32FF90C9900592A1B /* SwiftUI.framework in Frameworks */,
 				E83BA2D12FF90C9900592A1B /* WidgetKit.framework in Frameworks */,
 			);
@@ -290,7 +297,7 @@
 			mainGroup = 9F8D66272D055FEF00CF355D;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				938336C3FD5B4517B47E6493 /* RecipeSlateShared */,
+				938336C3FD5B4517B47E6493 /* XCLocalSwiftPackageReference "Packages/RecipeSlateShared/" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9F8D66312D055FEF00CF355D /* Products */;
@@ -384,22 +391,6 @@
 			targetProxy = E83BA2E02FF90C9A00592A1B /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
-
-
-/* Begin XCLocalSwiftPackageReference section */
-	938336C3FD5B4517B47E6493 /* RecipeSlateShared */ = {
-		isa = XCLocalSwiftPackageReference;
-		relativePath = Packages/RecipeSlateShared/;
-	};
-/* End XCLocalSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-	F7790AB7E3964EC28DDD32E7 /* RecipeSlateShared */ = {
-		isa = XCSwiftPackageProductDependency;
-		productName = "RecipeSlateShared";
-		package = 938336C3FD5B4517B47E6493 /* RecipeSlateShared */;
-	};
-/* End XCSwiftPackageProductDependency section */
 
 /* Begin XCBuildConfiguration section */
 		9F8D66522D055FF000CF355D /* Debug */ = {
@@ -796,6 +787,21 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		938336C3FD5B4517B47E6493 /* XCLocalSwiftPackageReference "Packages/RecipeSlateShared/" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/RecipeSlateShared/;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		F7790AB7E3964EC28DDD32E7 /* RecipeSlateShared */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 938336C3FD5B4517B47E6493 /* XCLocalSwiftPackageReference "Packages/RecipeSlateShared/" */;
+			productName = RecipeSlateShared;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 9F8D66282D055FEF00CF355D /* Project object */;
 }
