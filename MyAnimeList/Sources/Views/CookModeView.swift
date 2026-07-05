@@ -149,11 +149,11 @@ struct CookModeView: View {
     // MARK: Colored Text
 
     private func cookingColoredText(_ text: String) -> Text {
+        let timeColor: Color = timerSelectionMode ? .accentOrange : .accentRed
         let rules: [HighlightRule] = [
-            .init(
-                pattern: RecipeTextPatterns.time,
-                color: timerSelectionMode ? .accentOrange : .accentRed
-            ),
+            // Half-pattern must come BEFORE time pattern (same position → longer match wins)
+            .init(pattern: #"[一二两三四五六七八九十]+\s*(?:年|天|小时|分钟)\s*半"#, color: timeColor),
+            .init(pattern: RecipeTextPatterns.time, color: timeColor),
             .init(pattern: RecipeTextPatterns.temperature, color: .accentOrange),
         ]
         return highlightText(text, rules: rules)
@@ -161,14 +161,47 @@ struct CookModeView: View {
 
     // MARK: Time Parsing
 
+    /// Priority-based time extraction: highest priority first, longest match wins, no overlaps.
     private func extractTimeMatches(from text: String) -> [String] {
-        var matches: [String] = []
-        var remaining = text
-        while let r = remaining.range(of: RecipeTextPatterns.time, options: .regularExpression) {
-            matches.append(String(remaining[r]))
-            remaining = String(remaining[r.upperBound...])
+        let patterns: [String] = [
+            // 0: X + 半 suffix (highest): "一天半", "两天半"
+            #"[一二两三四五六七八九十]+\s*(?:年|天|小时|分钟)\s*半"#,
+            // 1: Digit + unit: "20分钟", "1.5天"
+            #"\d+(?:\.\d+)?\s*(?:min(?:ute)?s?|mins|秒|hour(?:s)?|分钟|小时|分|天|周|个月|年)"#,
+            // 2: Chinese digit + unit: "两天", "三小时" (no 半)
+            #"[一二两三四五六七八九十半几数]+\s*(?:年|周|天|小时|分钟)"#,
+            // 3: Special idioms
+            #"一刻|一刻钟|一会|一会儿|片刻|半天|半个月|一个半月|半年|半日|数日"#,
+        ]
+
+        let nsText = text as NSString
+        var allMatches: [(range: NSRange, text: String, priority: Int)] = []
+
+        for (priority, pattern) in patterns.enumerated() {
+            guard let regex = try? NSRegularExpression(pattern: pattern, options: []) else { continue }
+            regex.enumerateMatches(in: text, options: [], range: NSRange(location: 0, length: nsText.length)) { m, _, _ in
+                guard let m else { return }
+                allMatches.append((m.range, nsText.substring(with: m.range), priority))
+            }
         }
-        return matches
+
+        // Sort by position asc, then priority asc, then length desc
+        allMatches.sort { a, b in
+            if a.range.location != b.range.location { return a.range.location < b.range.location }
+            if a.priority != b.priority { return a.priority < b.priority }
+            return a.range.length > b.range.length
+        }
+
+        // Consume ranges, skip overlaps
+        var result: [String] = []
+        var consumedEnd = 0
+        for match in allMatches {
+            guard match.range.location >= consumedEnd else { continue }
+            result.append(match.text)
+            consumedEnd = match.range.upperBound
+        }
+
+        return result
     }
 
     private func parseTimeToSeconds(_ text: String) -> TimeInterval? {

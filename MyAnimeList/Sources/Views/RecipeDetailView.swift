@@ -263,6 +263,8 @@ struct RecipeDetailView: View {
         let ingredientsSorted = recipe.ingredients.sorted { $0.name.count > $1.name.count }
         let rules: [HighlightRule] = [
             .init(strings: ingredientsSorted.map(\.name), color: .accentColor),
+            // Half-pattern must come BEFORE time pattern (same position → longer match wins)
+            .init(pattern: #"[一二两三四五六七八九十]+\s*(?:年|天|小时|分钟)\s*半"#, color: .accentRed),
             .init(pattern: RecipeTextPatterns.time, color: .accentRed),
             .init(pattern: RecipeTextPatterns.temperature, color: .accentOrange),
         ]
@@ -395,14 +397,21 @@ func highlightText(_ text: String, rules: [HighlightRule]) -> Text {
         for rule in rules {
             if let strings = rule.strings {
                 for s in strings {
-                    if let r = remaining.range(of: s, options: .caseInsensitive), r.lowerBound < earliestStart {
-                        earliestStart = r.lowerBound; earliestRange = r; earliestColor = rule.color
+                    if let r = remaining.range(of: s, options: .caseInsensitive) {
+                        // Prefer the match that starts earliest; if two matches start at the same index,
+                        // prefer the longer match so we don't accidentally pick a short substring
+                        // like "两天" when a longer "两天半" also matches at the same position.
+                        if r.lowerBound < earliestStart || (r.lowerBound == earliestStart && (earliestRange == nil || r.upperBound > earliestRange!.upperBound)) {
+                            earliestStart = r.lowerBound; earliestRange = r; earliestColor = rule.color
+                        }
                     }
                 }
             }
             if let pattern = rule.pattern {
-                if let r = remaining.range(of: pattern, options: .regularExpression), r.lowerBound < earliestStart {
-                    earliestStart = r.lowerBound; earliestRange = r; earliestColor = rule.color
+                if let r = remaining.range(of: pattern, options: .regularExpression) {
+                    if r.lowerBound < earliestStart || (r.lowerBound == earliestStart && (earliestRange == nil || r.upperBound > earliestRange!.upperBound)) {
+                        earliestStart = r.lowerBound; earliestRange = r; earliestColor = rule.color
+                    }
                 }
             }
         }
