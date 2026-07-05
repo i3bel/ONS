@@ -57,8 +57,6 @@ struct RecipeDetailView: View {
         ToolbarItem(placement: .navigationBarTrailing) {
             Menu {
                 Button("Edit Recipe", systemImage: "pencil") { showEdit = true }
-                Button("Share", systemImage: "square.and.arrow.up") { }
-                Divider()
                 Button("Delete Recipe", systemImage: "trash", role: .destructive) { showDelete = true }
             } label: {
                 Image(systemName: "ellipsis.circle")

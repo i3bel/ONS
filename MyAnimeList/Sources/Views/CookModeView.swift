@@ -16,8 +16,8 @@ struct CookModeView: View {
                     stepList
                 }
             }
-            .navigationTitle("Cook")
-            .navigationBarTitleDisplayMode(.large)
+            .navigationTitle("")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar { toolbarContent }
             .onChange(of: cooking.steps.isEmpty) { _, empty in
                 if empty { timerSelectionMode = false }

@@ -5,8 +5,6 @@ import SwiftUI
 struct RecipeListView: View {
     @Environment(RecipeStore.self) private var store
     @Environment(CookingController.self) private var cooking
-    @State private var selectMode = false
-    @State private var selected = Set<String>()
     @State private var showNewRecipe = false
     @State private var showDetail: Recipe?
 
@@ -19,141 +17,69 @@ struct RecipeListView: View {
                     scrollContent
                 }
             }
-            .navigationTitle("Recipes")
-            .navigationBarTitleDisplayMode(.large)
+            .navigationTitle("")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar { toolbarContent }
-            .toolbarRole(.editor)
             .sheet(isPresented: $showNewRecipe) { RecipeEditView() }
             .fullScreenCover(item: $showDetail) { r in
                 NavigationStack { RecipeDetailView(recipe: r) }
             }
-            .overlay(alignment: .bottom) { actionBarOverlay }
-            .animation(.spring(response: 0.35, dampingFraction: 0.9), value: showDetail != nil)
         }
     }
 
-    // MARK: Scroll Content
+    // MARK: List Content
 
     private var scrollContent: some View {
-        ScrollView {
-            LazyVStack(spacing: 10) {
-                if selectMode { selectAllRow }
-
-                ForEach(store.sortedRecipes) { recipe in
-                    RecipeRow(
-                        recipe: recipe,
-                        store: store,
-                        selectMode: selectMode,
-                        isSelected: selected.contains(recipe.id)
-                    ) {
-                        if selectMode {
-                            selected.formUnion([$0.id])
-                        } else {
-                            showDetail = $0
-                        }
+        List {
+            ForEach(store.sortedRecipes) { recipe in
+                RecipeRow(
+                    recipe: recipe,
+                    store: store
+                ) {
+                    showDetail = $0
+                }
+                .listRowInsets(.init(top: 0, leading: 16, bottom: 0, trailing: 16))
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
+                .swipeActions(edge: .leading, allowsFullSwipe: true) {
+                    Button {
+                        cooking.startCooking(steps: recipe.steps, recipeName: recipe.name)
+                    } label: {
+                        Label("Cook", systemImage: "play.fill")
                     }
-                    .contextMenu {
-                        Button(action: {
-                            cooking.startCooking(steps: recipe.steps, recipeName: recipe.name)
-                        }) {
-                            Label("Start Cooking", systemImage: "play.fill")
-                        }
-                        Button(action: { showDetail = recipe }) {
-                            Label("View Recipe", systemImage: "book")
-                        }
+                    .tint(.accentGreen)
+                }
+                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                    Button(role: .destructive) {
+                        store.delete([recipe])
+                    } label: {
+                        Label("Delete", systemImage: "trash")
                     }
-                    .swipeActions(edge: .leading, allowsFullSwipe: true) {
-                        Button {
-                            cooking.startCooking(steps: recipe.steps, recipeName: recipe.name)
-                        } label: {
-                            Label("Cook", systemImage: "play.fill")
-                        }
-                        .tint(.accentGreen)
-                    }
+                    .tint(.red)
                 }
             }
-            .padding(.horizontal, Spacing.standard)
-            .padding(.vertical, 8)
         }
+        .listStyle(.plain)
         .background(Color.pageBg)
-        .scrollIndicators(.hidden)
     }
 
     // MARK: Toolbar
 
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
+        ToolbarItem(placement: .principal) {
+            (Text("\(store.recipes.count)")
+                .font(.title2.weight(.bold)).foregroundColor(.textPrimary)
+            + Text(" Recipes")
+                .font(.body.weight(.bold)).foregroundColor(.textSecondary))
+                .contentTransition(.numericText())
+                .animation(.spring, value: store.recipes.count)
+        }
         ToolbarItem(placement: .topBarTrailing) {
-            if selectMode {
-                Button("Cancel") {
-                    selectMode = false
-                    selected.removeAll()
-                }
-                .font(.body.weight(.semibold))
-            } else {
-                HStack(spacing: 4) {
-                    Button(action: { selectMode = true }) {
-                        Image(systemName: "checkmark.circle")
-                    }
-                    Button(action: { showNewRecipe = true }) {
-                        Image(systemName: "plus")
-                    }
-                }
-                .font(.title3.weight(.semibold))
+            Button(action: { showNewRecipe = true }) {
+                Image(systemName: "plus")
+                    .font(.title3.weight(.semibold))
             }
-        }
-    }
-
-    // MARK: Select All
-
-    private var selectAllRow: some View {
-        Button(action: {
-            if selected.count == store.sortedRecipes.count {
-                selected.removeAll()
-            } else {
-                selected = Set(store.sortedRecipes.map(\.id))
-            }
-        }) {
-            HStack(spacing: 10) {
-                Image(systemName: selected.count == store.sortedRecipes.count
-                      ? "checkmark.circle.fill" : "circle")
-                    .font(.title3)
-                    .foregroundColor(selected.count == store.sortedRecipes.count ? .accentColor : .textSecondary)
-                Text(selected.count == store.sortedRecipes.count ? "Deselect All" : "Select All")
-                    .font(.body.weight(.medium))
-                    .foregroundColor(.accentColor)
-                Spacer()
-            }
-            .padding(Spacing.standard)
-            .background(Color.cardBg, in: RoundedRectangle(cornerRadius: CornerRadius.standard))
-        }
-        .buttonStyle(.plain)
-    }
-
-    // MARK: Action Bar
-
-    @ViewBuilder
-    private var actionBarOverlay: some View {
-        if selectMode, !selected.isEmpty {
-            HStack(spacing: 16) {
-                Button(role: .destructive) {
-                    let toDelete = store.recipes.filter { selected.contains($0.id) }
-                    store.delete(toDelete)
-                    selected.removeAll()
-                    selectMode = false
-                } label: {
-                    Label("Delete (\(selected.count))", systemImage: "trash")
-                        .font(.body.weight(.semibold))
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(.red)
-            }
-            .padding(.horizontal, Spacing.large)
-            .padding(.vertical, 12)
-            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: CornerRadius.standard + 4))
-            .shadow(color: .black.opacity(0.1), radius: 8, y: 2)
-            .padding(.bottom, 8)
-            .transition(.move(edge: .bottom).combined(with: .opacity))
         }
     }
 
@@ -173,56 +99,78 @@ struct RecipeListView: View {
 private struct RecipeRow: View {
     var recipe: Recipe
     var store: RecipeStore
-    var selectMode: Bool
-    var isSelected: Bool
     var onTap: (Recipe) -> Void
 
     var body: some View {
         Button(action: { onTap(recipe) }) {
             HStack(spacing: 14) {
-                if selectMode {
-                    Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                        .font(.title3)
-                        .foregroundColor(isSelected ? .accentColor : .textSecondary)
-                }
-
                 thumbnail
                 infoBlock
                 chevron
             }
-            .padding(14)
-            .background(Color.cardBg, in: RoundedRectangle(cornerRadius: CornerRadius.standard))
+            .padding(.vertical, 14)
         }
         .buttonStyle(.plain)
     }
 
+    @ViewBuilder
     private var thumbnail: some View {
-        ZStack {
-            if let url = store.photoURL(for: recipe), let img = UIImage(contentsOfFile: url.path) {
-                Image(uiImage: img).resizable().scaledToFill()
-            } else {
-                Rectangle()
-                    .fill(Color(.systemFill))
-                Image(systemName: "fork.knife")
-                    .font(.title2)
-                    .foregroundColor(.textTertiary)
-            }
+        if let url = store.photoURL(for: recipe), let img = UIImage(contentsOfFile: url.path) {
+            Image(uiImage: img).resizable().scaledToFill()
+                .frame(width: 90, height: 130)
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+                .shadow(color: .black.opacity(0.12), radius: 4, y: 2)
+        } else {
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(style: StrokeStyle(lineWidth: 1.5, dash: [5, 5]))
+                .foregroundColor(.textTertiary.opacity(0.4))
+                .frame(width: 90, height: 130)
         }
-        .frame(width: 90, height: 90)
-        .clipShape(RoundedRectangle(cornerRadius: 10))
     }
 
     private var infoBlock: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 4) {
             Text(recipe.name)
                 .font(.body.weight(.semibold))
                 .lineLimit(1)
                 .foregroundColor(.textPrimary)
 
-            HStack(spacing: 8) {
-                InfoPill(text: "\(recipe.servings) servings")
+            HStack(spacing: 4) {
+                Text("\(recipe.servings) servings")
+                    .font(.caption)
+                    .foregroundColor(.textSecondary)
                 if recipe.totalTime > 0 {
-                    InfoPill(text: timeStr(recipe.totalTime))
+                    Text("·")
+                        .font(.caption)
+                        .foregroundColor(.textTertiary)
+                    Text(timeStr(recipe.totalTime))
+                        .font(.caption)
+                        .foregroundColor(.textSecondary)
+                }
+            }
+
+            if !recipe.ingredients.isEmpty {
+                Text(recipe.ingredients.map(\.name).joined(separator: ", "))
+                    .font(.caption)
+                    .foregroundColor(.textSecondary)
+                    .lineLimit(1)
+            }
+
+            if !recipe.tags.isEmpty {
+                HStack(spacing: 4) {
+                    ForEach(recipe.tags.prefix(3), id: \.self) { tag in
+                        Text("#\(tag)")
+                            .font(.caption2.weight(.medium))
+                            .foregroundColor(.accentColor)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Color.accentColor.opacity(0.1), in: Capsule())
+                    }
+                    if recipe.tags.count > 3 {
+                        Text("+\(recipe.tags.count - 3)")
+                            .font(.caption2)
+                            .foregroundColor(.textTertiary)
+                    }
                 }
             }
         }

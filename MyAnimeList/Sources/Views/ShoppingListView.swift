@@ -24,8 +24,8 @@ struct ShoppingListView: View {
                     shoppingList
                 }
             }
-            .navigationTitle("Groceries")
-            .navigationBarTitleDisplayMode(.large)
+            .navigationTitle("")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar { toolbarContent }
             .onChange(of: store.shoppingItems.isEmpty) { _, empty in
                 if empty { completed.removeAll() }
@@ -43,6 +43,13 @@ struct ShoppingListView: View {
 
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
+        ToolbarItem(placement: .principal) {
+            (Text("\(leftCount)")
+                .font(.title2.weight(.bold)).foregroundColor(.textPrimary)
+            + Text(" Left")
+                .font(.body.weight(.bold)).foregroundColor(.textSecondary))
+                .contentTransition(.numericText())
+        }
         ToolbarItem(placement: .topBarTrailing) {
             Button(action: {
                 ingredientEditorText = ""
