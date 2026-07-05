@@ -23,5 +23,9 @@
 	<string>RecipeSlate syncs your grocery list to Reminders so you can check items on your Apple Watch.</string>
 	<key>NSCalendarsUsageDescription</key>
 	<string>RecipeSlate creates calendar events for cooking timers longer than 24 hours.</string>
+	<key>UIFileSharingEnabled</key>
+	<true/>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<true/>
 </dict>
 </plist>

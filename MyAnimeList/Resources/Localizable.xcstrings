@@ -22,10 +22,10 @@
     "/clear   –  Delete all recipes and photos" : {
 
     },
-    "/export  –  Export all recipes as JSON" : {
+    "/export  –  Export all recipes as ZIP with images" : {
 
     },
-    "/import  –  Import recipes from JSON" : {
+    "/import  –  Import recipes from ZIP or JSON" : {
 
     },
     "#" : {
@@ -131,7 +131,7 @@
     "Export" : {
 
     },
-    "Export all %lld recipes as a single JSON file." : {
+    "Export all %lld recipes as a ZIP file with images." : {
 
     },
     "Export Recipes" : {
@@ -228,7 +228,7 @@
     "Search Recipes, Ingredients..." : {
 
     },
-    "Select a JSON file containing one or more recipes to import." : {
+    "Select a ZIP or JSON file containing one or more recipes to import." : {
 
     },
     "Select All" : {

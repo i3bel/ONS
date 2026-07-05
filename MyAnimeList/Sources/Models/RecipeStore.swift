@@ -11,7 +11,7 @@ struct Recipe: Identifiable, Codable, Equatable {
     var cookTime: TimeInterval
     var ingredients: [Ingredient]
     var steps: [CookingStep]
-    var photoFilename: String?
+    var imageFileName: String?
     var tags: [String]
     var createdAt: Date
 
@@ -20,7 +20,7 @@ struct Recipe: Identifiable, Codable, Equatable {
     init(id: String = UUID().uuidString, name: String, servings: Int = 2,
          prepTime: TimeInterval = 0, cookTime: TimeInterval = 0,
          ingredients: [Ingredient] = [], steps: [CookingStep] = [],
-         photoFilename: String? = nil, tags: [String] = [], createdAt: Date = .now) {
+         imageFileName: String? = nil, tags: [String] = [], createdAt: Date = .now) {
         self.id = id
         self.name = name
         self.servings = servings
@@ -28,7 +28,7 @@ struct Recipe: Identifiable, Codable, Equatable {
         self.cookTime = cookTime
         self.ingredients = ingredients
         self.steps = steps
-        self.photoFilename = photoFilename
+        self.imageFileName = imageFileName
         self.tags = tags
         self.createdAt = createdAt
     }
@@ -185,6 +185,72 @@ enum RecipeTextPatterns {
     static let temperature = #"\d+\s*(°[FC]|度)"#
 }
 
+// MARK: - Export / Import Recipe Format
+
+struct ExportRecipe: Codable {
+    var order: Int
+    var name: String
+    var servings: Int
+    var prep: String
+    var cook: String
+    var ingredients: [String]
+    var steps: [String]
+    var tags: [String]
+    var imageFileName: String?
+
+    static func from(_ recipe: Recipe, order: Int) -> ExportRecipe {
+        ExportRecipe(
+            order: order,
+            name: recipe.name,
+            servings: recipe.servings,
+            prep: timeString(recipe.prepTime),
+            cook: timeString(recipe.cookTime),
+            ingredients: recipe.ingredients.map { ing in
+                "\(ing.amountWithUnit) \(ing.name)".trimmingCharacters(in: .whitespaces)
+            },
+            steps: recipe.steps.map(\.description),
+            tags: recipe.tags,
+            imageFileName: recipe.imageFileName
+        )
+    }
+
+    static func toRecipe(_ ex: ExportRecipe) -> Recipe {
+        Recipe(
+            name: ex.name,
+            servings: max(1, ex.servings),
+            prepTime: parseTime(ex.prep),
+            cookTime: parseTime(ex.cook),
+            ingredients: ex.ingredients.map { Ingredient.parseChinese($0) },
+            steps: ex.steps.enumerated().map { i, desc in
+                CookingStep(order: i + 1, description: desc)
+            },
+            imageFileName: ex.imageFileName,
+            tags: ex.tags.filter { !$0.isEmpty }
+        )
+    }
+
+    private static func timeString(_ interval: TimeInterval) -> String {
+        let total = Int(interval); let h = total / 3600; let m = (total % 3600) / 60
+        if h > 0, m > 0 { return "\(h)h \(m)m" }
+        if h > 0 { return "\(h)h" }
+        return "\(m)m"
+    }
+
+    private static func parseTime(_ s: String) -> TimeInterval {
+        var total: Int = 0
+        let str = s.trimmingCharacters(in: .whitespaces)
+        if let r = str.range(of: #"(\d+)\s*h"#, options: .regularExpression) {
+            let digits = str[r].filter(\.isNumber)
+            if let n = Int(digits) { total += n * 3600 }
+        }
+        if let r = str.range(of: #"(\d+)\s*m"#, options: .regularExpression) {
+            let digits = str[r].filter(\.isNumber)
+            if let n = Int(digits) { total += n * 60 }
+        }
+        return TimeInterval(total)
+    }
+}
+
 // MARK: - Recipe Store
 
 @Observable
@@ -195,13 +261,23 @@ final class RecipeStore {
 
     enum SortOrder: String, Codable { case name, prepTime }
 
-    private let fileURL: URL
+    // MARK: - App Sandbox Storage
+
+    /// .../Documents/RecipeSlate/
+    private let baseURL: URL
+    /// .../Documents/RecipeSlate/recipe.json
+    private let jsonURL: URL
+    /// .../Documents/RecipeSlate/photo/
+    let photoDirURL: URL
+
     private var isLoading = false
 
     init() {
-        let dir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("RecipeSlate", isDirectory: true)
-        fileURL = dir.appendingPathComponent("recipes.json")
+        let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        baseURL = docs.appendingPathComponent("RecipeSlate", isDirectory: true)
+        jsonURL = baseURL.appendingPathComponent("recipe.json")
+        photoDirURL = baseURL.appendingPathComponent("photo", isDirectory: true)
+        try? FileManager.default.createDirectory(at: photoDirURL, withIntermediateDirectories: true)
         load()
     }
 
@@ -230,16 +306,14 @@ final class RecipeStore {
     // MARK: - Photos
 
     func savePhoto(data: Data, for recipeID: String) -> String? {
-        let dir = fileURL.deletingLastPathComponent()
-        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        let fn = "photo_\(recipeID).jpg"
-        let url = dir.appendingPathComponent(fn)
+        let fn = "\(recipeID).jpg"
+        let url = photoDirURL.appendingPathComponent(fn)
         do { try data.write(to: url, options: .atomic); return fn } catch { return nil }
     }
 
     func photoURL(for recipe: Recipe) -> URL? {
-        guard let fn = recipe.photoFilename else { return nil }
-        return fileURL.deletingLastPathComponent().appendingPathComponent(fn)
+        guard let fn = recipe.imageFileName else { return nil }
+        return photoDirURL.appendingPathComponent(fn)
     }
 
     // MARK: - Shopping List
@@ -289,14 +363,180 @@ final class RecipeStore {
         shoppingItems.append(item)
     }
 
+    // MARK: - Export / Import
+
+    /// Copy an external image into the photo folder and return the new filename.
+    /// Source is typically a temporary URL from PhotosPicker or UIImagePicker.
+    func copyImageToPhotoFolder(from sourceURL: URL, for recipeID: String) -> String? {
+        let fn = "\(recipeID).jpg"
+        let dest = photoDirURL.appendingPathComponent(fn)
+        try? FileManager.default.removeItem(at: dest)
+        do {
+            try FileManager.default.copyItem(at: sourceURL, to: dest)
+            return fn
+        } catch {
+            // Fallback: read and write data
+            guard let data = try? Data(contentsOf: sourceURL) else { return nil }
+            return savePhoto(data: data, for: recipeID)
+        }
+    }
+
+    /// Load image data from the photo folder.
+    func loadImageFromPhotoFolder(_ filename: String) -> Data? {
+        let url = photoDirURL.appendingPathComponent(filename)
+        return try? Data(contentsOf: url)
+    }
+
+    /// Export: write recipe.json to baseURL and return the base folder URL.
+    /// The caller can then present a ShareLink to the base folder.
+    func exportRecipeToAppFolder() -> URL? {
+        try? FileManager.default.createDirectory(at: photoDirURL, withIntermediateDirectories: true)
+        let snap = Snapshot(recipes: recipes, sortOrder: sortOrder, shoppingItems: shoppingItems)
+        guard let data = try? JSONEncoder.recipeStore.encode(snap) else { return nil }
+        try? data.write(to: jsonURL, options: .atomic)
+        return baseURL
+    }
+
+    /// Import: read recipe.json and images from baseURL/photo/.
+    /// Returns true on success.
+    func importRecipeFromAppFolder() -> Bool {
+        guard let data = try? Data(contentsOf: jsonURL),
+              let snap = try? JSONDecoder.recipeStore.decode(Snapshot.self, from: data) else { return false }
+        recipes = snap.recipes
+        sortOrder = snap.sortOrder
+        shoppingItems = snap.shoppingItems
+        return true
+    }
+
+    // MARK: - ZIP Export / Import
+
+    /// Export all recipes as a ZIP archive.
+    /// Returns the URL of the created .zip file.
+    func exportAllToZip() -> URL? {
+        let fileManager = FileManager.default
+
+        // 1. Create temp folder with recipe.json + photo/
+        let tempDir = fileManager.temporaryDirectory.appendingPathComponent("RecipeExport_\(UUID().uuidString)", isDirectory: true)
+        let exportPhotoDir = tempDir.appendingPathComponent("photo", isDirectory: true)
+        try? fileManager.createDirectory(at: exportPhotoDir, withIntermediateDirectories: true)
+
+        // 2. Write recipe.json as ExportRecipe array (with imageFileName)
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        let exports = recipes.enumerated().map { i, r in ExportRecipe.from(r, order: i + 1) }
+        guard let jsonData = try? encoder.encode(exports) else { return nil }
+        try? jsonData.write(to: tempDir.appendingPathComponent("recipe.json"))
+
+        // 3. Copy photos
+        for recipe in recipes {
+            guard let fn = recipe.imageFileName else { continue }
+            let src = photoDirURL.appendingPathComponent(fn)
+            if fileManager.fileExists(atPath: src.path) {
+                try? fileManager.copyItem(at: src, to: exportPhotoDir.appendingPathComponent(fn))
+            }
+        }
+
+        // 4. Create ZIP
+        let zipURL = fileManager.temporaryDirectory.appendingPathComponent("RecipeSlate_\(UUID().uuidString).zip")
+        do {
+            try ZipService.createZip(from: tempDir, to: zipURL)
+            // Cleanup temp
+            try? fileManager.removeItem(at: tempDir)
+            return zipURL
+        } catch {
+            try? fileManager.removeItem(at: tempDir)
+            return nil
+        }
+    }
+
+    /// Export a single recipe as a ZIP archive.
+    func exportRecipeToZip(_ recipe: Recipe) -> URL? {
+        let fileManager = FileManager.default
+        let tempDir = fileManager.temporaryDirectory.appendingPathComponent("RecipeExport_\(UUID().uuidString)", isDirectory: true)
+        let exportPhotoDir = tempDir.appendingPathComponent("photo", isDirectory: true)
+        try? fileManager.createDirectory(at: exportPhotoDir, withIntermediateDirectories: true)
+
+        // Write single recipe as JSON array
+        let exportRecipe = ExportRecipe.from(recipe, order: 1)
+        let recipesArray = [exportRecipe]
+        if let jsonData = try? JSONEncoder().encode(recipesArray) {
+            try? jsonData.write(to: tempDir.appendingPathComponent("recipe.json"))
+        }
+
+        // Copy photo
+        if let fn = recipe.imageFileName {
+            let src = photoDirURL.appendingPathComponent(fn)
+            if fileManager.fileExists(atPath: src.path) {
+                try? fileManager.copyItem(at: src, to: exportPhotoDir.appendingPathComponent(fn))
+            }
+        }
+
+        let zipURL = fileManager.temporaryDirectory.appendingPathComponent("\(recipe.name)_\(UUID().uuidString.prefix(8)).zip")
+        do {
+            try ZipService.createZip(from: tempDir, to: zipURL)
+            try? fileManager.removeItem(at: tempDir)
+            return zipURL
+        } catch {
+            try? fileManager.removeItem(at: tempDir)
+            return nil
+        }
+    }
+
+    /// Import recipes from a ZIP archive.
+    /// - Parameter zipURL: URL of the .zip file
+    /// - Returns: Number of recipes imported, or nil on failure
+    func importFromZip(_ zipURL: URL) -> Int? {
+        let fileManager = FileManager.default
+        let tempDir = fileManager.temporaryDirectory.appendingPathComponent("RecipeImport_\(UUID().uuidString)", isDirectory: true)
+        defer { try? fileManager.removeItem(at: tempDir) }
+
+        do {
+            try ZipService.extractZip(from: zipURL, to: tempDir)
+        } catch {
+            print("ZIP extract error: \(error)")
+            return nil
+        }
+
+        // Read recipe.json
+        let jsonURL = tempDir.appendingPathComponent("recipe.json")
+        guard let jsonData = try? Data(contentsOf: jsonURL),
+              let exports = try? JSONDecoder().decode([ExportRecipe].self, from: jsonData) else {
+            return nil
+        }
+
+        var importedCount = 0
+        for export in exports {
+            let recipe = ExportRecipe.toRecipe(export)
+            // Copy photo if exists in the ZIP
+            if let fn = export.imageFileName {
+                let srcPhoto = tempDir.appendingPathComponent("photo").appendingPathComponent(fn)
+                if fileManager.fileExists(atPath: srcPhoto.path) {
+                    let dest = photoDirURL.appendingPathComponent(fn)
+                    try? fileManager.copyItem(at: srcPhoto, to: dest)
+                }
+            }
+            store(recipe)
+            importedCount += 1
+        }
+        save()
+        return importedCount
+    }
+
+    private func store(_ recipe: Recipe) {
+        if let idx = recipes.firstIndex(where: { $0.id == recipe.id }) {
+            recipes[idx] = recipe
+        } else {
+            recipes.append(recipe)
+        }
+    }
+
     // MARK: - Clear All
 
     func clearAll() {
         recipes.removeAll()
         shoppingItems.removeAll()
-        let dir = fileURL.deletingLastPathComponent()
-        if let files = try? FileManager.default.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil) {
-            for f in files where f.lastPathComponent.hasPrefix("photo_") {
+        if let files = try? FileManager.default.contentsOfDirectory(at: photoDirURL, includingPropertiesForKeys: nil) {
+            for f in files {
                 try? FileManager.default.removeItem(at: f)
             }
         }
@@ -307,17 +547,17 @@ final class RecipeStore {
 
     private func load() {
         isLoading = true; defer { isLoading = false }
-        guard let data = try? Data(contentsOf: fileURL),
+        guard let data = try? Data(contentsOf: jsonURL),
               let snap = try? JSONDecoder.recipeStore.decode(Snapshot.self, from: data) else { return }
         recipes = snap.recipes; sortOrder = snap.sortOrder; shoppingItems = snap.shoppingItems
     }
 
     func save() {
         guard !isLoading else { return }
-        try? FileManager.default.createDirectory(at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try? FileManager.default.createDirectory(at: photoDirURL, withIntermediateDirectories: true)
         let snap = Snapshot(recipes: recipes, sortOrder: sortOrder, shoppingItems: shoppingItems)
         if let data = try? JSONEncoder.recipeStore.encode(snap) {
-            try? data.write(to: fileURL, options: .atomic)
+            try? data.write(to: jsonURL, options: .atomic)
         }
     }
 }

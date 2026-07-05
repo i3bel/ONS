@@ -34,6 +34,20 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		9FD0F00E2D055FF000CF355D /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				9FD0F00D2D055FF000CF355D /* CookingAlarmWidget.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		9F8D66302D055FEF00CF355D /* MyAnimeList.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MyAnimeList.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9F8D66402D055FF000CF355D /* MyAnimeListTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MyAnimeListTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -108,20 +122,6 @@
 		};
 /* End PBXFrameworksBuildPhase section */
 
-
-	/* Begin PBXCopyFilesBuildPhase section */
-		9FD0F00E2D055FF000CF355D /* Embed App Extensions */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 13;
-			files = (
-				9FD0F00D2D055FF000CF355D /* CookingAlarmWidget.appex in Embed App Extensions */,
-			);
-			name = "Embed App Extensions";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-	/* End PBXCopyFilesBuildPhase section */
 /* Begin PBXGroup section */
 		9F8D66272D055FEF00CF355D = {
 			isa = PBXGroup;

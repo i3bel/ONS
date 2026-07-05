@@ -413,7 +413,7 @@ struct RecipeEditView: View {
 
     private func save() {
         let rid = existingRecipe?.id ?? UUID().uuidString
-        var photoFn = existingRecipe?.photoFilename
+        var photoFn = existingRecipe?.imageFileName
         if let d = photoData { photoFn = store.savePhoto(data: d, for: rid) }
         let r = Recipe(
             id: rid, name: name, servings: max(1, servings),
@@ -423,7 +423,7 @@ struct RecipeEditView: View {
             steps: steps.enumerated().map { i, s in
                 CookingStep(id: s.id, order: i + 1, description: s.description)
             },
-            photoFilename: photoFn, tags: tags,
+            imageFileName: photoFn, tags: tags,
             createdAt: existingRecipe?.createdAt ?? .now
         )
         if isNew { store.add(r) } else { store.update(r) }
@@ -436,7 +436,7 @@ struct RecipeEditView: View {
         let p = Int(r.prepTime); prepH = p / 3600; prepM = (p % 3600) / 60
         let c = Int(r.cookTime); cookH = c / 3600; cookM = (c % 3600) / 60
         ingredients = r.ingredients; steps = r.steps; tags = r.tags
-        if let fn = r.photoFilename, let url = store.photoURL(for: r), let d = try? Data(contentsOf: url) {
+        if let fn = r.imageFileName, let url = store.photoURL(for: r), let d = try? Data(contentsOf: url) {
             photoData = d
         }
     }

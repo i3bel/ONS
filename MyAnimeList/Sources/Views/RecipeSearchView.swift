@@ -9,7 +9,7 @@ struct RecipeSearchView: View {
     @State private var showFileImporter = false
     @State private var showFileExporter = false
     @State private var importMessage: ImportMessage?
-    @State private var exportDocument: RecipeFileDocument?
+    @State private var exportZipData: Data?
     @State private var showClearConfirm = false
 
     private enum ImportMessage: Equatable {
@@ -38,10 +38,10 @@ struct RecipeSearchView: View {
                 else { searchResultsList }
             }
             .background(Color.pageBg)
-            .fileImporter(isPresented: $showFileImporter, allowedContentTypes: [.json], allowsMultipleSelection: false) {
+            .fileImporter(isPresented: $showFileImporter, allowedContentTypes: [.json, .zip], allowsMultipleSelection: false) {
                 handleImport($0)
             }
-            .fileExporter(isPresented: $showFileExporter, document: exportDocument, contentType: .json, defaultFilename: "recipes") { _ in }
+            .fileExporter(isPresented: $showFileExporter, document: exportZipData.flatMap { ZipFileDocument(data: $0) }, contentType: .zip, defaultFilename: "RecipeSlate") { _ in }
         }
         .searchable(text: $searchText, placement: .automatic, prompt: "Search Recipes, Ingredients...")
     }
@@ -56,8 +56,8 @@ struct RecipeSearchView: View {
             Text("Search Recipes")
                 .font(.title3.weight(.semibold))
             VStack(spacing: 4) {
-                Text("/import  –  Import recipes from JSON")
-                Text("/export  –  Export all recipes as JSON")
+                Text("/import  –  Import recipes from ZIP or JSON")
+                Text("/export  –  Export all recipes as ZIP with images")
                 Text("/clear   –  Delete all recipes and photos")
             }
             .font(.caption)
@@ -153,7 +153,7 @@ struct RecipeSearchView: View {
                 .foregroundColor(.accentColor)
             Text("Import Recipes")
                 .font(.title2.weight(.semibold))
-            Text("Select a JSON file containing one or more recipes to import.")
+            Text("Select a ZIP or JSON file containing one or more recipes to import.")
                 .multilineTextAlignment(.center)
                 .font(.callout)
                 .foregroundColor(.textSecondary)
@@ -197,6 +197,17 @@ struct RecipeSearchView: View {
             }
             defer { url.stopAccessingSecurityScopedResource() }
 
+            // ZIP import
+            if url.pathExtension.lowercased() == "zip" {
+                if let count = store.importFromZip(url) {
+                    importMessage = .success(count)
+                } else {
+                    importMessage = .error("Invalid ZIP file")
+                }
+                return
+            }
+
+            // JSON import
             do {
                 let data = try Data(contentsOf: url)
                 let decoder = JSONDecoder()
@@ -227,7 +238,7 @@ struct RecipeSearchView: View {
                 .foregroundColor(.accentOrange)
             Text("Export Recipes")
                 .font(.title2.weight(.semibold))
-            Text("Export all \(store.recipes.count) recipes as a single JSON file.")
+            Text("Export all \(store.recipes.count) recipes as a ZIP file with images.")
                 .multilineTextAlignment(.center)
                 .font(.callout)
                 .foregroundColor(.textSecondary)
@@ -242,15 +253,10 @@ struct RecipeSearchView: View {
     }
 
     private func prepareExport() {
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-        let exports = store.recipes.enumerated().map { i, recipe in
-            ExportRecipe.from(recipe, order: i + 1)
-        }
-        if let data = try? encoder.encode(exports) {
-            exportDocument = RecipeFileDocument(data: data)
-            showFileExporter = true
-        }
+        guard let zipURL = store.exportAllToZip(),
+              let data = try? Data(contentsOf: zipURL) else { return }
+        exportZipData = data
+        showFileExporter = true
     }
 
     // MARK: /clear
@@ -307,65 +313,17 @@ struct RecipeFileDocument: FileDocument {
     }
 }
 
-// MARK: - Export / Import Recipe Format
+struct ZipFileDocument: FileDocument {
+    static var readableContentTypes: [UTType] { [.zip] }
 
-struct ExportRecipe: Codable {
-    var order: Int
-    var name: String
-    var servings: Int
-    var prep: String
-    var cook: String
-    var ingredients: [String]
-    var steps: [String]
-    var tags: [String]
+    var data: Data
 
-    static func from(_ recipe: Recipe, order: Int) -> ExportRecipe {
-        ExportRecipe(
-            order: order,
-            name: recipe.name,
-            servings: recipe.servings,
-            prep: timeString(recipe.prepTime),
-            cook: timeString(recipe.cookTime),
-            ingredients: recipe.ingredients.map { ing in
-                "\(ing.amountWithUnit) \(ing.name)".trimmingCharacters(in: .whitespaces)
-            },
-            steps: recipe.steps.map(\.description),
-            tags: recipe.tags
-        )
+    init(data: Data) { self.data = data }
+    init(configuration: ReadConfiguration) throws {
+        data = configuration.file.regularFileContents ?? Data()
     }
-
-    static func toRecipe(_ ex: ExportRecipe) -> Recipe {
-        Recipe(
-            name: ex.name,
-            servings: max(1, ex.servings),
-            prepTime: parseTime(ex.prep),
-            cookTime: parseTime(ex.cook),
-            ingredients: ex.ingredients.map { Ingredient.parseChinese($0) },
-            steps: ex.steps.enumerated().map { i, desc in
-                CookingStep(order: i + 1, description: desc)
-            },
-            tags: ex.tags.filter { !$0.isEmpty }
-        )
-    }
-
-    private static func timeString(_ interval: TimeInterval) -> String {
-        let total = Int(interval); let h = total / 3600; let m = (total % 3600) / 60
-        if h > 0, m > 0 { return "\(h)h \(m)m" }
-        if h > 0 { return "\(h)h" }
-        return "\(m)m"
-    }
-
-    private static func parseTime(_ s: String) -> TimeInterval {
-        var total: Int = 0
-        let str = s.trimmingCharacters(in: .whitespaces)
-        if let r = str.range(of: #"(\d+)\s*h"#, options: .regularExpression) {
-            let digits = str[r].filter(\.isNumber)
-            if let n = Int(digits) { total += n * 3600 }
-        }
-        if let r = str.range(of: #"(\d+)\s*m"#, options: .regularExpression) {
-            let digits = str[r].filter(\.isNumber)
-            if let n = Int(digits) { total += n * 60 }
-        }
-        return TimeInterval(total)
+    func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
+        FileWrapper(regularFileWithContents: data)
     }
 }
+
