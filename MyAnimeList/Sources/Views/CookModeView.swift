@@ -16,8 +16,8 @@ struct CookModeView: View {
                     stepList
                 }
             }
-            .navigationTitle("")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationTitle("Cook")
+            .navigationBarTitleDisplayMode(.large)
             .toolbar { toolbarContent }
             .onChange(of: cooking.steps.isEmpty) { _, empty in
                 if empty { timerSelectionMode = false }
@@ -31,7 +31,7 @@ struct CookModeView: View {
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .principal) {
             (Text("\(cooking.remainingSteps)").font(.title2.weight(.bold)).foregroundColor(.textPrimary)
-            + Text(" Steps").font(.bodyText.weight(.bold)).foregroundColor(.textSecondary))
+            + Text(" Steps").font(.body.weight(.bold)).foregroundColor(.textSecondary))
                 .contentTransition(.numericText())
                 .animation(.default, value: cooking.remainingSteps)
         }
@@ -39,7 +39,7 @@ struct CookModeView: View {
             Button(action: { timerSelectionMode.toggle() }) {
                 Image(systemName: timerSelectionMode ? "timer.circle.fill" : "plus")
                     .font(.title2.weight(.semibold))
-                    .foregroundColor(timerSelectionMode ? .accentOrange : .brandBlue)
+                    .foregroundColor(timerSelectionMode ? .accentOrange : .accentColor)
             }
         }
     }
@@ -47,13 +47,11 @@ struct CookModeView: View {
     // MARK: Empty State
 
     private var emptyState: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "frying.pan").font(.system(size: 40)).foregroundColor(.textTertiary)
-            Text("还没有开始烹饪").font(.title3.weight(.semibold))
-            Text("从食谱页右滑 Make 或点击 Start 开始").font(.calloutText).foregroundColor(.textSecondary)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.pageBg)
+        ContentUnavailableView(
+            "No Active Cook",
+            systemImage: "frying.pan",
+            description: Text("Swipe left on a recipe and tap Cook, or open a recipe and tap Start.")
+        )
     }
 
     // MARK: Step List
@@ -65,8 +63,8 @@ struct CookModeView: View {
                     stepCard(i: i, step: step)
                 }
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
+            .padding(.horizontal, Spacing.standard)
+            .padding(.vertical, Spacing.small)
         }
         .background(Color.pageBg)
     }
@@ -89,20 +87,20 @@ struct CookModeView: View {
             }
         }
         .padding(12)
-        .background(Color.cardBg, in: RoundedRectangle(cornerRadius: 14))
+        .background(Color.cardBg, in: RoundedRectangle(cornerRadius: CornerRadius.standard))
     }
 
     private func stepNumber(i: Int, completed: Bool) -> some View {
         ZStack {
-            Circle().fill(completed ? Color.accentGreen : Color.brandBlue).frame(width: 28, height: 28)
-            Text("\(i + 1)").font(.calloutText.weight(.bold)).foregroundColor(.white)
+            Circle().fill(completed ? Color.accentGreen : Color(.systemGray4)).frame(width: 28, height: 28)
+            Text("\(i + 1)").font(.callout.weight(.bold)).foregroundColor(.white)
         }
         .padding(.top, 2)
     }
 
     private func stepContent(step: CookingStep, completed: Bool) -> some View {
         cookingColoredText(step.description)
-            .font(.bodyText).lineSpacing(6)
+            .font(.body).lineSpacing(6)
             .frame(maxWidth: .infinity, alignment: .leading)
             .strikethrough(completed)
             .opacity(completed ? 0.5 : 1)
@@ -133,10 +131,10 @@ struct CookModeView: View {
             ForEach(matches, id: \.self) { match in
                 Button(action: { startTimer(match: match, stepNumber: stepNumber, stepIndex: stepIndex) }) {
                     Text(match)
-                        .font(.captionText.weight(.semibold))
+                        .font(.caption.weight(.semibold))
                         .foregroundColor(.accentOrange)
                         .padding(.horizontal, 10).padding(.vertical, 4)
-                        .background(Color.accentOrange.opacity(0.12), in: Capsule())
+                        .background(.tint.opacity(0.12), in: Capsule())
                 }
                 .buttonStyle(.plain)
             }

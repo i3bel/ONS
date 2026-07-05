@@ -7,12 +7,6 @@
     "  %@" : {
 
     },
-    " Left" : {
-
-    },
-    " Recipes" : {
-
-    },
     " Steps" : {
 
     },
@@ -22,16 +16,10 @@
     "/export  –  Export all recipes as JSON" : {
 
     },
-    "/import  –  Import recipes from a JSON file" : {
-
-    },
-    "/import or /export" : {
+    "/import  –  Import recipes from JSON" : {
 
     },
     "#" : {
-
-    },
-    "#%@" : {
 
     },
     "%lld" : {
@@ -56,16 +44,16 @@
     "%lld servings" : {
 
     },
-    "%lld 份" : {
-
-    },
-    "👥" : {
+    "Add" : {
 
     },
     "Add %lld Items" : {
 
     },
     "Add Ingredient" : {
+
+    },
+    "Add items from a recipe or tap + to create one." : {
 
     },
     "Add Photo" : {
@@ -93,6 +81,9 @@
 
     },
     "Clear Everything" : {
+
+    },
+    "Cook" : {
 
     },
     "Delete" : {
@@ -137,6 +128,9 @@
     "Files" : {
 
     },
+    "Groceries" : {
+
+    },
     "h" : {
 
     },
@@ -156,16 +150,7 @@
     "Info" : {
 
     },
-    "Ingredients" : {
-
-    },
     "m" : {
-
-    },
-    "Make" : {
-
-    },
-    "Method" : {
 
     },
     "Name" : {
@@ -174,7 +159,16 @@
     "New Recipe" : {
 
     },
-    "No results" : {
+    "No Active Cook" : {
+
+    },
+    "No Groceries" : {
+
+    },
+    "No Recipes" : {
+
+    },
+    "No Results" : {
 
     },
     "Pause" : {
@@ -195,7 +189,7 @@
     "Recipe Name" : {
 
     },
-    "Recipes, Ingredients and More" : {
+    "Recipes" : {
 
     },
     "Repeat" : {
@@ -219,6 +213,9 @@
     "Search Recipes" : {
 
     },
+    "Search Recipes, Ingredients..." : {
+
+    },
     "Select a JSON file containing one or more recipes to import." : {
 
     },
@@ -228,7 +225,10 @@
     "Select File" : {
 
     },
-    "Start" : {
+    "Share" : {
+
+    },
+    "Start Cooking" : {
 
     },
     "Stop" : {
@@ -237,55 +237,37 @@
     "Stop a cooking timer" : {
 
     },
-    "Tags" : {
+    "Swipe left on a recipe and tap Cook, or open a recipe and tap Start." : {
+
+    },
+    "Tap + to add your first recipe." : {
 
     },
     "This will delete all %lld recipes and their photos. This cannot be undone." : {
 
     },
-    "Unknown command" : {
+    "Try a different search term." : {
+
+    },
+    "Unknown Command" : {
 
     },
     "Update" : {
 
     },
-    "从食谱详情添加或点击 + 手动添加" : {
+    "Use /import or /export" : {
 
     },
-    "从食谱页右滑 Make 或点击 Start 开始" : {
+    "View Recipe" : {
 
     },
     "例如：一勺糖" : {
 
     },
-    "添加食材" : {
-
-    },
-    "点击 + 添加你的第一个菜谱" : {
-
-    },
-    "烹饪" : {
+    "添加步骤" : {
 
     },
     "输入标签" : {
-
-    },
-    "输入步骤内容" : {
-
-    },
-    "还没有开始烹饪" : {
-
-    },
-    "还没有菜谱" : {
-
-    },
-    "采购" : {
-
-    },
-    "采购清单为空" : {
-
-    },
-    "食谱" : {
 
     }
   },

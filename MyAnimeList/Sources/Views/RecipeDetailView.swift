@@ -1,6 +1,6 @@
 import SwiftUI
 
-// MARK: - Recipe Detail (read-only, colored text, tags)
+// MARK: - Recipe Detail (iOS 26 Native Style)
 
 struct RecipeDetailView: View {
     @Environment(RecipeStore.self) private var store
@@ -50,15 +50,20 @@ struct RecipeDetailView: View {
         ToolbarItem(placement: .navigationBarLeading) {
             Button(action: { dismiss() }) {
                 Image(systemName: "chevron.left")
-                    .font(.bodyText.weight(.semibold)).foregroundColor(.white)
+                    .font(.body.weight(.semibold))
+                    .foregroundColor(.white)
             }
         }
         ToolbarItem(placement: .navigationBarTrailing) {
             Menu {
                 Button("Edit Recipe", systemImage: "pencil") { showEdit = true }
+                Button("Share", systemImage: "square.and.arrow.up") { }
+                Divider()
                 Button("Delete Recipe", systemImage: "trash", role: .destructive) { showDelete = true }
             } label: {
-                Image(systemName: "ellipsis").font(.title2).foregroundColor(.white)
+                Image(systemName: "ellipsis.circle")
+                    .font(.title3)
+                    .foregroundColor(.white)
             }
         }
     }
@@ -68,22 +73,32 @@ struct RecipeDetailView: View {
     private var heroSection: some View {
         ZStack(alignment: .bottomLeading) {
             if let url = store.photoURL(for: recipe), let img = UIImage(contentsOfFile: url.path) {
-                Image(uiImage: img).resizable().scaledToFill().frame(height: 360).clipped()
+                Image(uiImage: img).resizable().scaledToFill()
+                    .frame(height: 340).clipped()
             } else {
-                LinearGradient(
-                    colors: [.brandBlue.opacity(0.3), .brandBlue.opacity(0.1)],
-                    startPoint: .topLeading, endPoint: .bottomTrailing
-                ).frame(height: 360)
+                Rectangle()
+                    .fill(LinearGradient(
+                        colors: [.accentColor.opacity(0.3), .accentColor.opacity(0.08)],
+                        startPoint: .topLeading, endPoint: .bottomTrailing
+                    ))
+                    .frame(height: 340)
             }
-            LinearGradient(
-                colors: [.black.opacity(0.5), .clear],
-                startPoint: .bottom, endPoint: .center
-            ).frame(height: 360)
 
-            VStack(alignment: .leading, spacing: 8) {
-                Text(recipe.name).font(.title1).foregroundColor(.white)
+            // Softer gradient overlay
+            LinearGradient(
+                colors: [.black.opacity(0.45), .clear],
+                startPoint: .bottom, endPoint: .center
+            )
+            .frame(height: 340)
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text(recipe.name)
+                    .font(.largeTitle.weight(.bold))
+                    .foregroundColor(.white)
+                    .shadow(color: .black.opacity(0.2), radius: 4, y: 1)
             }
-            .padding(.leading, 20).padding(.bottom, 20)
+            .padding(.horizontal, Spacing.large)
+            .padding(.bottom, Spacing.large)
         }
     }
 
@@ -95,84 +110,74 @@ struct RecipeDetailView: View {
                 cooking.startCooking(steps: recipe.steps, recipeName: recipe.name)
                 dismiss()
             }) {
-                Label("Start", systemImage: "play.fill")
-                    .font(.bodyText.weight(.semibold)).foregroundColor(.white)
-                    .frame(maxWidth: .infinity).frame(height: 56)
-                    .background(Color.accentGreen).clipShape(Capsule())
+                Label("Start Cooking", systemImage: "play.fill")
             }
-
-            Spacer()
+            .buttonStyle(PrimaryButton(color: .accentGreen))
 
             Button(action: { showGroceries = true }) {
-                Image(systemName: "basket").font(.title2).foregroundColor(.brandBlue)
-                    .frame(width: 56, height: 56)
-                    .background(Circle().fill(Color.cardBg).stroke(Color.dividerColor, lineWidth: 1))
+                Image(systemName: "basket")
+                    .font(.title3)
             }
+            .buttonStyle(.bordered)
+            .frame(width: 50, height: 50)
         }
-        .padding(.horizontal, 20).padding(.vertical, 16)
+        .padding(.horizontal, Spacing.large)
+        .padding(.vertical, Spacing.standard)
     }
 
     // MARK: Info Bar
 
     private var infoBar: some View {
-        HStack(spacing: 16) {
-            pillLabel("👥 \(displayServings)")
+        HStack(spacing: 8) {
+            InfoPill(text: "\(displayServings) servings")
             if recipe.totalTime > 0 {
-                pillLabel("⏱ Prep \(timeStr(recipe.prepTime)) · Cook \(timeStr(recipe.cookTime))")
+                InfoPill(text: "Prep \(timeStr(recipe.prepTime))  ·  Cook \(timeStr(recipe.cookTime))")
             }
         }
-        .padding(.horizontal, 20).padding(.bottom, 16)
-    }
-
-    private func pillLabel(_ text: String) -> some View {
-        Text(text).font(.calloutText).foregroundColor(.textSecondary)
-            .padding(.horizontal, 12).padding(.vertical, 6)
-            .background(Color.cardBg).clipShape(RoundedRectangle(cornerRadius: 12))
-            .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.dividerColor, lineWidth: 1))
+        .padding(.horizontal, Spacing.large)
+        .padding(.bottom, Spacing.standard)
     }
 
     // MARK: Ingredients
 
     private var ingredientsSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text("Ingredients").font(.title2)
-                Spacer()
-                scaleButton
-            }
-            .padding(.horizontal, 20)
+        VStack(alignment: .leading, spacing: Spacing.small) {
+            SectionHeader(title: "Ingredients")
 
-            if showScale { scaleSlider }
+            Card {
+                VStack(alignment: .leading, spacing: 0) {
+                    ForEach(Array(recipe.ingredients.enumerated()), id: \.element.id) { i, ing in
+                        let amountUnit = showScale
+                            ? recipe.scaledAmount(for: ing, targetServings: displayServings)
+                            : ing.amountWithUnit
+                        ingredientLine(name: ing.name, amountUnit: amountUnit)
 
-            VStack(alignment: .leading, spacing: 4) {
-                ForEach(Array(recipe.ingredients.enumerated()), id: \.element.id) { i, ing in
-                    let amountUnit = showScale
-                        ? recipe.scaledAmount(for: ing, targetServings: displayServings)
-                        : ing.amountWithUnit
-                    ingredientLine(name: ing.name, amountUnit: amountUnit)
+                        if i < recipe.ingredients.count - 1 {
+                            Divider()
+                                .padding(.leading, 4)
+                        }
+                    }
                 }
             }
-            .padding(16)
-            .background(Color.cardBg, in: RoundedRectangle(cornerRadius: 14))
-            .padding(.horizontal, 20)
+            .padding(.horizontal, Spacing.standard)
+
+            if showScale { scaleSlider }
         }
-        .padding(.vertical, 8)
+        .padding(.vertical, Spacing.small)
     }
 
     @ViewBuilder
     private var scaleButton: some View {
         if showScale {
             Button(action: commitScale) {
-                Text("\(displayServings) servings").font(.calloutText).foregroundColor(.brandBlue)
-                    .padding(.horizontal, 12).padding(.vertical, 6)
-                    .background(Color.brandedLightBlue).clipShape(Capsule())
+                Text("\(displayServings) servings")
             }
+            .buttonStyle(BorderedButton())
         } else {
             Button(action: { withAnimation { showScale = true; scaleServings = recipe.servings } }) {
-                Text("Scale").font(.calloutText).foregroundColor(.brandBlue)
-                    .padding(.horizontal, 12).padding(.vertical, 6)
-                    .background(Color.brandedLightBlue).clipShape(Capsule())
+                Text("Scale")
             }
+            .buttonStyle(BorderedButton())
         }
     }
 
@@ -182,11 +187,14 @@ struct RecipeDetailView: View {
                 value: Binding(get: { Double(displayServings) }, set: { scaleServings = Int($0) }),
                 in: 1...20, step: 1
             )
-            .tint(.brandBlue)
-            Text("\(displayServings) 份").font(.bodyText.weight(.semibold)).foregroundColor(.brandBlue)
-                .frame(width: 60, alignment: .trailing)
+            .tint(.accentColor)
+            Text("\(displayServings)")
+                .font(.body.weight(.semibold))
+                .foregroundColor(.accentColor)
+                .frame(width: 32, alignment: .trailing)
         }
-        .padding(.horizontal, 20).padding(.vertical, 4)
+        .padding(.horizontal, Spacing.large)
+        .padding(.vertical, Spacing.small)
     }
 
     private func commitScale() {
@@ -208,46 +216,54 @@ struct RecipeDetailView: View {
     }
 
     private func ingredientLine(name: String, amountUnit: String) -> some View {
-        HStack {
-            Text(amountUnit).font(.bodyText.weight(.semibold)).foregroundColor(.brandBlue)
-            + Text("  \(name)").font(.bodyText).foregroundColor(.textPrimary)
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Text(amountUnit)
+                .font(.body.weight(.semibold))
+                .foregroundColor(.accentColor)
+                + Text("  \(name)")
+                    .font(.body)
+                    .foregroundColor(.textPrimary)
             Spacer()
         }
-        .padding(.vertical, 6)
-        .padding(.horizontal, 4)
+        .padding(.vertical, 8)
     }
 
     // MARK: Method
 
     private var methodSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Method").font(.title2)
-                .padding(.horizontal, 20).padding(.top, 16)
+        VStack(alignment: .leading, spacing: Spacing.medium) {
+            SectionHeader(title: "Method")
 
             ForEach(Array(recipe.steps.enumerated()), id: \.element.id) { i, step in
                 HStack(alignment: .top, spacing: 12) {
                     ZStack {
-                        Circle().fill(Color.brandBlue).frame(width: 28, height: 28)
-                        Text("\(i + 1)").font(.calloutText.weight(.bold)).foregroundColor(.white)
+                        Circle()
+                            .fill(Color(.systemGray4))
+                            .frame(width: 28, height: 28)
+                        Text("\(i + 1)")
+                            .font(.callout.weight(.bold))
+                            .foregroundColor(.white)
                     }
+                    .padding(.top, 2)
 
                     recipeColoredText(step.description)
-                        .font(.bodyText).lineSpacing(6)
+                        .font(.body)
+                        .lineSpacing(6)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .padding(12)
-                .background(Color.cardBg, in: RoundedRectangle(cornerRadius: 14))
-                .padding(.horizontal, 16)
+                .padding(Spacing.standard)
+                .background(Color.cardBg, in: RoundedRectangle(cornerRadius: CornerRadius.standard))
+                .padding(.horizontal, Spacing.standard)
             }
         }
-        .padding(.bottom, 20)
+        .padding(.bottom, Spacing.large)
     }
 
     /// Renders step text with ingredient names (blue), times (red), temperatures (orange).
     private func recipeColoredText(_ text: String) -> Text {
         let ingredientsSorted = recipe.ingredients.sorted { $0.name.count > $1.name.count }
         let rules: [HighlightRule] = [
-            .init(strings: ingredientsSorted.map(\.name), color: .brandBlue),
+            .init(strings: ingredientsSorted.map(\.name), color: .accentColor),
             .init(pattern: RecipeTextPatterns.time, color: .accentRed),
             .init(pattern: RecipeTextPatterns.temperature, color: .accentOrange),
         ]
@@ -257,24 +273,19 @@ struct RecipeDetailView: View {
     // MARK: Tags
 
     private var tagsSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Tags").font(.title2)
-                .padding(.horizontal, 20).padding(.top, 12)
+        VStack(alignment: .leading, spacing: Spacing.small) {
+            SectionHeader(title: "Tags")
 
             if !recipe.tags.isEmpty {
                 TagFlowLayout(spacing: 8) {
                     ForEach(recipe.tags, id: \.self) { tag in
-                        Text("#\(tag)").font(.calloutText).foregroundColor(.brandBlue)
-                            .padding(.horizontal, 16).padding(.vertical, 6)
-                            .background(Color.brandedLightBlue).clipShape(Capsule())
+                        InfoPill(text: "#\(tag)", color: .accentColor, bg: Color(.systemFill))
                     }
                 }
-                .padding(.horizontal, 20)
+                .padding(.horizontal, Spacing.standard)
             }
-
-            Text("").frame(height: 16)
         }
-        .padding(.bottom, 20)
+        .padding(.bottom, Spacing.large)
     }
 
     private func timeStr(_ t: TimeInterval) -> String {
@@ -304,9 +315,6 @@ private struct AddToGroceriesSheet: View {
                 .toolbar {
                     ToolbarItem(placement: .topBarLeading) {
                         Button("Cancel") { dismiss() }
-                            .font(.bodyText.weight(.medium)).foregroundColor(.textPrimary)
-                            .padding(.horizontal, 16).padding(.vertical, 8)
-                            .background(Color.cardBg).clipShape(Capsule())
                     }
                 }
 
@@ -319,21 +327,29 @@ private struct AddToGroceriesSheet: View {
         HStack(spacing: 12) {
             Button(action: { selected.formUnion([ing.id]) }) {
                 Image(systemName: selected.contains(ing.id) ? "checkmark.circle.fill" : "circle")
-                    .font(.title2).foregroundColor(selected.contains(ing.id) ? .brandBlue : .textSecondary)
+                    .font(.title3)
+                    .foregroundColor(selected.contains(ing.id) ? .accentColor : .textSecondary)
             }
             .buttonStyle(.plain)
 
-            Text(ing.displayString).font(.bodyText)
+            Text(ing.displayString)
+                .font(.body)
+                .strikethrough(selected.contains(ing.id))
+                .foregroundColor(selected.contains(ing.id) ? .textSecondary : .textPrimary)
 
             Spacer()
 
-            Button(action: { selected.remove(ing.id) }) {
-                Image(systemName: "xmark.circle.fill").font(.title3).foregroundColor(.accentRed)
+            if selected.contains(ing.id) {
+                Button(action: { selected.remove(ing.id) }) {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.title3)
+                        .foregroundColor(.textTertiary)
+                }
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
         }
-        .padding(16)
-        .background(Color.cardBg, in: RoundedRectangle(cornerRadius: 12))
+        .padding(Spacing.standard)
+        .background(Color.cardBg, in: RoundedRectangle(cornerRadius: CornerRadius.standard))
         .listRowInsets(.init(top: 4, leading: 16, bottom: 4, trailing: 16))
         .listRowSeparator(.hidden).listRowBackground(Color.clear)
     }
@@ -344,20 +360,18 @@ private struct AddToGroceriesSheet: View {
                 if selected.count == recipe.ingredients.count { selected.removeAll() }
                 else { selected = Set(recipe.ingredients.map(\.id)) }
             }
-            .font(.bodyText.weight(.semibold)).foregroundColor(.brandBlue)
-            .frame(maxWidth: .infinity).frame(height: 48)
-            .background(Color.brandedLightBlue).clipShape(Capsule())
+            .buttonStyle(BorderedButton())
 
             Button("Add \(selected.count) Items") {
                 let items = recipe.ingredients.filter { selected.contains($0.id) }
                 store.addShoppingItems(items)
                 dismiss()
             }
-            .font(.bodyText.weight(.semibold)).foregroundColor(.white)
-            .frame(maxWidth: .infinity).frame(height: 48)
-            .background(Color.brandBlue).clipShape(Capsule())
+            .buttonStyle(PrimaryButton())
             .disabled(selected.isEmpty)
         }
+        .padding(.horizontal, Spacing.standard)
+        .padding(.vertical, 12)
         .background(.regularMaterial)
     }
 }

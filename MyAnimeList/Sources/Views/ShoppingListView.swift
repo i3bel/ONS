@@ -1,5 +1,7 @@
 import SwiftUI
 
+// MARK: - Shopping List (iOS 26 Reminders Style)
+
 struct ShoppingListView: View {
     @Environment(RecipeStore.self) private var store
     @State private var completed = Set<String>()
@@ -22,8 +24,8 @@ struct ShoppingListView: View {
                     shoppingList
                 }
             }
-            .navigationTitle("")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationTitle("Groceries")
+            .navigationBarTitleDisplayMode(.large)
             .toolbar { toolbarContent }
             .onChange(of: store.shoppingItems.isEmpty) { _, empty in
                 if empty { completed.removeAll() }
@@ -41,19 +43,13 @@ struct ShoppingListView: View {
 
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        ToolbarItem(placement: .principal) {
-            (Text("\(leftCount)")
-                .font(.title2.weight(.bold)).foregroundColor(.textPrimary)
-            + Text(" Left")
-                .font(.bodyText.weight(.bold)).foregroundColor(.textSecondary))
-            .contentTransition(.numericText())
-        }
         ToolbarItem(placement: .topBarTrailing) {
             Button(action: {
                 ingredientEditorText = ""
                 showIngredientEditor = true
             }) {
-                Image(systemName: "plus").font(.title2.weight(.semibold)).foregroundColor(.brandBlue)
+                Image(systemName: "plus")
+                    .font(.title3.weight(.semibold))
             }
         }
     }
@@ -69,8 +65,7 @@ struct ShoppingListView: View {
                     onToggle: { toggle(item.id) },
                     onDelete: { store.removeShoppingItem(item.id) }
                 )
-                .listRowInsets(.init(top: 4, leading: 16, bottom: 4, trailing: 16))
-                .listRowBackground(Color.clear)
+                .listRowInsets(.init(top: 2, leading: Spacing.large, bottom: 2, trailing: Spacing.large))
                 .listRowSeparator(.hidden)
             }
         }
@@ -81,12 +76,11 @@ struct ShoppingListView: View {
     // MARK: Empty State
 
     private var emptyState: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "cart").font(.system(size: 40)).foregroundColor(.textTertiary)
-            Text("采购清单为空").font(.title3.weight(.semibold))
-            Text("从食谱详情添加或点击 + 手动添加").font(.calloutText).foregroundColor(.textSecondary)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        ContentUnavailableView(
+            "No Groceries",
+            systemImage: "cart",
+            description: Text("Add items from a recipe or tap + to create one.")
+        )
     }
 
     private func toggle(_ id: String) {
@@ -102,24 +96,24 @@ struct ShoppingListView: View {
         NavigationStack {
             VStack(spacing: 0) {
                 TextField("例如：一勺糖", text: $ingredientEditorText)
-                    .font(.bodyText)
+                    .font(.body)
                     .textFieldStyle(.plain)
-                    .padding(16)
-                    .background(Color.cardBg, in: RoundedRectangle(cornerRadius: 12))
-                    .padding(20)
+                    .padding(Spacing.standard)
+                    .background(Color.cardBg, in: RoundedRectangle(cornerRadius: CornerRadius.standard))
+                    .padding(Spacing.large)
                 Spacer()
             }
             .background(Color.pageBg)
-            .navigationTitle("添加食材")
+            .navigationTitle("Add Ingredient")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Done") { showIngredientEditor = false }
-                        .font(.bodyText.weight(.medium)).foregroundColor(.brandBlue)
+                        .font(.body.weight(.medium))
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(action: commitIngredient) {
-                        Image(systemName: "plus").font(.title2.weight(.semibold)).foregroundColor(.brandBlue)
+                        Image(systemName: "plus").font(.title2.weight(.semibold))
                     }
                     .disabled(ingredientEditorText.trimmingCharacters(in: .whitespaces).isEmpty)
                 }
@@ -145,37 +139,37 @@ private struct ShoppingItemRow: View {
     var onDelete: () -> Void
 
     var body: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 12) {
             Button(action: onToggle) {
                 Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle")
-                    .font(.title3).foregroundColor(isCompleted ? .accentGreen : .textSecondary)
+                    .font(.title3)
+                    .foregroundColor(isCompleted ? .accentGreen : .textSecondary)
             }
             .buttonStyle(.plain)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(item.name)
-                    .font(.bodyText)
+                    .font(.body)
                     .strikethrough(isCompleted)
                     .foregroundColor(isCompleted ? .textSecondary : .textPrimary)
 
-                ingredientSubtitle
+                Text(item.amountWithUnit)
+                    .font(.caption)
+                    .foregroundColor(.accentColor)
+                    .strikethrough(isCompleted)
             }
 
             Spacer()
 
             Button(action: onDelete) {
-                Image(systemName: "xmark.circle.fill").font(.title3).foregroundColor(.accentRed)
+                Image(systemName: "xmark.circle.fill")
+                    .font(.title3)
+                    .foregroundColor(.textTertiary)
             }
             .buttonStyle(.plain)
         }
-        .padding(12)
-        .background(Color.cardBg, in: RoundedRectangle(cornerRadius: 12))
+        .padding(Spacing.standard)
+        .background(Color.cardBg, in: RoundedRectangle(cornerRadius: CornerRadius.standard))
         .opacity(isCompleted ? 0.5 : 1)
-    }
-
-    private var ingredientSubtitle: some View {
-        Text(item.amountWithUnit).font(.captionText.weight(.semibold)).foregroundColor(.brandBlue)
-        + Text("  \(item.name)").font(.captionText).foregroundColor(.textTertiary)
-            .strikethrough(isCompleted)
     }
 }

@@ -10,6 +10,7 @@ struct RecipeSlateApp: App {
             ContentView()
                 .environment(store)
                 .environment(cooking)
+                .tint(.orange)
         }
     }
 }
@@ -20,13 +21,13 @@ private struct ContentView: View {
 
     var body: some View {
         TabView(selection: $tab) {
-            Tab("食谱", systemImage: "book", value: 0) {
+            Tab("Recipes", systemImage: "book", value: 0) {
                 RecipeListView()
             }
-            Tab("烹饪", systemImage: "frying.pan", value: 1) {
+            Tab("Cook", systemImage: "frying.pan", value: 1) {
                 CookModeView()
             }
-            Tab("采购", systemImage: "cart", value: 2) {
+            Tab("Groceries", systemImage: "cart", value: 2) {
                 ShoppingListView()
             }
             Tab("Search", systemImage: "magnifyingglass", value: 3, role: .search) {

@@ -1,7 +1,7 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
-// MARK: - Search Tab
+// MARK: - Search Tab (iOS 26 Native Style)
 
 struct RecipeSearchView: View {
     @Environment(RecipeStore.self) private var store
@@ -43,28 +43,36 @@ struct RecipeSearchView: View {
             }
             .fileExporter(isPresented: $showFileExporter, document: exportDocument, contentType: .json, defaultFilename: "recipes") { _ in }
         }
-        .searchable(text: $searchText, placement: .automatic, prompt: "Recipes, Ingredients and More")
+        .searchable(text: $searchText, placement: .automatic, prompt: "Search Recipes, Ingredients...")
     }
 
     // MARK: Empty State
 
     private var emptyState: some View {
         VStack(spacing: 12) {
-            Image(systemName: "magnifyingglass").font(.system(size: 36)).foregroundColor(.textTertiary)
-            Text("Search Recipes").font(.title3.weight(.semibold))
-            Text("/import  –  Import recipes from a JSON file").font(.captionText).foregroundColor(.textSecondary)
-            Text("/export  –  Export all recipes as JSON").font(.captionText).foregroundColor(.textSecondary)
-            Text("/clear   –  Delete all recipes and photos").font(.captionText).foregroundColor(.textSecondary)
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 36))
+                .foregroundColor(.textTertiary)
+            Text("Search Recipes")
+                .font(.title3.weight(.semibold))
+            VStack(spacing: 4) {
+                Text("/import  –  Import recipes from JSON")
+                Text("/export  –  Export all recipes as JSON")
+                Text("/clear   –  Delete all recipes and photos")
+            }
+            .font(.caption)
+            .foregroundColor(.textSecondary)
+            .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private var noResultsState: some View {
-        VStack(spacing: 8) {
-            Image(systemName: "magnifyingglass").font(.title2).foregroundColor(.textSecondary)
-            Text("No results").font(.bodyText).foregroundColor(.textSecondary)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        ContentUnavailableView(
+            "No Results",
+            systemImage: "magnifyingglass",
+            description: Text("Try a different search term.")
+        )
     }
 
     // MARK: Search Results
@@ -77,8 +85,8 @@ struct RecipeSearchView: View {
                 } label: {
                     searchResultRow(recipe)
                 }
-                .listRowInsets(.init(top: 8, leading: 16, bottom: 8, trailing: 16))
-                .listRowBackground(Color.clear)
+                .listRowInsets(.init(top: 6, leading: 16, bottom: 6, trailing: 16))
+                .listRowSeparator(.hidden)
             }
         }
         .listStyle(.plain)
@@ -90,31 +98,35 @@ struct RecipeSearchView: View {
                 if let url = store.photoURL(for: recipe), let img = UIImage(contentsOfFile: url.path) {
                     Image(uiImage: img).resizable().scaledToFill()
                 } else {
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(LinearGradient(
-                            colors: [.brandBlue.opacity(0.2), .brandBlue.opacity(0.1)],
-                            startPoint: .topLeading, endPoint: .bottomTrailing))
-                    Image(systemName: "fork.knife").font(.callout).foregroundColor(.brandBlue)
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color(.systemFill))
+                    Image(systemName: "fork.knife")
+                        .font(.callout)
+                        .foregroundColor(.textTertiary)
                 }
             }
-            .frame(width: 60, height: 60).clipShape(RoundedRectangle(cornerRadius: 10))
+            .frame(width: 56, height: 56)
+            .clipShape(RoundedRectangle(cornerRadius: 8))
 
             VStack(alignment: .leading, spacing: 4) {
-                Text(recipe.name).font(.bodyText.weight(.semibold)).lineLimit(1).foregroundColor(.textPrimary)
+                Text(recipe.name)
+                    .font(.body.weight(.semibold))
+                    .lineLimit(1)
+                    .foregroundColor(.textPrimary)
                 Text("\(recipe.ingredients.count) ingredients · \(recipe.servings) servings")
-                    .font(.captionText).foregroundColor(.textSecondary)
+                    .font(.caption)
+                    .foregroundColor(.textSecondary)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(0)
-        .background(Color.cardBg)
     }
 
     // MARK: Commands
 
     private var commandView: some View {
         let cmd = searchText.trimmingCharacters(in: .whitespaces).lowercased()
-        return VStack(spacing: 20) {
+        return VStack(spacing: Spacing.large) {
             switch cmd {
             case "/import": importCommandView
             case "/export": exportCommandView
@@ -134,23 +146,23 @@ struct RecipeSearchView: View {
     // MARK: /import
 
     private var importCommandView: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "square.and.arrow.down").font(.system(size: 44)).foregroundColor(.brandBlue)
-            Text("Import Recipes").font(.title2.weight(.semibold))
+        VStack(spacing: Spacing.standard) {
+            Image(systemName: "square.and.arrow.down")
+                .font(.system(size: 44))
+                .foregroundColor(.accentColor)
+            Text("Import Recipes")
+                .font(.title2.weight(.semibold))
             Text("Select a JSON file containing one or more recipes to import.")
                 .multilineTextAlignment(.center)
-                .font(.calloutText).foregroundColor(.textSecondary).padding(.horizontal, 40)
+                .font(.callout)
+                .foregroundColor(.textSecondary)
+                .padding(.horizontal, 40)
 
             Button(action: { showFileImporter = true }) {
-                HStack(spacing: 8) {
-                    Image(systemName: "doc.badge.plus").font(.title3)
-                    Text("Select File")
-                }
-                .font(.bodyText.weight(.semibold)).foregroundColor(.white)
-                .padding(.horizontal, 28).padding(.vertical, 12)
-                .background(Color.brandBlue, in: RoundedRectangle(cornerRadius: 12))
+                Label("Select File", systemImage: "doc.badge.plus")
             }
-            .buttonStyle(.plain)
+            .buttonStyle(PrimaryButton())
+            .padding(.horizontal, 60)
 
             importResultMessage
         }
@@ -169,9 +181,9 @@ struct RecipeSearchView: View {
                         .foregroundColor(.accentRed)
                 }
             }
-            .font(.bodyText.weight(.medium))
-            .padding(12)
-            .background(Color.pageBg.opacity(0.5), in: RoundedRectangle(cornerRadius: 10))
+            .font(.body.weight(.medium))
+            .padding(Spacing.medium)
+            .background(Color.tertiaryBg.opacity(0.5), in: RoundedRectangle(cornerRadius: CornerRadius.standard))
         }
     }
 
@@ -208,23 +220,23 @@ struct RecipeSearchView: View {
     // MARK: /export
 
     private var exportCommandView: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "square.and.arrow.up").font(.system(size: 44)).foregroundColor(.accentOrange)
-            Text("Export Recipes").font(.title2.weight(.semibold))
+        VStack(spacing: Spacing.standard) {
+            Image(systemName: "square.and.arrow.up")
+                .font(.system(size: 44))
+                .foregroundColor(.accentOrange)
+            Text("Export Recipes")
+                .font(.title2.weight(.semibold))
             Text("Export all \(store.recipes.count) recipes as a single JSON file.")
                 .multilineTextAlignment(.center)
-                .font(.calloutText).foregroundColor(.textSecondary).padding(.horizontal, 40)
+                .font(.callout)
+                .foregroundColor(.textSecondary)
+                .padding(.horizontal, 40)
 
             Button(action: prepareExport) {
-                HStack(spacing: 8) {
-                    Image(systemName: "square.and.arrow.up").font(.title3)
-                    Text("Export")
-                }
-                .font(.bodyText.weight(.semibold)).foregroundColor(.white)
-                .padding(.horizontal, 28).padding(.vertical, 12)
-                .background(Color.accentOrange, in: RoundedRectangle(cornerRadius: 12))
+                Label("Export", systemImage: "square.and.arrow.up")
             }
-            .buttonStyle(.plain)
+            .buttonStyle(PrimaryButton(color: .accentOrange))
+            .padding(.horizontal, 60)
         }
     }
 
@@ -243,31 +255,36 @@ struct RecipeSearchView: View {
     // MARK: /clear
 
     private var clearCommandView: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "trash").font(.system(size: 44)).foregroundColor(.accentRed)
-            Text("Clear All Recipes").font(.title2.weight(.semibold))
+        VStack(spacing: Spacing.standard) {
+            Image(systemName: "trash")
+                .font(.system(size: 44))
+                .foregroundColor(.accentRed)
+            Text("Clear All Recipes")
+                .font(.title2.weight(.semibold))
             Text("Delete all \(store.recipes.count) recipes and their photos.")
                 .multilineTextAlignment(.center)
-                .font(.calloutText).foregroundColor(.textSecondary).padding(.horizontal, 40)
+                .font(.callout)
+                .foregroundColor(.textSecondary)
+                .padding(.horizontal, 40)
 
             Button(action: { showClearConfirm = true }) {
-                HStack(spacing: 8) {
-                    Image(systemName: "trash").font(.title3)
-                    Text("Clear Everything")
-                }
-                .font(.bodyText.weight(.semibold)).foregroundColor(.white)
-                .padding(.horizontal, 28).padding(.vertical, 12)
-                .background(Color.accentRed, in: RoundedRectangle(cornerRadius: 12))
+                Label("Clear Everything", systemImage: "trash")
             }
-            .buttonStyle(.plain)
+            .buttonStyle(PrimaryButton(color: .accentRed))
+            .padding(.horizontal, 60)
         }
     }
 
     private var unknownCommandView: some View {
         VStack(spacing: 8) {
-            Image(systemName: "questionmark.circle").font(.system(size: 36)).foregroundColor(.textTertiary)
-            Text("Unknown command").font(.title3.weight(.semibold))
-            Text("/import or /export").font(.calloutText).foregroundColor(.textSecondary)
+            Image(systemName: "questionmark.circle")
+                .font(.system(size: 36))
+                .foregroundColor(.textTertiary)
+            Text("Unknown Command")
+                .font(.title3.weight(.semibold))
+            Text("Use /import or /export")
+                .font(.callout)
+                .foregroundColor(.textSecondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }

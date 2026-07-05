@@ -2,7 +2,7 @@ import SwiftUI
 import PhotosUI
 import UniformTypeIdentifiers
 
-// MARK: - Recipe Editor
+// MARK: - Recipe Editor (iOS 26 Native Style)
 
 struct RecipeEditView: View {
     @Environment(RecipeStore.self) private var store
@@ -51,7 +51,7 @@ struct RecipeEditView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
+                VStack(alignment: .leading, spacing: Spacing.large) {
                     nameField
                     infoSection
                     ingredientsSection
@@ -59,7 +59,7 @@ struct RecipeEditView: View {
                     tagsSection
                     photosSection
                 }
-                .padding(.vertical)
+                .padding(.vertical, Spacing.standard)
             }
             .background(Color.pageBg)
             .navigationTitle(isNew ? "New Recipe" : "Edit Recipe")
@@ -99,15 +99,13 @@ struct RecipeEditView: View {
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .topBarLeading) {
-            Button(action: { dismiss() }) {
-                Image(systemName: "xmark.circle.fill").font(.title2).foregroundColor(.textSecondary)
-            }
+            Button("Cancel") { dismiss() }
+                .font(.body)
         }
         ToolbarItem(placement: .topBarTrailing) {
-            Button("Update") { save() }
-                .font(.bodyText.weight(.semibold)).foregroundColor(.white)
-                .padding(.horizontal, 24).padding(.vertical, 10)
-                .background(name.isEmpty ? Color.disabledBg : Color.accentRed).clipShape(Capsule())
+            Button(isNew ? "Add" : "Update") { save() }
+                .font(.body.weight(.semibold))
+                .foregroundColor(name.isEmpty ? .textTertiary : .accentColor)
                 .disabled(name.isEmpty)
         }
     }
@@ -115,42 +113,49 @@ struct RecipeEditView: View {
     // MARK: Name
 
     private var nameField: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("Name").font(.captionText).foregroundColor(.textSecondary)
+        VStack(alignment: .leading, spacing: Spacing.small) {
+            Text("Name").font(.caption).foregroundColor(.textSecondary)
+
             TextField("Recipe Name", text: $name)
-                .font(.title2.weight(.semibold)).textFieldStyle(.plain)
-                .padding(16).background(Color.cardBg, in: RoundedRectangle(cornerRadius: 12))
+                .font(.title2.weight(.semibold))
+                .textFieldStyle(.plain)
+                .padding(Spacing.standard)
+                .background(Color.cardBg, in: RoundedRectangle(cornerRadius: CornerRadius.standard))
         }
-        .padding(.horizontal, 20)
+        .padding(.horizontal, Spacing.large)
     }
 
     // MARK: Info
 
     private var infoSection: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("Info").font(.captionText).foregroundColor(.textSecondary)
+        VStack(alignment: .leading, spacing: Spacing.small) {
+            Text("Info").font(.caption).foregroundColor(.textSecondary)
+
             VStack(spacing: 0) {
                 infoRow("Servings", value: "\(servings)") { showServingsPicker = true }
-                Divider().padding(.leading, 16)
+                Divider().padding(.leading, Spacing.standard)
                 infoRow("Prep", value: "\(prepH)h \(prepM)m") { showPrepPicker = true }
-                Divider().padding(.leading, 16)
+                Divider().padding(.leading, Spacing.standard)
                 infoRow("Cook", value: "\(cookH)h \(cookM)m") { showCookPicker = true }
             }
-            .background(Color.cardBg, in: RoundedRectangle(cornerRadius: 16))
+            .background(Color.cardBg, in: RoundedRectangle(cornerRadius: CornerRadius.standard))
         }
-        .padding(.horizontal, 20)
+        .padding(.horizontal, Spacing.large)
     }
 
     private func infoRow(_ label: String, value: String, action: @escaping () -> Void) -> some View {
-        HStack {
-            Text(label).font(.bodyText).foregroundColor(.textPrimary)
-            Spacer()
-            Button(action: action) {
-                Text(value).font(.bodyText.weight(.semibold)).foregroundColor(.brandBlue)
-                Image(systemName: "chevron.down").font(.caption).foregroundColor(.brandBlue)
+        Button(action: action) {
+            HStack {
+                Text(label).font(.body).foregroundColor(.textPrimary)
+                Spacer()
+                Text(value).font(.body.weight(.semibold)).foregroundColor(.accentColor)
+                Image(systemName: "chevron.down")
+                    .font(.caption.weight(.semibold))
+                    .foregroundColor(.textTertiary)
             }
+            .padding(Spacing.standard)
         }
-        .padding(16)
+        .buttonStyle(.plain)
     }
 
     // MARK: Ingredients
@@ -179,12 +184,14 @@ struct RecipeEditView: View {
     private func ingredientRow(i: Int, ing: Ingredient) -> some View {
         HStack(spacing: 8) {
             Button(action: { ingredients.remove(at: i) }) {
-                Image(systemName: "minus.circle.fill").font(.title3).foregroundColor(.accentRed)
+                Image(systemName: "minus.circle.fill")
+                    .font(.title3)
+                    .foregroundColor(.accentRed)
             }
             .buttonStyle(.plain)
 
             Text(ing.displayString)
-                .font(.bodyText)
+                .font(.body)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .onTapGesture {
                     ingredientEditorText = "\(ing.amount) \(ing.unit) \(ing.name)"
@@ -193,7 +200,8 @@ struct RecipeEditView: View {
                 }
 
             Image(systemName: "line.3.horizontal")
-                .font(.title3).foregroundColor(.textTertiary)
+                .font(.title3)
+                .foregroundColor(.textTertiary)
         }
         .padding(.horizontal, 12).padding(.vertical, 10)
     }
@@ -224,23 +232,28 @@ struct RecipeEditView: View {
     private func stepRow(i: Int, step: CookingStep) -> some View {
         HStack(spacing: 8) {
             Button(action: { steps.remove(at: i) }) {
-                Image(systemName: "minus.circle.fill").font(.title3).foregroundColor(.accentRed)
+                Image(systemName: "minus.circle.fill")
+                    .font(.title3)
+                    .foregroundColor(.accentRed)
             }
             .buttonStyle(.plain)
 
             ZStack {
-                Circle().fill(Color.brandBlue).frame(width: 22, height: 22)
-                Text("\(i + 1)").font(.caption.weight(.bold)).foregroundColor(.white)
+                Circle().fill(Color(.systemGray4)).frame(width: 24, height: 24)
+                Text("\(i + 1)")
+                    .font(.caption.weight(.bold))
+                    .foregroundColor(.white)
             }
 
-            TextField("输入步骤内容", text: $steps[i].description, axis: .vertical)
-                .font(.bodyText)
+            TextField("添加步骤", text: $steps[i].description, axis: .vertical)
+                .font(.body)
                 .lineLimit(1...10)
                 .focused($focusedStepId, equals: step.id)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             Image(systemName: "line.3.horizontal")
-                .font(.title3).foregroundColor(.textTertiary)
+                .font(.title3)
+                .foregroundColor(.textTertiary)
         }
         .padding(.horizontal, 12).padding(.vertical, 10)
     }
@@ -270,20 +283,25 @@ struct RecipeEditView: View {
     private func tagRow(i: Int) -> some View {
         HStack(spacing: 8) {
             Button(action: { tags.remove(at: i) }) {
-                Image(systemName: "minus.circle.fill").font(.title3).foregroundColor(.accentRed)
+                Image(systemName: "minus.circle.fill")
+                    .font(.title3)
+                    .foregroundColor(.accentRed)
             }
             .buttonStyle(.plain)
 
-            Text("#").font(.bodyText).foregroundColor(.brandBlue)
+            Text("#")
+                .font(.body)
+                .foregroundColor(.accentColor)
 
             TextField("输入标签", text: $tags[i])
-                .font(.bodyText)
-                .foregroundColor(.brandBlue)
+                .font(.body)
+                .foregroundColor(.accentColor)
                 .focused($focusedTagIndex, equals: i)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             Image(systemName: "line.3.horizontal")
-                .font(.title3).foregroundColor(.textTertiary)
+                .font(.title3)
+                .foregroundColor(.textTertiary)
         }
         .padding(.horizontal, 12).padding(.vertical, 10)
     }
@@ -291,27 +309,31 @@ struct RecipeEditView: View {
     // MARK: Editable Section Template
 
     private func editableSection<Content: View>(title: String, count: Int, @ViewBuilder content: @escaping () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: Spacing.small) {
             HStack {
-                Text(title).font(.captionText).foregroundColor(.textSecondary)
+                Text(title).font(.caption).foregroundColor(.textSecondary)
                 Spacer()
                 Text("\(count)").font(.caption).foregroundColor(.textTertiary)
             }
             VStack(spacing: 0) { content() }
-                .background(Color.cardBg, in: RoundedRectangle(cornerRadius: 14))
+                .background(Color.cardBg, in: RoundedRectangle(cornerRadius: CornerRadius.standard))
         }
-        .padding(.horizontal, 20)
+        .padding(.horizontal, Spacing.large)
     }
 
     private func addButton(title: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             HStack(spacing: 6) {
-                Image(systemName: "plus.circle.fill").font(.title3).foregroundColor(.brandBlue)
-                Text(title).font(.bodyText.weight(.medium)).foregroundColor(.brandBlue)
+                Image(systemName: "plus.circle.fill")
+                    .font(.title3)
+                    .foregroundColor(.accentColor)
+                Text(title)
+                    .font(.body.weight(.medium))
+                    .foregroundColor(.accentColor)
             }
             .frame(maxWidth: .infinity)
             .padding(12)
-            .background(Color.brandedLightBlue, in: RoundedRectangle(cornerRadius: 10))
+            .background(Color(.systemFill).opacity(0.5), in: RoundedRectangle(cornerRadius: CornerRadius.standard))
         }
         .padding(12)
         .buttonStyle(.plain)
@@ -320,33 +342,38 @@ struct RecipeEditView: View {
     // MARK: Photos
 
     private var photosSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Photos").font(.captionText).foregroundColor(.textSecondary)
+        VStack(alignment: .leading, spacing: Spacing.small) {
+            Text("Photos").font(.caption).foregroundColor(.textSecondary)
 
             VStack(spacing: 0) {
                 if let data = photoData, let img = UIImage(data: data) {
-                    Image(uiImage: img).resizable().scaledToFill().frame(height: 160).clipped()
-                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                    Image(uiImage: img).resizable().scaledToFill()
+                        .frame(height: 180).clipped()
+                        .clipShape(RoundedRectangle(cornerRadius: CornerRadius.standard))
                         .padding(12)
                 }
 
                 photoAddButton
                 photoDeleteButton
             }
-            .background(Color.cardBg, in: RoundedRectangle(cornerRadius: 14))
+            .background(Color.cardBg, in: RoundedRectangle(cornerRadius: CornerRadius.standard))
         }
-        .padding(.horizontal, 20)
+        .padding(.horizontal, Spacing.large)
     }
 
     private var photoAddButton: some View {
         Button(action: { showAddPhotoMenu = true }) {
             HStack(spacing: 6) {
-                Image(systemName: "plus.circle.fill").font(.title3).foregroundColor(.brandBlue)
-                Text("Add Photo").font(.bodyText.weight(.medium)).foregroundColor(.brandBlue)
+                Image(systemName: "plus.circle.fill")
+                    .font(.title3)
+                    .foregroundColor(.accentColor)
+                Text("Add Photo")
+                    .font(.body.weight(.medium))
+                    .foregroundColor(.accentColor)
             }
             .frame(maxWidth: .infinity)
             .padding(12)
-            .background(Color.brandedLightBlue, in: RoundedRectangle(cornerRadius: 10))
+            .background(Color(.systemFill).opacity(0.5), in: RoundedRectangle(cornerRadius: 10))
         }
         .padding(.horizontal, 12)
         .padding(.top, photoData != nil ? 0 : 12)
@@ -365,8 +392,12 @@ struct RecipeEditView: View {
         if photoData != nil {
             Button(action: { photoData = nil }) {
                 HStack(spacing: 6) {
-                    Image(systemName: "trash.circle.fill").font(.title3).foregroundColor(.accentRed)
-                    Text("Delete Photo").font(.bodyText.weight(.medium)).foregroundColor(.accentRed)
+                    Image(systemName: "trash.circle.fill")
+                        .font(.title3)
+                        .foregroundColor(.accentRed)
+                    Text("Delete Photo")
+                        .font(.body.weight(.medium))
+                        .foregroundColor(.accentRed)
                 }
                 .frame(maxWidth: .infinity)
                 .padding(12)
@@ -425,11 +456,11 @@ struct RecipeEditView: View {
         NavigationStack {
             VStack(spacing: 0) {
                 TextField("例如：一勺糖", text: $ingredientEditorText)
-                    .font(.bodyText)
+                    .font(.body)
                     .textFieldStyle(.plain)
-                    .padding(16)
-                    .background(Color.cardBg, in: RoundedRectangle(cornerRadius: 12))
-                    .padding(20)
+                    .padding(Spacing.standard)
+                    .background(Color.cardBg, in: RoundedRectangle(cornerRadius: CornerRadius.standard))
+                    .padding(Spacing.large)
                 Spacer()
             }
             .background(Color.pageBg)
@@ -438,11 +469,11 @@ struct RecipeEditView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Done") { showIngredientEditor = false }
-                        .font(.bodyText.weight(.medium)).foregroundColor(.brandBlue)
+                        .font(.body.weight(.medium))
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(action: commitIngredientEditor) {
-                        Image(systemName: "plus").font(.title2.weight(.semibold)).foregroundColor(.brandBlue)
+                        Image(systemName: "plus").font(.title2.weight(.semibold))
                     }
                     .disabled(ingredientEditorText.trimmingCharacters(in: .whitespaces).isEmpty)
                 }
