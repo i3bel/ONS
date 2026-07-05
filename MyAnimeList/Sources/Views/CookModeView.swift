@@ -183,8 +183,9 @@ struct CookModeView: View {
         }
 
         let parsers: [(pattern: String, multiplier: Double)] = [
-            (#"(\d+)\s*(分钟|分|m(?!i))"#, 60),
+            (#"(\d+)\s*(天|day)"#, 86400),
             (#"(\d+)\s*(小时|h)"#, 3600),
+            (#"(\d+)\s*(分钟|分|m(?!i))"#, 60),
             (#"(\d+)\s*(秒|s(?!\w))"#, 1),
             (#"(\d+)\s*(min(?:ute)?s?|mins)"#, 60),
         ]
@@ -282,8 +283,7 @@ struct CookModeView: View {
             let id = UUID()
             let config = AlarmManager.AlarmConfiguration<CookingAlarmMetadata>(
                 countdownDuration: .init(preAlert: duration, postAlert: nil),
-                attributes: attributes,
-                stopIntent: StopTimerIntent(alarmID: id.uuidString)
+                attributes: attributes
             )
 
             do {
@@ -317,19 +317,27 @@ struct CookModeView: View {
     // MARK: - Calendar Event > 24h
 
     private func scheduleCalendarEvent(duration: TimeInterval, stepNumber: Int) {
-        let store = EKEventStore()
         Task {
-            let granted = try? await store.requestFullAccessToEvents()
-            guard granted == true else { return }
+            let store = EKEventStore()
+            do {
+                let granted = try await store.requestFullAccessToEvents()
+                guard granted else {
+                    print("Calendar: access denied")
+                    return
+                }
 
-            let event = EKEvent(eventStore: store)
-            event.title = "⏰ \(cooking.recipeName) — Step \(stepNumber) timer done"
-            event.startDate = Date().addingTimeInterval(duration)
-            event.endDate = event.startDate.addingTimeInterval(60)
-            event.calendar = store.defaultCalendarForNewEvents
-            event.alarms = [EKAlarm(absoluteDate: event.startDate)]
+                let event = EKEvent(eventStore: store)
+                event.title = "⏰ \(cooking.recipeName) — Step \(stepNumber)"
+                event.startDate = Date().addingTimeInterval(duration)
+                event.endDate = event.startDate.addingTimeInterval(60)
+                event.calendar = store.defaultCalendarForNewEvents
+                event.alarms = [EKAlarm(absoluteDate: event.startDate)]
 
-            try? store.save(event, span: .thisEvent)
+                try store.save(event, span: .thisEvent)
+                print("Calendar: event created for \(cooking.recipeName) step \(stepNumber)")
+            } catch {
+                print("Calendar error: \(error.localizedDescription)")
+            }
         }
     }
 }
