@@ -1,0 +1,49 @@
+{
+  "" : {
+    "diagnostics" : "/Users/hole/Documents/hugo/ONS/build/MyAnimeList.build/Debug-iphoneos/CookingAlarmWidget.build/Objects-normal/arm64/CookingAlarmWidget-primary.dia",
+    "emit-module-dependencies" : "/Users/hole/Documents/hugo/ONS/build/MyAnimeList.build/Debug-iphoneos/CookingAlarmWidget.build/Objects-normal/arm64/CookingAlarmWidget-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/hole/Documents/hugo/ONS/build/MyAnimeList.build/Debug-iphoneos/CookingAlarmWidget.build/Objects-normal/arm64/CookingAlarmWidget-primary-emit-module.dia",
+    "pch" : "/Users/hole/Documents/hugo/ONS/build/MyAnimeList.build/Debug-iphoneos/CookingAlarmWidget.build/Objects-normal/arm64/CookingAlarmWidget-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/hole/Documents/hugo/ONS/build/MyAnimeList.build/Debug-iphoneos/CookingAlarmWidget.build/Objects-normal/arm64/CookingAlarmWidget-primary.swiftdeps"
+  },
+  "/Users/hole/Documents/hugo/ONS/CookingAlarmWidget/CookingAlarmWidget.swift" : {
+    "const-values" : "/Users/hole/Documents/hugo/ONS/build/MyAnimeList.build/Debug-iphoneos/CookingAlarmWidget.build/Objects-normal/arm64/CookingAlarmWidget.swiftconstvalues",
+    "dependencies" : "/Users/hole/Documents/hugo/ONS/build/MyAnimeList.build/Debug-iphoneos/CookingAlarmWidget.build/Objects-normal/arm64/CookingAlarmWidget.d",
+    "diagnostics" : "/Users/hole/Documents/hugo/ONS/build/MyAnimeList.build/Debug-iphoneos/CookingAlarmWidget.build/Objects-normal/arm64/CookingAlarmWidget.dia",
+    "index-unit-output-path" : "/MyAnimeList.build/Debug-iphoneos/CookingAlarmWidget.build/Objects-normal/arm64/CookingAlarmWidget.o",
+    "llvm-bc" : "/Users/hole/Documents/hugo/ONS/build/MyAnimeList.build/Debug-iphoneos/CookingAlarmWidget.build/Objects-normal/arm64/CookingAlarmWidget.bc",
+    "object" : "/Users/hole/Documents/hugo/ONS/build/MyAnimeList.build/Debug-iphoneos/CookingAlarmWidget.build/Objects-normal/arm64/CookingAlarmWidget.o",
+    "swift-dependencies" : "/Users/hole/Documents/hugo/ONS/build/MyAnimeList.build/Debug-iphoneos/CookingAlarmWidget.build/Objects-normal/arm64/CookingAlarmWidget.swiftdeps",
+    "swiftmodule" : "/Users/hole/Documents/hugo/ONS/build/MyAnimeList.build/Debug-iphoneos/CookingAlarmWidget.build/Objects-normal/arm64/CookingAlarmWidget~partial.swiftmodule"
+  },
+  "/Users/hole/Documents/hugo/ONS/CookingAlarmWidget/CookingAlarmWidgetBundle.swift" : {
+    "const-values" : "/Users/hole/Documents/hugo/ONS/build/MyAnimeList.build/Debug-iphoneos/CookingAlarmWidget.build/Objects-normal/arm64/CookingAlarmWidgetBundle.swiftconstvalues",
+    "dependencies" : "/Users/hole/Documents/hugo/ONS/build/MyAnimeList.build/Debug-iphoneos/CookingAlarmWidget.build/Objects-normal/arm64/CookingAlarmWidgetBundle.d",
+    "diagnostics" : "/Users/hole/Documents/hugo/ONS/build/MyAnimeList.build/Debug-iphoneos/CookingAlarmWidget.build/Objects-normal/arm64/CookingAlarmWidgetBundle.dia",
+    "index-unit-output-path" : "/MyAnimeList.build/Debug-iphoneos/CookingAlarmWidget.build/Objects-normal/arm64/CookingAlarmWidgetBundle.o",
+    "llvm-bc" : "/Users/hole/Documents/hugo/ONS/build/MyAnimeList.build/Debug-iphoneos/CookingAlarmWidget.build/Objects-normal/arm64/CookingAlarmWidgetBundle.bc",
+    "object" : "/Users/hole/Documents/hugo/ONS/build/MyAnimeList.build/Debug-iphoneos/CookingAlarmWidget.build/Objects-normal/arm64/CookingAlarmWidgetBundle.o",
+    "swift-dependencies" : "/Users/hole/Documents/hugo/ONS/build/MyAnimeList.build/Debug-iphoneos/CookingAlarmWidget.build/Objects-normal/arm64/CookingAlarmWidgetBundle.swiftdeps",
+    "swiftmodule" : "/Users/hole/Documents/hugo/ONS/build/MyAnimeList.build/Debug-iphoneos/CookingAlarmWidget.build/Objects-normal/arm64/CookingAlarmWidgetBundle~partial.swiftmodule"
+  },
+  "/Users/hole/Documents/hugo/ONS/CookingAlarmWidget/CookingAlarmWidgetIntents.swift" : {
+    "const-values" : "/Users/hole/Documents/hugo/ONS/build/MyAnimeList.build/Debug-iphoneos/CookingAlarmWidget.build/Objects-normal/arm64/CookingAlarmWidgetIntents.swiftconstvalues",
+    "dependencies" : "/Users/hole/Documents/hugo/ONS/build/MyAnimeList.build/Debug-iphoneos/CookingAlarmWidget.build/Objects-normal/arm64/CookingAlarmWidgetIntents.d",
+    "diagnostics" : "/Users/hole/Documents/hugo/ONS/build/MyAnimeList.build/Debug-iphoneos/CookingAlarmWidget.build/Objects-normal/arm64/CookingAlarmWidgetIntents.dia",
+    "index-unit-output-path" : "/MyAnimeList.build/Debug-iphoneos/CookingAlarmWidget.build/Objects-normal/arm64/CookingAlarmWidgetIntents.o",
+    "llvm-bc" : "/Users/hole/Documents/hugo/ONS/build/MyAnimeList.build/Debug-iphoneos/CookingAlarmWidget.build/Objects-normal/arm64/CookingAlarmWidgetIntents.bc",
+    "object" : "/Users/hole/Documents/hugo/ONS/build/MyAnimeList.build/Debug-iphoneos/CookingAlarmWidget.build/Objects-normal/arm64/CookingAlarmWidgetIntents.o",
+    "swift-dependencies" : "/Users/hole/Documents/hugo/ONS/build/MyAnimeList.build/Debug-iphoneos/CookingAlarmWidget.build/Objects-normal/arm64/CookingAlarmWidgetIntents.swiftdeps",
+    "swiftmodule" : "/Users/hole/Documents/hugo/ONS/build/MyAnimeList.build/Debug-iphoneos/CookingAlarmWidget.build/Objects-normal/arm64/CookingAlarmWidgetIntents~partial.swiftmodule"
+  },
+  "/Users/hole/Documents/hugo/ONS/CookingAlarmWidget/CookingAlarmWidgetMetadata.swift" : {
+    "const-values" : "/Users/hole/Documents/hugo/ONS/build/MyAnimeList.build/Debug-iphoneos/CookingAlarmWidget.build/Objects-normal/arm64/CookingAlarmWidgetMetadata.swiftconstvalues",
+    "dependencies" : "/Users/hole/Documents/hugo/ONS/build/MyAnimeList.build/Debug-iphoneos/CookingAlarmWidget.build/Objects-normal/arm64/CookingAlarmWidgetMetadata.d",
+    "diagnostics" : "/Users/hole/Documents/hugo/ONS/build/MyAnimeList.build/Debug-iphoneos/CookingAlarmWidget.build/Objects-normal/arm64/CookingAlarmWidgetMetadata.dia",
+    "index-unit-output-path" : "/MyAnimeList.build/Debug-iphoneos/CookingAlarmWidget.build/Objects-normal/arm64/CookingAlarmWidgetMetadata.o",
+    "llvm-bc" : "/Users/hole/Documents/hugo/ONS/build/MyAnimeList.build/Debug-iphoneos/CookingAlarmWidget.build/Objects-normal/arm64/CookingAlarmWidgetMetadata.bc",
+    "object" : "/Users/hole/Documents/hugo/ONS/build/MyAnimeList.build/Debug-iphoneos/CookingAlarmWidget.build/Objects-normal/arm64/CookingAlarmWidgetMetadata.o",
+    "swift-dependencies" : "/Users/hole/Documents/hugo/ONS/build/MyAnimeList.build/Debug-iphoneos/CookingAlarmWidget.build/Objects-normal/arm64/CookingAlarmWidgetMetadata.swiftdeps",
+    "swiftmodule" : "/Users/hole/Documents/hugo/ONS/build/MyAnimeList.build/Debug-iphoneos/CookingAlarmWidget.build/Objects-normal/arm64/CookingAlarmWidgetMetadata~partial.swiftmodule"
+  }
+}

@@ -9,9 +9,13 @@ CONNECTED_IOS_DEVICE_ID := $(shell xcrun xcdevice list | /usr/bin/python3 -c 'im
 DEVICE_APP_PATH = $(shell xcodebuild -quiet -project $(PROJECT) -scheme $(SCHEME) -configuration $(CONFIGURATION) -destination "id=$(CONNECTED_IOS_DEVICE_ID)" -showBuildSettings -json | /usr/bin/python3 -c 'import json, sys; data = json.load(sys.stdin); item = next(entry for entry in data if entry.get("target") == "$(APP_NAME)"); settings = item["buildSettings"]; print(settings["TARGET_BUILD_DIR"] + "/" + settings["FULL_PRODUCT_NAME"])')
 DEVICE_PROCESS_LAUNCH_ARGS ?=
 
-.PHONY: build
+.PHONY: build build-widget
+
 build:
 	xcodebuild -project $(PROJECT) -scheme $(SCHEME) -configuration $(CONFIGURATION) -destination 'generic/platform=iOS' build
+
+build-widget:
+	xcodebuild -project $(PROJECT) -target CookingAlarmWidget -configuration $(CONFIGURATION) -destination 'generic/platform=iOS' build
 
 .PHONY: test
 test:

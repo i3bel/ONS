@@ -1,0 +1,80 @@
+{
+  "source": "/Users/hole/Documents/hugo/ONS/CookingAlarmWidget/CookingAlarmWidgetIntents.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Pause",
+        "location": {
+          "startingColumn": 49,
+          "startingLine": 8
+        }
+      },
+      {
+        "comment": "",
+        "key": "Pause a cooking timer countdown",
+        "location": {
+          "startingColumn": 48,
+          "startingLine": 9
+        }
+      },
+      {
+        "comment": "",
+        "key": "Alarm ID",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 11
+        }
+      },
+      {
+        "comment": "",
+        "key": "Stop",
+        "location": {
+          "startingColumn": 49,
+          "startingLine": 24
+        }
+      },
+      {
+        "comment": "",
+        "key": "Stop a cooking timer",
+        "location": {
+          "startingColumn": 48,
+          "startingLine": 25
+        }
+      },
+      {
+        "comment": "",
+        "key": "Alarm ID",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 27
+        }
+      },
+      {
+        "comment": "",
+        "key": "Resume",
+        "location": {
+          "startingColumn": 49,
+          "startingLine": 40
+        }
+      },
+      {
+        "comment": "",
+        "key": "Resume a paused cooking timer",
+        "location": {
+          "startingColumn": 48,
+          "startingLine": 41
+        }
+      },
+      {
+        "comment": "",
+        "key": "Alarm ID",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 43
+        }
+      }
+    ]
+  },
+  "version": 1
+}

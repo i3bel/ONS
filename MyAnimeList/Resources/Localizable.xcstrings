@@ -74,6 +74,9 @@
     "Add to Groceries" : {
 
     },
+    "Alarm ID" : {
+
+    },
     "Camera" : {
 
     },
@@ -174,6 +177,15 @@
     "No results" : {
 
     },
+    "Pause" : {
+
+    },
+    "Pause a cooking timer countdown" : {
+
+    },
+    "Paused" : {
+
+    },
     "Photo Library" : {
 
     },
@@ -184,6 +196,18 @@
 
     },
     "Recipes, Ingredients and More" : {
+
+    },
+    "Repeat" : {
+
+    },
+    "Repeat a cooking timer countdown" : {
+
+    },
+    "Resume" : {
+
+    },
+    "Resume a paused cooking timer" : {
 
     },
     "Scale" : {
@@ -205,6 +229,12 @@
 
     },
     "Start" : {
+
+    },
+    "Stop" : {
+
+    },
+    "Stop a cooking timer" : {
 
     },
     "Tags" : {

@@ -1,19 +1,6 @@
 import SwiftUI
-import ActivityKit
-import AudioToolbox
-import RecipeSlateShared
-
-// MARK: - CookingTimerAttributes extension (display helpers)
-
-extension CookingTimerAttributes.ContentState {
-    var displayTime: String {
-        let m = remainingSeconds / 60
-        let s = remainingSeconds % 60
-        return m > 0 ? "\(m):\(String(format: "%02d", s))" : "\(s)s"
-    }
-
-    var totalMinutes: Int { (totalSeconds + 59) / 60 }
-}
+import AlarmKit
+import EventKit
 
 struct CookModeView: View {
     @Environment(RecipeStore.self) private var store
@@ -98,7 +85,7 @@ struct CookModeView: View {
             }
 
             if timerSelectionMode && !completed && !timeMatches.isEmpty {
-                timePills(matches: timeMatches, stepNumber: i + 1)
+                timePills(matches: timeMatches, stepNumber: i + 1, stepIndex: i)
             }
         }
         .padding(12)
@@ -132,7 +119,6 @@ struct CookModeView: View {
         .padding(.top, 4)
     }
 
-    /// Clear shopping list on first step completion, then toggle step state.
     private func handleStepToggle(_ stepId: String) {
         if !cooking.completedStepIds.contains(stepId) && cooking.completedStepIds.isEmpty {
             store.clearShoppingList()
@@ -140,10 +126,12 @@ struct CookModeView: View {
         cooking.toggleStep(stepId)
     }
 
-    private func timePills(matches: [String], stepNumber: Int) -> some View {
+    // MARK: Time Pills
+
+    private func timePills(matches: [String], stepNumber: Int, stepIndex: Int) -> some View {
         HStack(spacing: 6) {
             ForEach(matches, id: \.self) { match in
-                Button(action: { startTimer(match: match, stepNumber: stepNumber) }) {
+                Button(action: { startTimer(match: match, stepNumber: stepNumber, stepIndex: stepIndex) }) {
                     Text(match)
                         .font(.captionText.weight(.semibold))
                         .foregroundColor(.accentOrange)
@@ -160,7 +148,6 @@ struct CookModeView: View {
 
     // MARK: Colored Text
 
-    /// Highlights time (red/orange) and temperature (orange) in cooking step descriptions.
     private func cookingColoredText(_ text: String) -> Text {
         let rules: [HighlightRule] = [
             .init(
@@ -187,7 +174,6 @@ struct CookModeView: View {
     private func parseTimeToSeconds(_ text: String) -> TimeInterval? {
         let trimmed = text.trimmingCharacters(in: .whitespaces)
 
-        // Chinese idioms
         switch trimmed {
         case "一刻", "一刻钟": return 15 * 60
         case "一会", "一会儿": return 5 * 60
@@ -196,7 +182,6 @@ struct CookModeView: View {
         default: break
         }
 
-        // Structured patterns: minutes, hours, seconds, English minutes
         let parsers: [(pattern: String, multiplier: Double)] = [
             (#"(\d+)\s*(分钟|分|m(?!i))"#, 60),
             (#"(\d+)\s*(小时|h)"#, 3600),
@@ -212,7 +197,6 @@ struct CookModeView: View {
             }
         }
 
-        // Chinese digit time
         let chineseMap: [Character: Double] = [
             "一": 1, "二": 2, "两": 2, "三": 3, "四": 4,
             "五": 5, "六": 6, "七": 7, "八": 8, "九": 9,
@@ -231,57 +215,128 @@ struct CookModeView: View {
         return nil
     }
 
-    // MARK: Live Activity Timer
+    // MARK: - System Timer (AlarmKit) ≤ 24h
 
-    private func startTimer(match: String, stepNumber: Int) {
-        guard let duration = parseTimeToSeconds(match) else { return }
-
+    private func startTimer(match: String, stepNumber: Int, stepIndex: Int) {
+        guard let duration = parseTimeToSeconds(match), duration > 0 else { return }
         timerSelectionMode = false
-        let recipeName = cooking.recipeName
 
+        if duration <= 86400 {
+            startSystemTimer(duration: duration, stepNumber: stepNumber)
+        } else {
+            scheduleCalendarEvent(duration: duration, stepNumber: stepNumber)
+        }
+    }
+
+    private func startSystemTimer(duration: TimeInterval, stepNumber: Int) {
         Task {
-            let attributes = CookingTimerAttributes(timerId: UUID().uuidString)
-            let initialState = CookingTimerAttributes.ContentState(
-                remainingSeconds: Int(duration),
-                totalSeconds: Int(duration),
-                stepLabel: "Step \(stepNumber)",
-                recipeName: recipeName
+            guard await requestAlarmAuthorization() else {
+                print("AlarmKit: not authorized")
+                return
+            }
+
+            let metadata = CookingAlarmMetadata(
+                recipeName: cooking.recipeName,
+                stepNumber: stepNumber
+            )
+
+            let alertContent = AlarmPresentation.Alert(
+                title: LocalizedStringResource(stringLiteral: metadata.label),
+                stopButton: AlarmButton(
+                    text: "Done",
+                    textColor: .white,
+                    systemImageName: "stop.circle"
+                ),
+                secondaryButton: AlarmButton(
+                    text: "Repeat",
+                    textColor: .orange,
+                    systemImageName: "repeat.circle"
+                ),
+                secondaryButtonBehavior: .countdown
+            )
+
+            let countdownContent = AlarmPresentation.Countdown(
+                title: LocalizedStringResource(stringLiteral: metadata.label),
+                pauseButton: AlarmButton(
+                    text: "Pause",
+                    textColor: .orange,
+                    systemImageName: "pause.fill"
+                )
+            )
+
+            let pausedContent = AlarmPresentation.Paused(
+                title: "Paused",
+                resumeButton: AlarmButton(
+                    text: "Resume",
+                    textColor: .orange,
+                    systemImageName: "play.fill"
+                )
+            )
+
+            let presentation = AlarmPresentation(
+                alert: alertContent,
+                countdown: countdownContent,
+                paused: pausedContent
+            )
+
+            let attributes = AlarmAttributes<CookingAlarmMetadata>(
+                presentation: presentation,
+                metadata: metadata,
+                tintColor: .orange
+            )
+
+            let id = UUID()
+            let config = AlarmManager.AlarmConfiguration<CookingAlarmMetadata>(
+                countdownDuration: .init(preAlert: duration, postAlert: nil),
+                attributes: attributes,
+                stopIntent: StopTimerIntent(alarmID: id.uuidString),
+                secondaryIntent: PauseTimerIntent(alarmID: id.uuidString)
             )
 
             do {
-                let activity = try Activity.request(
-                    attributes: attributes,
-                    content: .init(state: initialState, staleDate: nil)
-                )
-
-                var remaining = Int(duration)
-                while remaining > 0 {
-                    try await Task.sleep(nanoseconds: 1_000_000_000)
-                    remaining -= 1
-                    let state = CookingTimerAttributes.ContentState(
-                        remainingSeconds: max(0, remaining),
-                        totalSeconds: Int(duration),
-                        stepLabel: "Step \(stepNumber)",
-                        recipeName: recipeName
-                    )
-                    await activity.update(using: state)
-                }
-
-                await activity.end(
-                    using: CookingTimerAttributes.ContentState(
-                        remainingSeconds: 0,
-                        totalSeconds: Int(duration),
-                        stepLabel: "Step \(stepNumber)",
-                        recipeName: recipeName
-                    ),
-                    dismissalPolicy: .after(Date(timeIntervalSinceNow: 3))
-                )
-
-                AudioServicesPlayAlertSound(1005)
-                AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
+                _ = try await AlarmManager.shared.schedule(id: id, configuration: config)
+                print("AlarmKit: timer scheduled (\(Int(duration))s, step \(stepNumber))")
             } catch {
-                print("Live Activity error: \(error)")
+                print("AlarmKit error: \(error) (\(error.localizedDescription))")
             }
+        }
+    }
+
+    private func requestAlarmAuthorization() async -> Bool {
+        switch AlarmManager.shared.authorizationState {
+        case .authorized:
+            return true
+        case .denied:
+            return false
+        case .notDetermined:
+            do {
+                let state = try await AlarmManager.shared.requestAuthorization()
+                return state == .authorized
+            } catch {
+                print("AlarmKit authorization error: \(error)")
+                return false
+            }
+        @unknown default:
+            return false
+        }
+    }
+
+    // MARK: - Calendar Event > 24h
+
+    private func scheduleCalendarEvent(duration: TimeInterval, stepNumber: Int) {
+        let store = EKEventStore()
+        Task {
+            let granted = try? await store.requestFullAccessToEvents()
+            guard granted == true else { return }
+
+            let event = EKEvent(eventStore: store)
+            event.title = "⏰ \(cooking.recipeName) — Step \(stepNumber) timer done"
+            event.startDate = Date().addingTimeInterval(duration)
+            event.endDate = event.startDate.addingTimeInterval(60)
+            event.calendar = store.defaultCalendarForNewEvents
+            event.alarms = [EKAlarm(absoluteDate: event.startDate)]
+
+            try? store.save(event, span: .thisEvent)
         }
     }
 }
