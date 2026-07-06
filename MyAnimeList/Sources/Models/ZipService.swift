@@ -1,3 +1,4 @@
+import Compression
 import Foundation
 
 // MARK: - Minimal ZIP Service (pure Swift, no external dependencies)
@@ -115,45 +116,58 @@ enum ZipService {
 
         // Parse central directory entries
         let cdEnd = Int(cdOffset + cdSize)
-        var entries: [(path: String, localOffset: UInt32)] = []
+        struct Entry {
+            let path: String
+            let method: UInt16     // 0=store, 8=deflate
+            let compSize: Int
+            let uncompSize: Int
+            let localOffset: UInt32
+        }
+        var entries: [Entry] = []
         var pos = Int(cdOffset)
         while pos + 46 <= cdEnd {
             let sig = UInt32(bytes[pos], bytes[pos+1], bytes[pos+2], bytes[pos+3])
             guard sig == 0x02014B50 else { break }
+            let method = UInt16(bytes[pos+10], bytes[pos+11])
+            let compSize = Int(UInt32(bytes[pos+20], bytes[pos+21], bytes[pos+22], bytes[pos+23]))
+            let uncompSize = Int(UInt32(bytes[pos+24], bytes[pos+25], bytes[pos+26], bytes[pos+27]))
             let nameLen = Int(UInt16(bytes[pos+28], bytes[pos+29]))
             let extraLen = Int(UInt16(bytes[pos+30], bytes[pos+31]))
             let localOffset = UInt32(bytes[pos+42], bytes[pos+43], bytes[pos+44], bytes[pos+45])
             let nameStart = pos + 46
             guard nameStart + nameLen <= bytes.count else { break }
             let name = String(bytes: Array(bytes[nameStart..<nameStart+nameLen]), encoding: .utf8) ?? ""
-            entries.append((name, localOffset))
+            entries.append(Entry(path: name, method: method, compSize: compSize, uncompSize: uncompSize, localOffset: localOffset))
             pos = nameStart + nameLen + extraLen
         }
 
         // Extract each file from local headers
         var extractedFiles: [String] = []
-        for (path, localOffset) in entries {
-            // Parse local file header
-            let lo = Int(localOffset)
+        for entry in entries {
+            // Skip directory entries (end with /)
+            guard !entry.path.hasSuffix("/") else { continue }
+            let lo = Int(entry.localOffset)
             guard lo + 30 <= bytes.count else { continue }
             let nameLen = Int(UInt16(bytes[lo+26], bytes[lo+27]))
             let extraLen = Int(UInt16(bytes[lo+28], bytes[lo+29]))
             let dataStart = lo + 30 + nameLen + extraLen
-
-            // Read compressed size from local header
-            let compSize = Int(UInt32(bytes[lo+18], bytes[lo+19], bytes[lo+20], bytes[lo+21]))
-            let dataEnd = dataStart + compSize
-
+            let dataEnd = dataStart + entry.compSize
             guard dataStart <= bytes.count, dataEnd <= bytes.count else { continue }
 
-            let fileData = Data(bytes[dataStart..<dataEnd])
-            let destFile = destinationURL.appendingPathComponent(path)
+            var fileData = Data(bytes[dataStart..<dataEnd])
 
-            // Create subdirectories if needed
+            // Decompress deflate (method 8) using Compression framework
+            if entry.method == 8 {
+                guard let decompressed = decompressDeflate(fileData, expectedSize: entry.uncompSize) else {
+                    throw ZipError.invalidArchive
+                }
+                fileData = decompressed
+            }
+
+            let destFile = destinationURL.appendingPathComponent(entry.path)
             try FileManager.default.createDirectory(at: destFile.deletingLastPathComponent(), withIntermediateDirectories: true)
-
             try fileData.write(to: destFile, options: .atomic)
-            extractedFiles.append(path)
+            extractedFiles.append(entry.path)
         }
 
         guard !extractedFiles.isEmpty else { throw ZipError.emptyArchive }
@@ -174,6 +188,28 @@ enum ZipService {
             pos -= 1
         }
         return nil
+    }
+
+    // MARK: - Deflate Decompression (via Compression framework)
+
+    /// Decompress deflate (zlib) data using system Compression framework.
+    /// Supports standard ZIP deflate (method 8).
+    private static func decompressDeflate(_ data: Data, expectedSize: Int) -> Data? {
+        guard expectedSize > 0 else { return data }
+
+        let output = UnsafeMutablePointer<UInt8>.allocate(capacity: expectedSize)
+        defer { output.deallocate() }
+
+        let decodedSize = data.withUnsafeBytes { src in
+            compression_decode_buffer(
+                output, expectedSize,
+                src.bindMemory(to: UInt8.self).baseAddress!, data.count,
+                nil, COMPRESSION_ZLIB
+            )
+        }
+
+        guard decodedSize > 0 else { return nil }
+        return Data(bytes: output, count: decodedSize)
     }
 
     // MARK: - CRC-32 (pure Swift)
