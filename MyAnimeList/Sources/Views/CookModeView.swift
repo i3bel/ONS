@@ -32,7 +32,9 @@ struct CookModeView: View {
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .principal) {
             (Text("\(cooking.remainingSteps)").font(.title2.weight(.bold)).foregroundColor(.textPrimary)
-            + Text(" Steps").font(.body.weight(.bold)).foregroundColor(.textSecondary))
+            + Text(" Steps").font(.body.weight(.bold)).foregroundColor(.textSecondary)
+            + Text("                                                     ")
+                .foregroundColor(.clear))
                 .contentTransition(.numericText())
                 .animation(.default, value: cooking.remainingSteps)
         }

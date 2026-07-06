@@ -47,7 +47,9 @@ struct ShoppingListView: View {
             (Text("\(leftCount)")
                 .font(.title2.weight(.bold)).foregroundColor(.textPrimary)
             + Text(" Left")
-                .font(.body.weight(.bold)).foregroundColor(.textSecondary))
+                .font(.body.weight(.bold)).foregroundColor(.textSecondary)
+            + Text("                                                     ")
+                .foregroundColor(.clear))
                 .contentTransition(.numericText())
         }
         ToolbarItem(placement: .topBarTrailing) {

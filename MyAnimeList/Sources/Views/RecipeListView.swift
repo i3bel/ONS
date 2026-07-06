@@ -71,7 +71,9 @@ struct RecipeListView: View {
             (Text("\(store.recipes.count)")
                 .font(.title2.weight(.bold)).foregroundColor(.textPrimary)
             + Text(" Recipes")
-                .font(.body.weight(.bold)).foregroundColor(.textSecondary))
+                .font(.body.weight(.bold)).foregroundColor(.textSecondary)
+            + Text("                                                     ")
+                .foregroundColor(.clear))
                 .contentTransition(.numericText())
                 .animation(.spring, value: store.recipes.count)
         }
