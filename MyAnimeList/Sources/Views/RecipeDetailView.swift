@@ -9,7 +9,7 @@ struct RecipeDetailView: View {
     @State var recipe: Recipe
 
     @State private var showGroceries = false
-    @State private var showEdit = false
+    @State private var showEditDetail = false
     @State private var showDelete = false
     @State private var showScale = false
     @State private var scaleServings: Int?
@@ -30,12 +30,14 @@ struct RecipeDetailView: View {
         .background(Color.pageBg)
         .ignoresSafeArea(edges: .top)
         .navigationBarTitleDisplayMode(.inline)
-        .navigationBarBackButtonHidden(true)
         .toolbarBackground(.hidden, for: .navigationBar)
+        .toolbar(.hidden, for: .tabBar)
         .toolbar { toolbarContent }
         .sheet(isPresented: $showGroceries) { AddToGroceriesSheet(recipe: recipe) }
-        .sheet(isPresented: $showEdit) { RecipeEditView(existingRecipe: recipe) }
-        .onChange(of: showEdit) { _, isPresented in
+        .navigationDestination(isPresented: $showEditDetail) {
+            RecipeEditView(existingRecipe: recipe)
+        }
+        .onChange(of: showEditDetail) { _, isPresented in
             if !isPresented, let updated = store.recipes.first(where: { $0.id == recipe.id }) {
                 recipe = updated
             }
@@ -48,21 +50,13 @@ struct RecipeDetailView: View {
 
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        ToolbarItem(placement: .navigationBarLeading) {
-            Button(action: { dismiss() }) {
-                Image(systemName: "chevron.left")
-                    .font(.body.weight(.semibold))
-                    .foregroundColor(.white)
-            }
-        }
         ToolbarItem(placement: .navigationBarTrailing) {
             Menu {
-                Button("Edit Recipe", systemImage: "pencil") { showEdit = true }
+                Button("Edit Recipe", systemImage: "pencil") { showEditDetail = true }
                 Button("Delete Recipe", systemImage: "trash", role: .destructive) { showDelete = true }
             } label: {
                 Image(systemName: "ellipsis.circle")
                     .font(.title3)
-                    .foregroundColor(.white)
             }
         }
     }

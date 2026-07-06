@@ -3,7 +3,7 @@ import Observation
 
 // MARK: - Recipe Model
 
-struct Recipe: Identifiable, Codable, Equatable {
+struct Recipe: Identifiable, Codable, Equatable, Hashable {
     var id: String
     var name: String
     var servings: Int
@@ -50,7 +50,7 @@ struct Recipe: Identifiable, Codable, Equatable {
 
 // MARK: - Ingredient
 
-struct Ingredient: Identifiable, Codable, Equatable {
+struct Ingredient: Identifiable, Codable, Equatable, Hashable {
     var id: String
     var name: String
     var amount: Double
@@ -163,7 +163,7 @@ struct Ingredient: Identifiable, Codable, Equatable {
 
 // MARK: - Cooking Step
 
-struct CookingStep: Identifiable, Codable, Equatable {
+struct CookingStep: Identifiable, Codable, Equatable, Hashable {
     var id: String
     var order: Int
     var description: String

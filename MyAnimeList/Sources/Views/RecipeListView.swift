@@ -20,9 +20,11 @@ struct RecipeListView: View {
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { toolbarContent }
-            .sheet(isPresented: $showNewRecipe) { RecipeEditView() }
-            .fullScreenCover(item: $showDetail) { r in
-                NavigationStack { RecipeDetailView(recipe: r) }
+            .sheet(isPresented: $showNewRecipe) {
+                NavigationStack { RecipeEditView() }
+            }
+            .navigationDestination(item: $showDetail) { recipe in
+                RecipeDetailView(recipe: recipe)
             }
         }
     }

@@ -50,48 +50,47 @@ struct RecipeEditView: View {
     private var isNew: Bool { existingRecipe == nil }
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: Spacing.large) {
-                    nameField
-                    infoSection
-                    ingredientsSection
-                    stepsSection
-                    tagsSection
-                    photosSection
-                }
-                .padding(.vertical, Spacing.standard)
+        ScrollView {
+            VStack(alignment: .leading, spacing: Spacing.large) {
+                nameField
+                infoSection
+                ingredientsSection
+                stepsSection
+                tagsSection
+                photosSection
             }
-            .background(Color.pageBg)
-            .navigationTitle(isNew ? "New Recipe" : "Edit Recipe")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar { toolbarContent }
-            .onAppear(perform: loadExisting)
-            .photosPicker(isPresented: $showPhotoPicker, selection: $photoItem, matching: .images)
-            .onChange(of: photoItem) { _, item in
-                Task { if let d = try? await item?.loadTransferable(type: Data.self) { photoData = d } }
+            .padding(.vertical, Spacing.standard)
+        }
+        .background(Color.pageBg)
+        .navigationTitle(isNew ? "New Recipe" : "Edit Recipe")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar(.hidden, for: .tabBar)
+        .toolbar { toolbarContent }
+        .onAppear(perform: loadExisting)
+        .photosPicker(isPresented: $showPhotoPicker, selection: $photoItem, matching: .images)
+        .onChange(of: photoItem) { _, item in
+            Task { if let d = try? await item?.loadTransferable(type: Data.self) { photoData = d } }
+        }
+        .sheet(isPresented: $showCamera) {
+            UIImagePicker(source: .camera) { img in
+                photoData = img.jpegData(compressionQuality: 0.8)
+                showCamera = false
             }
-            .sheet(isPresented: $showCamera) {
-                UIImagePicker(source: .camera) { img in
-                    photoData = img.jpegData(compressionQuality: 0.8)
-                    showCamera = false
-                }
-            }
-            .fileImporter(isPresented: $showFilePicker, allowedContentTypes: [.image], allowsMultipleSelection: false) { result in
-                handleFileImport(result)
-            }
-            .sheet(isPresented: $showServingsPicker) {
-                NumberPickerView(title: "Servings", value: $servings, range: 1...30)
-            }
-            .sheet(isPresented: $showPrepPicker) {
-                TimePickerView(title: "Prep Time", hours: $prepH, minutes: $prepM)
-            }
-            .sheet(isPresented: $showCookPicker) {
-                TimePickerView(title: "Cook Time", hours: $cookH, minutes: $cookM)
-            }
-            .sheet(isPresented: $showIngredientEditor) {
-                ingredientEditorSheet
-            }
+        }
+        .fileImporter(isPresented: $showFilePicker, allowedContentTypes: [.image], allowsMultipleSelection: false) { result in
+            handleFileImport(result)
+        }
+        .sheet(isPresented: $showServingsPicker) {
+            NumberPickerView(title: "Servings", value: $servings, range: 1...30)
+        }
+        .sheet(isPresented: $showPrepPicker) {
+            TimePickerView(title: "Prep Time", hours: $prepH, minutes: $prepM)
+        }
+        .sheet(isPresented: $showCookPicker) {
+            TimePickerView(title: "Cook Time", hours: $cookH, minutes: $cookM)
+        }
+        .sheet(isPresented: $showIngredientEditor) {
+            ingredientEditorSheet
         }
     }
 
